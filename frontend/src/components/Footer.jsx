@@ -137,7 +137,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-primary/20 mt-8 pt-8 text-center">
           <p className="text-text/60 text-sm">
-            © {currentYear} Croche Ella. All rights reserved. Made with ❤️
+            © {currentYear} Croche Ella. All rights reserved.
           </p>
         </div>
       </div>
