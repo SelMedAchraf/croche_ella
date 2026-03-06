@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { FiArrowRight, FiHeart } from 'react-icons/fi';
 import axios from 'axios';
+import ellaImage from '../assets/ella.jpg';
 
 const Home = () => {
   const { t } = useTranslation();
   const [featuredProducts, setFeaturedProducts] = useState([]);
-  const [testimonials, setTestimonials] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,13 +19,9 @@ const Home = () => {
     try {
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
       
-      const [productsRes, testimonialsRes] = await Promise.all([
-        axios.get(`${apiUrl}/products`).catch(() => ({ data: [] })),
-        axios.get(`${apiUrl}/testimonials`).catch(() => ({ data: [] }))
-      ]);
+      const productsRes = await axios.get(`${apiUrl}/products`).catch(() => ({ data: [] }));
 
       setFeaturedProducts(productsRes.data.slice(0, 6));
-      setTestimonials(testimonialsRes.data.slice(0, 3));
     } catch (error) {
       console.error('Error fetching home data:', error);
     } finally {
@@ -159,7 +155,7 @@ const Home = () => {
               className="relative h-96 rounded-2xl overflow-hidden shadow-2xl"
             >
               <img
-                src="https://images.unsplash.com/photo-1606997724049-c0c1b0be2a8a?w=800"
+                src={ellaImage}
                 alt="Crochet artist at work"
                 className="w-full h-full object-cover"
               />
@@ -167,48 +163,6 @@ const Home = () => {
           </div>
         </div>
       </section>
-
-      {/* Testimonials */}
-      {testimonials.length > 0 && (
-        <section className="section-padding bg-white">
-          <div className="max-w-7xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-12"
-            >
-              <h2 className="text-4xl font-display font-bold text-primary mb-4">
-                {t('home.testimonialsTitle')}
-              </h2>
-              <div className="w-20 h-1 bg-highlight mx-auto rounded-full"></div>
-            </motion.div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              {testimonials.map((testimonial, index) => (
-                <motion.div
-                  key={testimonial.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="card p-6"
-                >
-                  <div className="flex items-center mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <span key={i} className={i < testimonial.rating ? 'text-yellow-400' : 'text-gray-300'}>
-                        ⭐
-                      </span>
-                    ))}
-                  </div>
-                  <p className="text-text/70 mb-4 italic">"{testimonial.message}"</p>
-                  <p className="font-semibold text-primary">{testimonial.customer_name}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* Newsletter */}
       <section className="section-padding bg-gradient-to-br from-primary/20 to-highlight/20">

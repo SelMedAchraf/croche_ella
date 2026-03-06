@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import './i18n/config';
 import Navbar from './components/Navbar';
@@ -10,20 +10,20 @@ import ProductDetails from './pages/ProductDetails';
 import Gallery from './pages/Gallery';
 import CustomOrders from './pages/CustomOrders';
 import About from './pages/About';
-import Testimonials from './pages/Testimonials';
 import Contact from './pages/Contact';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 
-function App() {
+function AppContent() {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
   return (
-    <CartProvider>
-      <Router>
-        <div className="min-h-screen flex flex-col bg-secondary">
-          <Navbar />
-          <main className="flex-grow pt-20">
+    <div className="min-h-screen flex flex-col bg-secondary">
+      {!isAdminRoute && <Navbar />}
+      <main className={`flex-grow ${!isAdminRoute ? 'pt-20' : ''}`}>
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/products" element={<Products />} />
@@ -31,7 +31,7 @@ function App() {
               <Route path="/gallery" element={<Gallery />} />
               <Route path="/custom-orders" element={<CustomOrders />} />
               <Route path="/about" element={<About />} />
-              <Route path="/testimonials" element={<Testimonials />} />
+
               <Route path="/contact" element={<Contact />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
@@ -39,9 +39,17 @@ function App() {
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
             </Routes>
           </main>
-          <Footer />
-          <WhatsAppButton />
+          {!isAdminRoute && <Footer />}
+          {!isAdminRoute && <WhatsAppButton />}
         </div>
+  );
+}
+
+function App() {
+  return (
+    <CartProvider>
+      <Router>
+        <AppContent />
       </Router>
     </CartProvider>
   );

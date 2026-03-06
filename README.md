@@ -11,8 +11,7 @@ A beautiful, full-stack e-commerce platform for showcasing and selling handmade 
 - 📱 **Responsive Design** - Perfect experience on mobile, tablet, and desktop
 - 🖼️ **Image Gallery** - View stunning crochet creations
 - 💝 **Custom Orders** - Request personalized crochet items
-- 💬 **Testimonials** - Read reviews from happy customers
-- 📞 **Contact** - Easy communication with the artist
+-  **Contact** - Easy communication with the artist
 - 💚 **WhatsApp Integration** - Quick messaging via floating button
 
 ### Admin Features
@@ -21,7 +20,6 @@ A beautiful, full-stack e-commerce platform for showcasing and selling handmade 
 - 📋 **Order Management** - View and update order statuses
 - 📊 **Analytics Dashboard** - Track sales and popular products
 - 🖼️ **Gallery Management** - Upload and manage showcase images
-- ⭐ **Testimonial Management** - Add and moderate customer reviews
 
 ### Admin Routes
 - Login: `http://localhost:5173/admin/login`

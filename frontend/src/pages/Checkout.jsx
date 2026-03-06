@@ -1,32 +1,60 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { FiCheck, FiCreditCard } from 'react-icons/fi';
+import { FiCheck, FiCreditCard, FiTruck, FiHome } from 'react-icons/fi';
 import axios from 'axios';
 import { useCart } from '../context/CartContext';
+import { useDeliveryPrices } from '../hooks/useDeliveryPrices';
 
 const Checkout = () => {
   const { t } = useTranslation();
   const { cartItems, getCartTotal, clearCart } = useCart();
+  const { deliveryPrices } = useDeliveryPrices();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     customer_name: '',
     customer_phone: '',
     customer_city: '',
-    delivery_notes: ''
+    delivery_notes: '',
+    wilaya_code: '',
+    delivery_type: 'home' // 'home' or 'stopdesk'
   });
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [deliveryPrice, setDeliveryPrice] = useState(0);
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
   };
+
+  // Calculate delivery price when wilaya or delivery type changes
+  useEffect(() => {
+    if (formData.wilaya_code && deliveryPrices.length > 0) {
+      const selectedWilaya = deliveryPrices.find(
+        (w) => w.wilaya_code === parseInt(formData.wilaya_code)
+      );
+      if (selectedWilaya) {
+        const price = formData.delivery_type === 'home' 
+          ? selectedWilaya.home_delivery_price 
+          : selectedWilaya.stopdesk_delivery_price;
+        setDeliveryPrice(parseFloat(price));
+        // Update customer_city with wilaya name
+        setFormData(prev => ({
+          ...prev,
+          customer_city: selectedWilaya.wilaya_name
+        }));
+      }
+    } else {
+      setDeliveryPrice(0);
+    }
+  }, [formData.wilaya_code, formData.delivery_type, deliveryPrices]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,8 +64,11 @@ const Checkout = () => {
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
       
       const orderData = {
-        ...formData,
-        total_amount: getCartTotal(),
+        customer_name: formData.customer_name,
+        customer_phone: formData.customer_phone,
+        customer_city: formData.customer_city,
+        delivery_notes: formData.delivery_notes,
+        total_amount: getCartTotal() + deliveryPrice,
         items: cartItems.map(item => ({
           product_id: item.id,
           quantity: item.quantity,
@@ -118,6 +149,68 @@ const Checkout = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-text mb-2">
+                    Wilaya (Province) *
+                  </label>
+                  <select
+                    name="wilaya_code"
+                    value={formData.wilaya_code}
+                    onChange={handleChange}
+                    required
+                    className="input-field"
+                  >
+                    <option value="">Select your wilaya</option>
+                    {deliveryPrices.map((wilaya) => (
+                      <option key={wilaya.id} value={wilaya.wilaya_code}>
+                        {wilaya.wilaya_code} - {wilaya.wilaya_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-text mb-2">
+                    Delivery Type *
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, delivery_type: 'home' })}
+                      className={`p-4 rounded-lg border-2 transition-all ${
+                        formData.delivery_type === 'home'
+                          ? 'border-primary bg-primary/10'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <FiHome className="w-6 h-6 mx-auto mb-2" />
+                      <p className="font-medium text-sm">Home Delivery</p>
+                      {formData.wilaya_code && (
+                        <p className="text-xs text-text/60 mt-1">
+                          {deliveryPrices.find(w => w.wilaya_code === parseInt(formData.wilaya_code))?.home_delivery_price || 0} DA
+                        </p>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, delivery_type: 'stopdesk' })}
+                      className={`p-4 rounded-lg border-2 transition-all ${
+                        formData.delivery_type === 'stopdesk'
+                          ? 'border-primary bg-primary/10'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <FiTruck className="w-6 h-6 mx-auto mb-2" />
+                      <p className="font-medium text-sm">Stop Desk</p>
+                      {formData.wilaya_code && (
+                        <p className="text-xs text-text/60 mt-1">
+                          {deliveryPrices.find(w => w.wilaya_code === parseInt(formData.wilaya_code))?.stopdesk_delivery_price || 0} DA
+                        </p>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-text mb-2">
                     {t('checkout.name')} *
                   </label>
                   <input
@@ -142,36 +235,22 @@ const Checkout = () => {
                     onChange={handleChange}
                     required
                     className="input-field"
-                    placeholder="+212 XXX-XXXXXX"
+                    placeholder="+213 XXX-XXXXXX"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-text mb-2">
-                    {t('checkout.city')} *
-                  </label>
-                  <input
-                    type="text"
-                    name="customer_city"
-                    value={formData.customer_city}
-                    onChange={handleChange}
-                    required
-                    className="input-field"
-                    placeholder="Casablanca"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-text mb-2">
-                    {t('checkout.deliveryNotes')}
+                    Full Address *
                   </label>
                   <textarea
                     name="delivery_notes"
                     value={formData.delivery_notes}
                     onChange={handleChange}
-                    rows="3"
+                    required
+                    rows="2"
                     className="input-field resize-none"
-                    placeholder="Any special instructions for delivery..."
+                    placeholder="Street address, building, apartment number..."
                   />
                 </div>
 
@@ -241,15 +320,15 @@ const Checkout = () => {
               <div className="border-t pt-4 space-y-3">
                 <div className="flex justify-between text-text/70">
                   <span>Subtotal</span>
-                  <span>${getCartTotal().toFixed(2)}</span>
+                  <span>{getCartTotal().toFixed(2)} DA</span>
                 </div>
                 <div className="flex justify-between text-text/70">
-                  <span>Shipping</span>
-                  <span>Free</span>
+                  <span>Delivery ({formData.delivery_type === 'home' ? 'Home' : 'Stop Desk'})</span>
+                  <span>{deliveryPrice > 0 ? `${deliveryPrice.toFixed(2)} DA` : 'Select wilaya'}</span>
                 </div>
                 <div className="flex justify-between text-xl font-bold pt-3 border-t">
                   <span>{t('cart.total')}</span>
-                  <span className="text-primary">${getCartTotal().toFixed(2)}</span>
+                  <span className="text-primary">{(getCartTotal() + deliveryPrice).toFixed(2)} DA</span>
                 </div>
               </div>
             </div>

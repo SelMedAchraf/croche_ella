@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { FiHeart, FiAward, FiUsers } from 'react-icons/fi';
+import ellaImage from '../assets/ella.jpg';
 
 const About = () => {
   const { t } = useTranslation();
@@ -27,7 +28,7 @@ const About = () => {
             viewport={{ once: true }}
           >
             <img
-              src="https://images.unsplash.com/photo-1606997724049-c0c1b0be2a8a?w=800"
+              src={ellaImage}
               alt="Crochet artist at work"
               className="rounded-2xl shadow-2xl w-full"
             />

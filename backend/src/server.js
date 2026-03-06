@@ -4,7 +4,9 @@ import dotenv from 'dotenv';
 import productRoutes from './routes/products.js';
 import orderRoutes from './routes/orders.js';
 import galleryRoutes from './routes/gallery.js';
-import testimonialRoutes from './routes/testimonials.js';
+import priceComponentRoutes from './routes/priceComponents.js';
+import deliveryPriceRoutes from './routes/deliveryPrices.js';
+import categoryRoutes from './routes/categories.js';
 
 dotenv.config();
 
@@ -20,10 +22,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
+app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/gallery', galleryRoutes);
-app.use('/api/testimonials', testimonialRoutes);
+app.use('/api/price-components', priceComponentRoutes);
+app.use('/api/delivery-prices', deliveryPriceRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

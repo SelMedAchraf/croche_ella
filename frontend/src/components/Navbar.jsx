@@ -34,7 +34,6 @@ const Navbar = () => {
     { path: '/gallery', label: t('nav.gallery') },
     { path: '/custom-orders', label: t('nav.customOrders') },
     { path: '/about', label: t('nav.about') },
-    { path: '/testimonials', label: t('nav.testimonials') },
     { path: '/contact', label: t('nav.contact') }
   ];
 

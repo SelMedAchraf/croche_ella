@@ -12,7 +12,6 @@ const resources = {
         gallery: 'Gallery',
         customOrders: 'Custom Orders',
         about: 'About',
-        testimonials: 'Testimonials',
         contact: 'Contact',
         cart: 'Cart',
         admin: 'Admin'
@@ -29,7 +28,6 @@ const resources = {
         popular: 'Popular Items',
         aboutTitle: 'About the Artist',
         galleryTitle: 'Gallery',
-        testimonialsTitle: 'Customer Testimonials',
         instagramTitle: 'Follow Us on Instagram',
         newsletter: {
           title: 'Stay Updated',
@@ -48,11 +46,7 @@ const resources = {
         outOfStock: 'Out of Stock',
         viewDetails: 'View Details',
         categories: {
-          all: 'All',
-          flowers: 'Crochet Flowers',
-          bags: 'Crochet Bags',
-          keychains: 'Keychains',
-          custom: 'Custom Crochet'
+          all: 'All'
         }
       },
       // Product Details
@@ -94,14 +88,46 @@ const resources = {
       // Custom Orders
       customOrders: {
         title: 'Custom Crochet Orders',
-        subtitle: 'Have something special in mind? Let us create it for you!',
+        subtitle: 'Build your perfect custom bouquet with our price calculator',
         formTitle: 'Tell us about your custom order',
         description: 'Describe your idea',
         preferredColors: 'Preferred Colors',
         budget: 'Your Budget',
         contactInfo: 'Contact Information',
         submit: 'Submit Request',
-        success: 'Request submitted successfully!'
+        success: 'Request submitted successfully!',
+        selectFlowers: 'Select Flowers',
+        selectWrapping: 'Select Wrapping',
+        addAccessories: 'Add Accessories',
+        orderSummary: 'Order Summary',
+        noComponents: 'No components selected yet',
+        totalPrice: 'Total Price'
+      },
+      // Price Components
+      priceComponents: {
+        title: 'Price Components',
+        addComponent: 'Add Component',
+        editComponent: 'Edit Component',
+        name: 'Component Name',
+        category: 'Category',
+        description: 'Description',
+        price: 'Price',
+        imageUrl: 'Image URL',
+        categories: {
+          flower: 'Flower',
+          packaging: 'Packaging',
+          accessory: 'Accessory'
+        }
+      },
+      // Delivery Prices
+      deliveryPrices: {
+        title: 'Delivery Prices',
+        wilaya: 'Wilaya',
+        wilayaCode: 'Code',
+        homeDelivery: 'Home Delivery',
+        stopDesk: 'Stop Desk',
+        selectWilaya: 'Select Wilaya',
+        deliveryType: 'Delivery Type'
       },
       // About
       about: {
@@ -140,7 +166,6 @@ const resources = {
         gallery: 'Galerie',
         customOrders: 'Commandes Personnalisées',
         about: 'À Propos',
-        testimonials: 'Témoignages',
         contact: 'Contact',
         cart: 'Panier',
         admin: 'Admin'
@@ -157,7 +182,6 @@ const resources = {
         popular: 'Articles Populaires',
         aboutTitle: 'À Propos de l\'Artiste',
         galleryTitle: 'Galerie',
-        testimonialsTitle: 'Témoignages Clients',
         instagramTitle: 'Suivez-nous sur Instagram',
         newsletter: {
           title: 'Restez Informé',
@@ -176,11 +200,7 @@ const resources = {
         outOfStock: 'Rupture de Stock',
         viewDetails: 'Voir Détails',
         categories: {
-          all: 'Tous',
-          flowers: 'Fleurs au Crochet',
-          bags: 'Sacs au Crochet',
-          keychains: 'Porte-clés',
-          custom: 'Crochet Personnalisé'
+          all: 'Tous'
         }
       },
       // Product Details
@@ -222,14 +242,46 @@ const resources = {
       // Custom Orders
       customOrders: {
         title: 'Commandes Personnalisées au Crochet',
-        subtitle: 'Vous avez quelque chose de spécial en tête? Laissez-nous le créer!',
+        subtitle: 'Construisez votre bouquet parfait avec notre calculateur de prix',
         formTitle: 'Parlez-nous de votre commande personnalisée',
         description: 'Décrivez votre idée',
         preferredColors: 'Couleurs Préférées',
         budget: 'Votre Budget',
         contactInfo: 'Informations de Contact',
         submit: 'Soumettre la Demande',
-        success: 'Demande soumise avec succès!'
+        success: 'Demande soumise avec succès!',
+        selectFlowers: 'Sélectionner des Fleurs',
+        selectWrapping: 'Sélectionner Emballage',
+        addAccessories: 'Ajouter Accessoires',
+        orderSummary: 'Résumé de Commande',
+        noComponents: 'Aucun composant sélectionné',
+        totalPrice: 'Prix Total'
+      },
+      // Price Components
+      priceComponents: {
+        title: 'Composants de Prix',
+        addComponent: 'Ajouter Composant',
+        editComponent: 'Modifier Composant',
+        name: 'Nom du Composant',
+        category: 'Catégorie',
+        description: 'Description',
+        price: 'Prix',
+        imageUrl: 'URL de l\'Image',
+        categories: {
+          flower: 'Fleur',
+          packaging: 'Emballage',
+          accessory: 'Accessoire'
+        }
+      },
+      // Delivery Prices
+      deliveryPrices: {
+        title: 'Prix de Livraison',
+        wilaya: 'Wilaya',
+        wilayaCode: 'Code',
+        homeDelivery: 'Livraison à Domicile',
+        stopDesk: 'Point Relais',
+        selectWilaya: 'Sélectionner Wilaya',
+        deliveryType: 'Type de Livraison'
       },
       // About
       about: {
@@ -268,7 +320,6 @@ const resources = {
         gallery: 'المعرض',
         customOrders: 'طلبات مخصصة',
         about: 'من نحن',
-        testimonials: 'آراء العملاء',
         contact: 'اتصل بنا',
         cart: 'السلة',
         admin: 'المدير'
@@ -285,7 +336,6 @@ const resources = {
         popular: 'المنتجات الشائعة',
         aboutTitle: 'عن الفنانة',
         galleryTitle: 'المعرض',
-        testimonialsTitle: 'آراء العملاء',
         instagramTitle: 'تابعنا على انستغرام',
         newsletter: {
           title: 'ابق على اطلاع',
@@ -304,11 +354,7 @@ const resources = {
         outOfStock: 'غير متوفر',
         viewDetails: 'عرض التفاصيل',
         categories: {
-          all: 'الكل',
-          flowers: 'زهور كروشيه',
-          bags: 'حقائب كروشيه',
-          keychains: 'سلاسل مفاتيح',
-          custom: 'كروشيه مخصص'
+          all: 'الكل'
         }
       },
       // Product Details
@@ -350,14 +396,46 @@ const resources = {
       // Custom Orders
       customOrders: {
         title: 'طلبات كروشيه مخصصة',
-        subtitle: 'هل لديك فكرة خاصة؟ دعنا ننفذها لك!',
+        subtitle: 'اصنع باقتك المثالية مع حاسبة الأسعار',
         formTitle: 'أخبرنا عن طلبك المخصص',
         description: 'وصف فكرتك',
         preferredColors: 'الألوان المفضلة',
         budget: 'ميزانيتك',
         contactInfo: 'معلومات الاتصال',
         submit: 'إرسال الطلب',
-        success: 'تم إرسال الطلب بنجاح!'
+        success: 'تم إرسال الطلب بنجاح!',
+        selectFlowers: 'اختر الزهور',
+        selectWrapping: 'اختر التغليف',
+        addAccessories: 'أضف إكسسوارات',
+        orderSummary: 'ملخص الطلب',
+        noComponents: 'لم يتم اختيار مكونات بعد',
+        totalPrice: 'السعر الإجمالي'
+      },
+      // Price Components
+      priceComponents: {
+        title: 'مكونات الأسعار',
+        addComponent: 'إضافة مكون',
+        editComponent: 'تعديل مكون',
+        name: 'اسم المكون',
+        category: 'الفئة',
+        description: 'الوصف',
+        price: 'السعر',
+        imageUrl: 'رابط الصورة',
+        categories: {
+          flower: 'زهرة',
+          packaging: 'تغليف',
+          accessory: 'إكسسوار'
+        }
+      },
+      // Delivery Prices
+      deliveryPrices: {
+        title: 'أسعار التوصيل',
+        wilaya: 'الولاية',
+        wilayaCode: 'الرمز',
+        homeDelivery: 'توصيل للمنزل',
+        stopDesk: 'نقطة توقف',
+        selectWilaya: 'اختر الولاية',
+        deliveryType: 'نوع التوصيل'
       },
       // About
       about: {

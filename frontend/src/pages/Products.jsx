@@ -13,21 +13,36 @@ const Products = () => {
   
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
 
-  const categories = [
-    { value: 'all', label: t('products.categories.all') },
-    { value: 'flowers', label: t('products.categories.flowers') },
-    { value: 'bags', label: t('products.categories.bags') },
-    { value: 'keychains', label: t('products.categories.keychains') },
-    { value: 'custom', label: t('products.categories.custom') }
-  ];
-
   useEffect(() => {
+    fetchCategories();
     fetchProducts();
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const response = await axios.get(`${apiUrl}/categories`);
+      
+      // Build categories array with "All" option first
+      const categoriesData = [
+        { value: 'all', label: t('products.categories.all') },
+        ...response.data.map(cat => ({
+          value: cat.name,
+          label: cat.name
+        }))
+      ];
+      setCategories(categoriesData);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      // Fallback to empty categories with just "All"
+      setCategories([{ value: 'all', label: t('products.categories.all') }]);
+    }
+  };
 
   useEffect(() => {
     filterProducts();

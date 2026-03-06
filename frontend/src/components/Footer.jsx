@@ -1,12 +1,30 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FiInstagram, FiFacebook, FiMail, FiPhone, FiMapPin } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa';
+import axios from 'axios';
 
 const Footer = () => {
   const { t } = useTranslation();
+  const [categories, setCategories] = useState([]);
   
   const currentYear = new Date().getFullYear();
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const response = await axios.get(`${apiUrl}/categories`);
+      setCategories(response.data);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      setCategories([]);
+    }
+  };
 
   return (
     <footer className="bg-secondary border-t border-primary/20">
@@ -89,21 +107,16 @@ const Footer = () => {
               Categories
             </h3>
             <ul className="space-y-2">
-              <li>
-                <Link to="/products?category=flowers" className="text-text/70 hover:text-primary transition-colors text-sm">
-                  Crochet Flowers
-                </Link>
-              </li>
-              <li>
-                <Link to="/products?category=bags" className="text-text/70 hover:text-primary transition-colors text-sm">
-                  Crochet Bags
-                </Link>
-              </li>
-              <li>
-                <Link to="/products?category=keychains" className="text-text/70 hover:text-primary transition-colors text-sm">
-                  Keychains
-                </Link>
-              </li>
+              {categories.map((category) => (
+                <li key={category.id}>
+                  <Link 
+                    to={`/products?category=${encodeURIComponent(category.name)}`} 
+                    className="text-text/70 hover:text-primary transition-colors text-sm"
+                  >
+                    {category.name}
+                  </Link>
+                </li>
+              ))}
               <li>
                 <Link to="/custom-orders" className="text-text/70 hover:text-primary transition-colors text-sm">
                   Custom Orders
@@ -124,11 +137,11 @@ const Footer = () => {
               </li>
               <li className="flex items-center text-text/70 text-sm">
                 <FiMail className="w-4 h-4 mr-2 text-primary" />
-                contact@crocheella.com
+                crocheella@gmail.com
               </li>
               <li className="flex items-start text-text/70 text-sm">
                 <FiMapPin className="w-4 h-4 mr-2 mt-1 text-primary flex-shrink-0" />
-                Morocco
+                Algeria - Setif
               </li>
             </ul>
           </div>
