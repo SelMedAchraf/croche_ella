@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiPackage,
   FiShoppingBag,
@@ -9,9 +9,7 @@ import {
   FiPlus,
   FiEdit,
   FiTrash2,
-  FiCheck,
   FiX,
-  FiDollarSign,
   FiTruck,
   FiSave,
   FiGrid,
@@ -19,7 +17,8 @@ import {
   FiBox,
   FiDroplet,
   FiClock,
-  FiSettings
+  FiSettings,
+  FiZoomIn
 } from 'react-icons/fi';
 import axios from 'axios';
 import { supabase } from '../../config/supabase';
@@ -688,6 +687,7 @@ const OrdersTab = ({ orders, onRefresh }) => {
   const [itemPriceInput, setItemPriceInput] = useState({});
   const [expandedCustomDetails, setExpandedCustomDetails] = useState({});
   const [expandedOrderManagement, setExpandedOrderManagement] = useState({});
+  const [zoomedImage, setZoomedImage] = useState(null);
 
   const toggleCustomDetails = (orderId, itemIdx) => {
     const key = `${orderId}-${itemIdx}`;
@@ -711,12 +711,12 @@ const OrdersTab = ({ orders, onRefresh }) => {
 
   const getOrderStateColor = (orderState) => {
     const colors = {
-      pending_contact: 'bg-yellow-100 text-yellow-800',
+      pending: 'bg-yellow-100 text-yellow-800',
       waiting_deposit: 'bg-orange-100 text-orange-800',
       confirmed: 'bg-blue-100 text-blue-800',
       in_progress: 'bg-purple-100 text-purple-800',
-      ready_for_delivery: 'bg-teal-100 text-teal-800',
       delivered: 'bg-green-100 text-green-800',
+      done: 'bg-teal-100 text-teal-800',
       cancelled: 'bg-red-100 text-red-800'
     };
     return colors[orderState] || 'bg-gray-100 text-gray-800';
@@ -724,18 +724,72 @@ const OrdersTab = ({ orders, onRefresh }) => {
 
   const formatOrderState = (orderState) => {
     const labels = {
-      pending_contact: 'Pending Contact',
+      pending: 'Pending',
       waiting_deposit: 'Waiting Deposit',
       confirmed: 'Confirmed',
       in_progress: 'In Progress',
-      ready_for_delivery: 'Ready for Delivery',
       delivered: 'Delivered',
+      done: 'Done',
       cancelled: 'Cancelled'
     };
     return labels[orderState] || orderState;
   };
 
-  const updateOrderState = async (orderId, newState) => {
+  const getNextStates = (currentState) => {
+    const stateFlow = {
+      pending: ['waiting_deposit'],
+      waiting_deposit: ['confirmed'],
+      confirmed: ['in_progress'],
+      in_progress: ['delivered'],
+      delivered: ['done'],
+      done: [],
+      cancelled: []
+    };
+    return stateFlow[currentState] || [];
+  };
+
+  const getStateButtonStyle = (state) => {
+    const styles = {
+      waiting_deposit: 'bg-orange-500 hover:bg-orange-600',
+      confirmed: 'bg-blue-500 hover:bg-blue-600',
+      in_progress: 'bg-purple-500 hover:bg-purple-600',
+      delivered: 'bg-green-500 hover:bg-green-600',
+      done: 'bg-teal-500 hover:bg-teal-600',
+      cancelled: 'bg-red-500 hover:bg-red-600'
+    };
+    return styles[state] || 'bg-gray-500 hover:bg-gray-600';
+  };
+
+  const getStateIcon = (state) => {
+    const icons = {
+      waiting_deposit: '💰',
+      confirmed: '✓',
+      in_progress: '🔨',
+      delivered: '📦',
+      done: '✅',
+      cancelled: '❌'
+    };
+    return icons[state] || '→';
+  };
+
+  const updateOrderState = async (orderId, newState, order) => {
+    // Validation: Check if moving from pending to waiting_deposit
+    if (order.status === 'pending' && newState === 'waiting_deposit') {
+      const hasPendingPrice = order.order_items?.some(item => item.price === null);
+      if (hasPendingPrice) {
+        alert('Please set all pending item prices before moving to Waiting Deposit status.');
+        return;
+      }
+    }
+
+    // Validation: Check if moving from waiting_deposit to confirmed
+    if (order.status === 'waiting_deposit' && newState === 'confirmed') {
+      if (!order.deposit_value || order.deposit_value === 0) {
+        alert('Please set the deposit amount before moving to Confirmed status.');
+        return;
+      }
+    }
+
     setUpdatingOrderId(orderId);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -745,13 +799,13 @@ const OrdersTab = ({ orders, onRefresh }) => {
         return;
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/orders/${orderId}/state`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`
         },
-        body: JSON.stringify({ order_state: newState })
+        body: JSON.stringify({ status: newState })
       });
 
       if (!response.ok) {
@@ -870,13 +924,12 @@ const OrdersTab = ({ orders, onRefresh }) => {
         <div className="space-y-3">
           {orders.map((order) => {
             const isExpanded = expandedOrder === order.id;
-            const hasCustomItems = order.order_items?.some(item => item.custom_order_type);
             const hasPendingPrice = order.order_items?.some(item => item.price === null);
             
             return (
-              <div key={order.id} className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+              <div key={order.id} className="bg-white">
                 <div 
-                  className="p-5 cursor-pointer hover:bg-gray-50 transition-colors border-2 border-gray-200"
+                  className={`p-5 cursor-pointer hover:bg-gray-50 transition-colors border-2 border-gray-300 ${isExpanded ? 'rounded-lg rounded-b-none' : 'rounded-lg'}`}
                   onClick={() => toggleOrderExpansion(order.id)}
                 >
                   {/* Header Row: Order ID, Status, Arrow */}
@@ -884,7 +937,7 @@ const OrdersTab = ({ orders, onRefresh }) => {
                     <div className="flex-grow">
                       <div className="mb-3">
                         <h3 className="font-bold text-lg text-gray-900">
-                          Order #{order.id}
+                          Order
                         </h3>
                       </div>
                       
@@ -953,8 +1006,8 @@ const OrdersTab = ({ orders, onRefresh }) => {
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>
-                        {order.status}
+                      <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${getOrderStateColor(order.status || 'pending')}`}>
+                        {formatOrderState(order.status || 'pending')}
                       </span>
                       <span className="text-gray-400 text-2xl">
                         {isExpanded ? '▼' : '▶'}
@@ -992,7 +1045,7 @@ const OrdersTab = ({ orders, onRefresh }) => {
 
                 {/* Expanded Order Details */}
                 {isExpanded && order.order_items && (
-                  <div className="border-t-0 border-x-2 border-b-2 border-gray-200 bg-white p-4 shadow-inner">
+                  <div className="border-t-0 border-x-2 border-b-2 border-gray-300 bg-white p-4 rounded-b-lg">
                     <h4 className="font-semibold mb-4 text-lg">Order Items</h4>
                     <div className="space-y-4">
                       {order.order_items.map((item, idx) => (
@@ -1053,11 +1106,16 @@ const OrdersTab = ({ orders, onRefresh }) => {
                                               {item.custom_data.flowers.map((f, i) => (
                                                 <div key={i} className="flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
                                                   {f.image_url && (
-                                                    <img 
-                                                      src={f.image_url} 
-                                                      alt={f.name}
-                                                      className="w-14 h-14 object-cover rounded-lg shadow-sm flex-shrink-0"
-                                                    />
+                                                    <div className="relative group cursor-pointer" onClick={() => setZoomedImage(f.image_url)}>
+                                                      <img 
+                                                        src={f.image_url} 
+                                                        alt={f.name}
+                                                        className="w-14 h-14 object-cover rounded-lg shadow-sm flex-shrink-0"
+                                                      />
+                                                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                                        <FiZoomIn className="text-white text-lg" />
+                                                      </div>
+                                                    </div>
                                                   )}
                                                   <div className="flex-grow min-w-0">
                                                     <p className="font-semibold text-sm truncate">{f.name}</p>
@@ -1086,11 +1144,16 @@ const OrdersTab = ({ orders, onRefresh }) => {
                                               {item.custom_data.accessories.map((a, i) => (
                                                 <div key={i} className="flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
                                                   {a.image_url && (
-                                                    <img 
-                                                      src={a.image_url} 
-                                                      alt={a.name}
-                                                      className="w-14 h-14 object-cover rounded-lg shadow-sm flex-shrink-0"
-                                                    />
+                                                    <div className="relative group cursor-pointer" onClick={() => setZoomedImage(a.image_url)}>
+                                                      <img 
+                                                        src={a.image_url} 
+                                                        alt={a.name}
+                                                        className="w-14 h-14 object-cover rounded-lg shadow-sm flex-shrink-0"
+                                                      />
+                                                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                                        <FiZoomIn className="text-white text-lg" />
+                                                      </div>
+                                                    </div>
                                                   )}
                                                   <div className="flex-grow min-w-0">
                                                     <p className="font-semibold text-sm truncate">{a.name}</p>
@@ -1130,11 +1193,16 @@ const OrdersTab = ({ orders, onRefresh }) => {
                                             </h6>
                                             <div className="flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
                                               {item.custom_data.wrapping.image_url && (
-                                                <img 
-                                                  src={item.custom_data.wrapping.image_url} 
-                                                  alt={item.custom_data.wrapping.name}
-                                                  className="w-14 h-14 object-cover rounded-lg shadow-sm flex-shrink-0"
-                                                />
+                                                <div className="relative group cursor-pointer" onClick={() => setZoomedImage(item.custom_data.wrapping.image_url)}>
+                                                  <img 
+                                                    src={item.custom_data.wrapping.image_url} 
+                                                    alt={item.custom_data.wrapping.name}
+                                                    className="w-14 h-14 object-cover rounded-lg shadow-sm flex-shrink-0"
+                                                  />
+                                                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                                    <FiZoomIn className="text-white text-lg" />
+                                                  </div>
+                                                </div>
                                               )}
                                               <div className="flex-grow min-w-0">
                                                 <p className="font-semibold text-sm truncate">{item.custom_data.wrapping.name}</p>
@@ -1159,11 +1227,16 @@ const OrdersTab = ({ orders, onRefresh }) => {
                                               {item.custom_data.colors.map((color, i) => (
                                                 <div key={i} className="bg-white p-2 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
                                                   {color.image_url ? (
-                                                    <img 
-                                                      src={color.image_url} 
-                                                      alt={color.name || 'Color'}
-                                                      className="w-full h-16 object-cover rounded-lg mb-1.5"
-                                                    />
+                                                    <div className="relative group cursor-pointer" onClick={() => setZoomedImage(color.image_url)}>
+                                                      <img 
+                                                        src={color.image_url} 
+                                                        alt={color.name || 'Color'}
+                                                        className="w-full h-16 object-cover rounded-lg mb-1.5"
+                                                      />
+                                                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                                        <FiZoomIn className="text-white text-base" />
+                                                      </div>
+                                                    </div>
                                                   ) : (
                                                     <div 
                                                       className="w-full h-16 rounded-lg mb-1.5"
@@ -1185,11 +1258,16 @@ const OrdersTab = ({ orders, onRefresh }) => {
                                             <h6 className="font-semibold text-sm mb-2 flex items-center gap-2">
                                               <span>📷</span> Customer Reference Image
                                             </h6>
-                                            <img 
-                                              src={item.reference_image_url} 
-                                              alt="Reference" 
-                                              className="w-full h-48 object-cover rounded-lg shadow-md"
-                                            />
+                                            <div className="relative group cursor-pointer" onClick={() => setZoomedImage(item.reference_image_url)}>
+                                              <img 
+                                                src={item.reference_image_url} 
+                                                alt="Reference" 
+                                                className="w-full h-96 object-cover rounded-lg shadow-md"
+                                              />
+                                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                                <FiZoomIn className="text-white text-3xl" />
+                                              </div>
+                                            </div>
                                           </div>
                                         )}
                                       </div>
@@ -1207,6 +1285,47 @@ const OrdersTab = ({ orders, onRefresh }) => {
                                             <p className="text-sm text-blue-800">{item.custom_data.description}</p>
                                           </div>
                                         )}
+                                        {/* Reference Images for Custom Crochet Request */}
+                                        {(item.reference_image_url || (item.reference_images && item.reference_images.length > 0)) && (
+                                          <div className="bg-white p-3 rounded-lg border border-gray-200">
+                                            <h6 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                                              <span>📷</span> Customer Reference {item.reference_images?.length > 1 || (item.reference_image_url && item.reference_images?.length >= 1) ? 'Images' : 'Image'}
+                                            </h6>
+                                            {item.reference_images && item.reference_images.length > 0 ? (
+                                              <div className="grid grid-cols-1 gap-3">
+                                                {item.reference_images.map((img, imgIdx) => {
+                                                  const imgUrl = typeof img === 'string' ? img : img.url || img.image_url;
+                                                  return (
+                                                    <div key={imgIdx} className="relative group cursor-pointer" onClick={() => setZoomedImage(imgUrl)}>
+                                                      <img 
+                                                        src={imgUrl} 
+                                                        alt={`Reference ${imgIdx + 1}`} 
+                                                        className="w-full h-96 object-cover rounded-lg shadow-md"
+                                                      />
+                                                      <div className="absolute top-2 left-2 bg-black/60 text-white px-2 py-1 rounded text-xs font-medium">
+                                                        {imgIdx + 1}/{item.reference_images.length}
+                                                      </div>
+                                                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                                        <FiZoomIn className="text-white text-3xl" />
+                                                      </div>
+                                                    </div>
+                                                  );
+                                                })}
+                                              </div>
+                                            ) : (
+                                              <div className="relative group cursor-pointer" onClick={() => setZoomedImage(item.reference_image_url)}>
+                                                <img 
+                                                  src={item.reference_image_url} 
+                                                  alt="Reference" 
+                                                  className="w-full h-96 object-cover rounded-lg shadow-md"
+                                                />
+                                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                                  <FiZoomIn className="text-white text-3xl" />
+                                                </div>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
                                       </div>
                                       
                                       {/* Right Column: Selected Colors */}
@@ -1220,11 +1339,16 @@ const OrdersTab = ({ orders, onRefresh }) => {
                                               {item.custom_data.colors.map((color, i) => (
                                                 <div key={i} className="bg-white p-2 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
                                                   {color.image_url ? (
-                                                    <img 
-                                                      src={color.image_url} 
-                                                      alt={color.name || 'Color'}
-                                                      className="w-full h-16 object-cover rounded-lg mb-1.5"
-                                                    />
+                                                    <div className="relative group cursor-pointer" onClick={() => setZoomedImage(color.image_url)}>
+                                                      <img 
+                                                        src={color.image_url} 
+                                                        alt={color.name || 'Color'}
+                                                        className="w-full h-16 object-cover rounded-lg mb-1.5"
+                                                      />
+                                                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                                        <FiZoomIn className="text-white text-base" />
+                                                      </div>
+                                                    </div>
                                                   ) : (
                                                     <div 
                                                       className="w-full h-16 rounded-lg mb-1.5"
@@ -1240,19 +1364,7 @@ const OrdersTab = ({ orders, onRefresh }) => {
                                           </div>
                                         )}
 
-                                        {/* Reference Image for Custom Crochet Request */}
-                                        {item.reference_image_url && (
-                                          <div className="bg-white p-3 rounded-lg border border-gray-200">
-                                            <h6 className="font-semibold text-sm mb-2 flex items-center gap-2">
-                                              <span>📷</span> Customer Reference Image
-                                            </h6>
-                                            <img 
-                                              src={item.reference_image_url} 
-                                              alt="Reference" 
-                                              className="w-full h-48 object-cover rounded-lg shadow-md"
-                                            />
-                                          </div>
-                                        )}
+                                        
                                       </div>
                                     </>
                                   )}
@@ -1262,23 +1374,21 @@ const OrdersTab = ({ orders, onRefresh }) => {
                           ) : (
                             /* Regular Product Item - Enhanced Display */
                             <div className="flex items-center gap-4">
-                              {item.product?.product_images?.[0] && (
-                                <img 
-                                  src={item.product.product_images[0].image_url} 
-                                  alt={item.product.name}
-                                  className="w-20 h-20 object-cover rounded-lg shadow-md"
-                                />
+                              {(item.product?.product_images?.[0]?.image_url || item.image_url) && (
+                                <div className="relative group cursor-pointer" onClick={() => setZoomedImage(item.product?.product_images?.[0]?.image_url || item.image_url)}>
+                                  <img 
+                                    src={item.product?.product_images?.[0]?.image_url || item.image_url} 
+                                    alt={item.product?.category || item.product?.name || 'Product'}
+                                    className="w-20 h-20 object-cover rounded-lg shadow-md"
+                                  />
+                                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                    <FiZoomIn className="text-white text-lg" />
+                                  </div>
+                                </div>
                               )}
                               <div className="flex-grow">
-                                <h5 className="font-bold text-base mb-1">{item.product?.name || 'Product'}</h5>
                                 <div className="flex items-center gap-4 text-sm text-text/60">
-                                  <span>Qty: {item.quantity}</span>
-                                  <span>×</span>
-                                  <span>{item.price} DA</span>
-                                  <span>=</span>
-                                  <span className="font-semibold text-primary">
-                                    {(item.price * item.quantity).toFixed(2)} DA
-                                  </span>
+                                  <span>{item.quantity} × {item.price} DA</span>
                                 </div>
                                 {item.color && (
                                   <div className="flex items-center gap-2 mt-2">
@@ -1291,8 +1401,8 @@ const OrdersTab = ({ orders, onRefresh }) => {
                                 )}
                               </div>
                               <div className="text-right">
-                                <div className="px-4 py-2 bg-green-100 text-green-800 rounded-lg font-bold">
-                                  {(item.price * item.quantity).toFixed(2)} DA
+                                <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold">
+                                  Total: {(item.price * item.quantity).toFixed(2)} DA
                                 </div>
                               </div>
                             </div>
@@ -1329,28 +1439,83 @@ const OrdersTab = ({ orders, onRefresh }) => {
 
                       {/* Order State & Financial Overview */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        {/* Order State */}
-                        <div className="bg-white p-3 rounded border">
-                          <label className="block text-sm font-medium mb-2">Order State</label>
-                          <select
-                            value={order.order_state || 'pending_contact'}
-                            onChange={(e) => updateOrderState(order.id, e.target.value)}
-                            disabled={updatingOrderId === order.id}
-                            className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-primary"
-                          >
-                            <option value="pending_contact">Pending Contact</option>
-                            <option value="waiting_deposit">Waiting Deposit</option>
-                            <option value="confirmed">Confirmed</option>
-                            <option value="in_progress">In Progress</option>
-                            <option value="ready_for_delivery">Ready for Delivery</option>
-                            <option value="delivered">Delivered</option>
-                            <option value="cancelled">Cancelled</option>
-                          </select>
-                          <div className="mt-2">
-                            <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getOrderStateColor(order.order_state || 'pending_contact')}`}>
-                              {formatOrderState(order.order_state || 'pending_contact')}
+                        {/* Order State Actions */}
+                        <div className="bg-white p-4 rounded border">
+                          <div className="flex items-center justify-between mb-3">
+                            <label className="text-sm font-medium">Order State Management</label>
+                            <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${getOrderStateColor(order.status || 'pending')}`}>
+                              {formatOrderState(order.status || 'pending')}
                             </span>
                           </div>
+
+                          {/* Action Buttons */}
+                          {(order.status !== 'done' && order.status !== 'cancelled') && (
+                            <div className="space-y-2">
+                              <p className="text-xs text-gray-600 mb-2">Available Actions:</p>
+                              
+                              {/* Next State Buttons */}
+                              {getNextStates(order.status || 'pending').map((nextState) => {
+                                // Check if button should be disabled based on validation rules
+                                const isDisabled = (() => {
+                                  if (order.status === 'pending' && nextState === 'waiting_deposit') {
+                                    return hasPendingPrice;
+                                  }
+                                  if (order.status === 'waiting_deposit' && nextState === 'confirmed') {
+                                    return !order.deposit_value || order.deposit_value === 0;
+                                  }
+                                  return false;
+                                })();
+
+                                return (
+                                  <div key={nextState}>
+                                    <button
+                                      onClick={() => updateOrderState(order.id, nextState, order)}
+                                      disabled={updatingOrderId === order.id || isDisabled}
+                                      className={`w-full px-4 py-2.5 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${getStateButtonStyle(nextState)} disabled:opacity-50 disabled:cursor-not-allowed`}
+                                    >
+                                      <span>{getStateIcon(nextState)}</span>
+                                      <span>Move to {formatOrderState(nextState)}</span>
+                                    </button>
+                                    {isDisabled && (
+                                      <p className="text-xs text-red-600 mt-1 ml-1">
+                                        {order.status === 'pending' && nextState === 'waiting_deposit' 
+                                          ? '⚠️ Set all pending prices first'
+                                          : order.status === 'waiting_deposit' && nextState === 'confirmed'
+                                          ? '⚠️ Set deposit amount first'
+                                          : ''}
+                                      </p>
+                                    )}
+                                  </div>
+                                );
+                              })}
+
+                              {/* Cancel Button - Always available except for done state */}
+                              <button
+                                onClick={() => {
+                                  if (confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
+                                    updateOrderState(order.id, 'cancelled', order);
+                                  }
+                                }}
+                                disabled={updatingOrderId === order.id}
+                                className="w-full px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border-2 border-red-600"
+                              >
+                                <span>❌</span>
+                                <span>Cancel Order</span>
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Final State Message */}
+                          {(order.status === 'done' || order.status === 'cancelled') && (
+                            <div className={`p-3 rounded-lg ${order.status === 'done' ? 'bg-teal-50 border border-teal-200' : 'bg-red-50 border border-red-200'}`}>
+                              <p className={`text-sm font-medium ${order.status === 'done' ? 'text-teal-800' : 'text-red-800'}`}>
+                                {order.status === 'done' ? '✅ Order completed' : '❌ Order cancelled'}
+                              </p>
+                              <p className={`text-xs mt-1 ${order.status === 'done' ? 'text-teal-600' : 'text-red-600'}`}>
+                                This is a final state. No further actions available.
+                              </p>
+                            </div>
+                          )}
                         </div>
 
                         {/* Financial Summary */}
@@ -1369,7 +1534,7 @@ const OrdersTab = ({ orders, onRefresh }) => {
                             </div>
                             <div className="flex justify-between pt-2 border-t">
                               <span className="font-medium">Remaining:</span>
-                              <span className="font-bold text-primary">
+                              <span className="font-bold text-red-600">
                                 {(order.remaining_balance !== null && order.remaining_balance !== undefined) 
                                   ? `${order.remaining_balance} DA`
                                   : `${(order.total_amount || 0) - (order.deposit_value || 0)} DA`}
@@ -1477,6 +1642,12 @@ const OrdersTab = ({ orders, onRefresh }) => {
           })}
         </div>
       )}
+
+      {/* Image Zoom Modal */}
+      <ImageZoomModal 
+        imageUrl={zoomedImage}
+        onClose={() => setZoomedImage(null)}
+      />
     </div>
   );
 };
@@ -2560,6 +2731,36 @@ const ColorsTab = () => {
         </div>
       )}
     </div>
+  );
+};
+
+// Image Zoom Modal Component
+const ImageZoomModal = ({ imageUrl, onClose }) => {
+  if (!imageUrl) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <button
+          className="absolute top-4 right-4 text-white bg-white/20 p-2 rounded-full hover:bg-white/30 transition-colors"
+          onClick={onClose}
+        >
+          <FiX className="w-6 h-6" />
+        </button>
+        <img
+          src={imageUrl}
+          alt="Zoomed"
+          className="max-w-full max-h-full object-contain"
+          onClick={(e) => e.stopPropagation()}
+        />
+      </motion.div>
+    </AnimatePresence>
   );
 };
 

@@ -162,8 +162,21 @@ router.patch('/:id/status',
     try {
       const { status } = req.body;
 
-      if (!['pending', 'processing', 'shipped', 'delivered', 'cancelled'].includes(status)) {
-        return res.status(400).json({ error: 'Invalid status' });
+      const validStatuses = [
+        'pending',
+        'waiting_deposit',
+        'confirmed',
+        'in_progress',
+        'delivered',
+        'done',
+        'cancelled'
+      ];
+
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ 
+          error: 'Invalid status',
+          validStatuses 
+        });
       }
 
       const { data, error } = await supabase
