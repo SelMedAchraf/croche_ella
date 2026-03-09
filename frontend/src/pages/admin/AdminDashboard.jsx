@@ -1095,7 +1095,7 @@ const OrdersTab = ({ orders, onRefresh }) => {
                           <div className="flex items-center gap-1.5">
                             <span className="text-base">📍</span>
                             <div>
-                              <p className="text-xs text-gray-600 font-medium">City</p>
+                              <p className="text-xs text-gray-600 font-medium">Wilaya</p>
                               <p className="text-sm font-semibold text-gray-900">{order.customer_city}</p>
                             </div>
                           </div>

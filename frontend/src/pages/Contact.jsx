@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { FiMail, FiPhone, FiMapPin, FiInstagram, FiSend } from 'react-icons/fi';
 import { FaWhatsapp, FaTiktok } from 'react-icons/fa';
+import axios from 'axios';
 
 const Contact = () => {
   const { t } = useTranslation();
@@ -12,6 +13,8 @@ const Contact = () => {
     message: ''
   });
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -20,14 +23,24 @@ const Contact = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Contact form submitted:', formData);
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({ name: '', email: '', message: '' });
-    }, 3000);
+    setLoading(true);
+    setError('');
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      await axios.post(`${apiUrl}/contact`, formData);
+      setSubmitted(true);
+      setTimeout(() => {
+        setSubmitted(false);
+        setFormData({ name: '', email: '', message: '' });
+      }, 5000);
+    } catch (err) {
+      console.error('Error submitting contact form:', err);
+      setError('Failed to send message. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -119,11 +132,13 @@ const Contact = () => {
 
                 <button
                   type="submit"
-                  className="btn-primary w-full py-4 text-lg flex items-center justify-center gap-2"
+                  disabled={loading}
+                  className="btn-primary w-full py-4 text-lg flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   <FiSend />
-                  {t('contact.send')}
+                  {loading ? 'Sending...' : t('contact.send')}
                 </button>
+                {error && <p className="text-red-500 text-sm mt-2 text-center">{error}</p>}
               </form>
             )}
           </motion.div>
@@ -138,7 +153,7 @@ const Contact = () => {
               <h3 className="text-xl font-display font-semibold text-primary mb-6">
                 Contact Information
               </h3>
-              
+
               <div className="space-y-4">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
@@ -180,7 +195,7 @@ const Contact = () => {
               <h3 className="text-xl font-display font-semibold text-primary mb-6">
                 Follow Us
               </h3>
-              
+
               <div className="flex gap-4">
                 <a
                   href="https://www.instagram.com/croche.ella_/"

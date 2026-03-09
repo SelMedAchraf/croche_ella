@@ -8,6 +8,7 @@ import deliveryPriceRoutes from './routes/deliveryPrices.js';
 import categoryRoutes from './routes/categories.js';
 import colorRoutes from './routes/colors.js';
 import uploadRoutes from './routes/upload.js';
+import contactRoutes from './routes/contact.js';
 
 dotenv.config();
 
@@ -30,6 +31,7 @@ app.use('/api/items', itemRoutes);
 app.use('/api/delivery-prices', deliveryPriceRoutes);
 app.use('/api/colors', colorRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
