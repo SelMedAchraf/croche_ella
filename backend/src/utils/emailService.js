@@ -60,7 +60,7 @@ NEW ORDER RECEIVED
 =========================================
 
 ORDER INFORMATION
-- Order ID: ${order.id}
+- Order ID: ${order.order_id}
 - Order Date: ${new Date(order.created_at).toLocaleString('en-US')}
 - Total Price: ${order.total_amount} DA${pendingText}
 
@@ -116,7 +116,7 @@ Your order has been successfully received.
 Our team will review your order and contact you soon to confirm the details and the deposit required.
 
 Order Summary:
-- Order ID: ${order.id}
+- Order ID: ${order.order_id}
 - Total Price: ${order.total_amount} DA${pendingText}
 
 Thank you for trusting Crochet Ella.
@@ -134,3 +134,88 @@ Crochet Ella`
     return false; // Error handled silently, doesn't interrupt order
   }
 };
+
+/*
+ * Sends a notification to the admin when an order is cancelled directly by the customer
+ */
+export const sendOrderCancelledNotification = async (order) => {
+  const transporter = createTransporter();
+  if (!transporter) return false;
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: 'crocheella19@gmail.com',
+    subject: 'Order Cancelled by Customer – Crochet Ella',
+    text: `
+=========================================
+ORDER CANCELLED
+=========================================
+
+An order has been directly cancelled by the customer.
+
+ORDER INFORMATION
+- Order ID: ${order.order_id}
+- Cancelled At: ${new Date().toLocaleString('en-US')}
+- Total Price: ${order.total_amount} DA
+
+CUSTOMER INFORMATION
+- Name: ${order.customer_name}
+- Phone: ${order.customer_phone}
+
+=========================================
+`.trim()
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Admin cancellation notification sent for Order ID: ${order.id}`);
+    return true;
+  } catch (error) {
+    console.error(`Failed to send cancellation notification for Order ID: ${order.id}`, error);
+    return false;
+  }
+};
+
+/*
+ * Sends a notification to the admin when a customer requests order cancellation
+ */
+export const sendCancelRequestNotification = async (order) => {
+  const transporter = createTransporter();
+  if (!transporter) return false;
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: 'crocheella19@gmail.com',
+    subject: 'Customer Cancellation Request – Crochet Ella',
+    text: `
+=========================================
+CANCELLATION REQUEST
+=========================================
+
+A customer has requested to cancel their order.
+Please contact them to decide if cancellation is allowed.
+
+ORDER INFORMATION
+- Order ID: ${order.order_id}
+- Request Date: ${new Date().toLocaleString('en-US')}
+- Current Status: ${order.status}
+- Total Price: ${order.total_amount} DA
+
+CUSTOMER INFORMATION
+- Name: ${order.customer_name}
+- Phone: ${order.customer_phone}
+
+=========================================
+`.trim()
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Admin cancel request notification sent for Order ID: ${order.id}`);
+    return true;
+  } catch (error) {
+    console.error(`Failed to send cancel request notification for Order ID: ${order.id}`, error);
+    return false;
+  }
+};
+

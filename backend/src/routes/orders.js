@@ -1,8 +1,13 @@
 import express from 'express';
 import { supabase } from '../config/supabase.js';
-import { authenticateAdmin } from '../middleware/auth.js';
+import { authenticateAdmin, authenticateUser } from '../middleware/auth.js';
 import { body, validationResult } from 'express-validator';
-import { sendNewOrderNotification, sendCustomerOrderConfirmation } from '../utils/emailService.js';
+import { 
+  sendNewOrderNotification, 
+  sendCustomerOrderConfirmation,
+  sendOrderCancelledNotification,
+  sendCancelRequestNotification
+} from '../utils/emailService.js';
 
 const router = express.Router();
 
@@ -98,6 +103,173 @@ router.post('/',
     }
   }
 );
+
+// ============================================================
+// CUSTOMER ENDPOINTS
+// ============================================================
+
+// Get all orders for the authenticated customer
+router.get('/my-orders',
+  authenticateUser,
+  async (req, res) => {
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          order_items (
+            *,
+            products (
+              *,
+              product_images (*)
+            )
+          )
+        `)
+        .eq('user_id', req.user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error) {
+      console.error('Error fetching customer orders:', error);
+      res.status(500).json({ error: 'Failed to fetch your orders' });
+    }
+  }
+);
+
+// Get single order for the authenticated customer
+router.get('/my-orders/:id',
+  authenticateUser,
+  async (req, res) => {
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          order_items (
+            *,
+            products (
+              *,
+              product_images (*)
+            )
+          )
+        `)
+        .eq('id', req.params.id)
+        .eq('user_id', req.user.id) // verify ownership
+        .single();
+
+      if (error) throw error;
+      if (!data) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+
+      res.json(data);
+    } catch (error) {
+      console.error('Error fetching customer order:', error);
+      res.status(500).json({ error: 'Failed to fetch your order' });
+    }
+  }
+);
+
+// Cancel order directly (only if pending or waiting_deposit)
+router.post('/:id/cancel',
+  authenticateUser,
+  async (req, res) => {
+    try {
+      const orderId = req.params.id;
+
+      // 1. Verify ownership & status
+      const { data: order, error: fetchError } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', orderId)
+        .eq('user_id', req.user.id)
+        .single();
+
+      if (fetchError || !order) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+
+      if (['pending', 'waiting_deposit'].includes(order.status) === false) {
+        return res.status(400).json({ error: 'Order cannot be cancelled directly in its current state.' });
+      }
+
+      // 2. Perform cancellation
+      const { data: updatedOrder, error: updateError } = await supabase
+        .from('orders')
+        .update({ 
+          status: 'cancelled',
+          cancelled_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', orderId)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+
+      // 3. Notify admin
+      sendOrderCancelledNotification(updatedOrder).catch(console.error);
+
+      res.json(updatedOrder);
+    } catch (error) {
+      console.error('Error cancelling order:', error);
+      res.status(500).json({ error: 'Failed to cancel the order' });
+    }
+  }
+);
+
+// Request to cancel an ongoing order (confirmed or in_progress)
+router.post('/:id/request-cancel',
+  authenticateUser,
+  async (req, res) => {
+    try {
+      const orderId = req.params.id;
+
+      // 1. Verify ownership
+      const { data: order, error: fetchError } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', orderId)
+        .eq('user_id', req.user.id)
+        .single();
+
+      if (fetchError || !order) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+
+      if (['confirmed', 'in_progress'].includes(order.status) === false) {
+        return res.status(400).json({ error: 'Order cancellation request is not valid for this status.' });
+      }
+
+      // 2. Flag as requested for cancellation
+      const { data: updatedOrder, error: updateError } = await supabase
+        .from('orders')
+        .update({ 
+          cancel_requested: true,
+          cancel_requested_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', orderId)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+
+      // 3. Notify Admin
+      sendCancelRequestNotification(updatedOrder).catch(console.error);
+
+      res.json(updatedOrder);
+    } catch (error) {
+      console.error('Error requesting order cancellation:', error);
+      res.status(500).json({ error: 'Failed to request cancellation' });
+    }
+  }
+);
+
+// ============================================================
+// ADMIN ENDPOINTS
+// ============================================================
 
 // Get all orders (admin only)
 router.get('/',
@@ -224,7 +396,6 @@ router.patch('/:id/state',
 
       const validStatuses = [
         'pending',
-        'pending_contact',
         'waiting_deposit',
         'confirmed',
         'in_progress',

@@ -9,8 +9,13 @@ import categoryRoutes from './routes/categories.js';
 import colorRoutes from './routes/colors.js';
 import uploadRoutes from './routes/upload.js';
 import contactRoutes from './routes/contact.js';
+import authSettingsRoutes from './routes/authSettings.js';
+import { setupAdminUser } from './utils/setupAdmin.js';
 
 dotenv.config();
+
+// Run Admin Setup Script on Server Start
+setupAdminUser();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,6 +37,7 @@ app.use('/api/delivery-prices', deliveryPriceRoutes);
 app.use('/api/colors', colorRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/auth-settings', authSettingsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

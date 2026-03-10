@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiPackage,
   FiShoppingBag,
-  FiImage,
   FiLogOut,
   FiPlus,
   FiEdit,
@@ -17,11 +16,11 @@ import {
   FiBox,
   FiDroplet,
   FiClock,
-  FiSettings,
   FiZoomIn
 } from 'react-icons/fi';
 import axios from 'axios';
 import { supabase } from '../../config/supabase';
+import AdminOrderDetailsModal from '../../components/admin/AdminOrderDetailsModal';
 import { useItems } from '../../hooks/useItems';
 import { useDeliveryPrices } from '../../hooks/useDeliveryPrices';
 import { useCategoriesManagement } from '../../hooks/useCategoriesManagement';
@@ -39,6 +38,25 @@ const AdminDashboard = () => {
   useEffect(() => {
     checkAuth();
     fetchData();
+
+    // Listen for auth state changes (e.g., logout in another tab)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        navigate('/admin/login');
+      } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        // Re-verify if the user is still an admin if they changed accounts in another tab
+        const isAdmin = session.user?.app_metadata?.is_admin ||
+          session.user?.user_metadata?.is_admin ||
+          session.user?.email === 'crocheella19@gmail.com';
+        if (!isAdmin) {
+          navigate('/');
+        }
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const checkAuth = async () => {
@@ -48,8 +66,9 @@ const AdminDashboard = () => {
       return;
     }
 
-    // Additional check: redirect strictly if it's a customer (Google user) trying to access the admin panel
-    if (session.user?.app_metadata?.provider === 'google') {
+    // Additional check: redirect strictly if it's not an admin user
+    const isAdmin = session.user?.app_metadata?.is_admin || session.user?.user_metadata?.is_admin || session.user?.email === 'crocheella19@gmail.com';
+    if (!isAdmin) {
       alert('Access Denied. You are logged in with a Customer Account, not an Admin account.');
       navigate('/');
     }
@@ -67,7 +86,8 @@ const AdminDashboard = () => {
         return;
       }
 
-      if (session.user?.app_metadata?.provider === 'google') {
+      const isAdmin = session.user?.app_metadata?.is_admin || session.user?.user_metadata?.is_admin || session.user?.email === 'crocheella19@gmail.com';
+      if (!isAdmin) {
         navigate('/');
         return;
       }
@@ -106,103 +126,124 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-display font-bold text-primary">
-              Admin Dashboard
-            </h1>
-            <p className="text-sm text-text/60">Manage your crochet store</p>
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <div
+        className="fixed top-0 left-0 h-full bg-white shadow-[4px_0_24px_rgba(0,0,0,0.02)] border-r border-gray-100 z-50 transition-all duration-300 w-20 hover:w-64 group flex flex-col overflow-hidden"
+      >
+        <div className="flex items-center border-b border-gray-100 h-[73px] shrink-0 px-5 overflow-hidden whitespace-nowrap">
+          <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary shrink-0 transition-transform">
+            <FiGrid className="w-6 h-6" />
           </div>
+          <span className="ml-4 font-display font-bold text-xl text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            Admin Panel
+          </span>
+        </div>
+
+        <div className="flex-1 py-6 flex flex-col gap-2 overflow-y-auto overflow-x-hidden no-scrollbar">
+          <SidebarItem
+            active={activeTab === 'orders'}
+            onClick={() => setActiveTab('orders')}
+            icon={<FiShoppingBag className="w-5 h-5" />}
+            label="Orders"
+          />
+          <SidebarItem
+            active={activeTab === 'products'}
+            onClick={() => setActiveTab('products')}
+            icon={<FiPackage className="w-5 h-5" />}
+            label="Products"
+          />
+          <SidebarItem
+            active={activeTab === 'items'}
+            onClick={() => setActiveTab('items')}
+            icon={<FiBox className="w-5 h-5" />}
+            label="Items"
+          />
+          <SidebarItem
+            active={activeTab === 'colors'}
+            onClick={() => setActiveTab('colors')}
+            icon={<FiDroplet className="w-5 h-5" />}
+            label="Colors"
+          />
+          <SidebarItem
+            active={activeTab === 'categories'}
+            onClick={() => setActiveTab('categories')}
+            icon={<FiGrid className="w-5 h-5" />}
+            label="Product Categories"
+          />
+          <SidebarItem
+            active={activeTab === 'deliveryPrices'}
+            onClick={() => setActiveTab('deliveryPrices')}
+            icon={<FiTruck className="w-5 h-5" />}
+            label="Delivery Prices"
+          />
+        </div>
+
+        <div className="py-4 border-t border-gray-100 shrink-0">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            className="flex items-center gap-4 p-3 mx-4 rounded-xl text-red-600 hover:bg-red-50 transition-colors overflow-hidden whitespace-nowrap"
           >
-            <FiLogOut />
-            Logout
+            <div className="flex items-center justify-center w-6 h-6 shrink-0">
+              <FiLogOut className="w-5 h-5" />
+            </div>
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-medium">Logout</span>
           </button>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard
-            icon={<FiPackage className="w-8 h-8" />}
-            title="Total Products"
-            value={stats.totalProducts}
-            color="bg-blue-500"
-          />
-          <StatCard
-            icon={<FiBox className="w-8 h-8" />}
-            title="Total Items"
-            value={stats.totalItems}
-            color="bg-purple-500"
-          />
-          <StatCard
-            icon={<FiDroplet className="w-8 h-8" />}
-            title="Total Colors"
-            value={stats.totalColors}
-            color="bg-pink-500"
-          />
-          <StatCard
-            icon={<FiClock className="w-8 h-8" />}
-            title="Pending Orders"
-            value={stats.pendingOrders}
-            color="bg-yellow-500"
-          />
+      {/* Main Content Wrapper */}
+      <div className="flex-1 ml-20 transition-all duration-300 min-w-0 flex flex-col min-h-screen">
+        {/* Header */}
+        <div className="bg-white shadow-sm border-b sticky top-0 z-40 h-[73px] flex items-center shrink-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-display font-bold text-primary">
+                Dashboard
+              </h1>
+              <p className="text-sm text-text/60">Overview & Management</p>
+            </div>
+          </div>
         </div>
 
-        {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-sm border mb-6">
-          <div className="flex border-b overflow-x-auto">
-            <TabButton
-              active={activeTab === 'orders'}
-              onClick={() => setActiveTab('orders')}
-              icon={<FiShoppingBag />}
-              label="Orders"
+        <div className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+          {/* Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <StatCard
+              icon={<FiPackage className="w-8 h-8" />}
+              title="Total Products"
+              value={stats.totalProducts}
+              color="bg-blue-500"
             />
-            <TabButton
-              active={activeTab === 'products'}
-              onClick={() => setActiveTab('products')}
-              icon={<FiPackage />}
-              label="Products"
+            <StatCard
+              icon={<FiBox className="w-8 h-8" />}
+              title="Total Items"
+              value={stats.totalItems}
+              color="bg-purple-500"
             />
-            <TabButton
-              active={activeTab === 'items'}
-              onClick={() => setActiveTab('items')}
-              icon={<FiBox />}
-              label="Items"
+            <StatCard
+              icon={<FiDroplet className="w-8 h-8" />}
+              title="Total Colors"
+              value={stats.totalColors}
+              color="bg-pink-500"
             />
-            <TabButton
-              active={activeTab === 'colors'}
-              onClick={() => setActiveTab('colors')}
-              icon={<FiDroplet />}
-              label="Colors"
-            />
-            <TabButton
-              active={activeTab === 'categories'}
-              onClick={() => setActiveTab('categories')}
-              icon={<FiGrid />}
-              label="Product Categories"
-            />
-            <TabButton
-              active={activeTab === 'deliveryPrices'}
-              onClick={() => setActiveTab('deliveryPrices')}
-              icon={<FiTruck />}
-              label="Delivery Prices"
+            <StatCard
+              icon={<FiClock className="w-8 h-8" />}
+              title="Pending Orders"
+              value={stats.pendingOrders}
+              color="bg-yellow-500"
             />
           </div>
 
-          <div className="p-6">
-            {activeTab === 'products' && <ProductsTab products={products} onRefresh={fetchData} />}
-            {activeTab === 'orders' && <OrdersTab orders={orders} onRefresh={fetchData} />}
-            {activeTab === 'categories' && <CategoriesTab onRefresh={fetchData} />}
-            {activeTab === 'items' && <ItemsTab />}
-            {activeTab === 'deliveryPrices' && <DeliveryPricesTab />}
-            {activeTab === 'colors' && <ColorsTab />}
+          <div className="bg-white rounded-lg shadow-sm border mb-6">
+            <div className="p-4 sm:p-6">
+              {activeTab === 'products' && <ProductsTab products={products} onRefresh={fetchData} />}
+              {activeTab === 'orders' && <OrdersTab orders={orders} onRefresh={fetchData} />}
+              {activeTab === 'categories' && <CategoriesTab onRefresh={fetchData} />}
+              {activeTab === 'items' && <ItemsTab />}
+              {activeTab === 'deliveryPrices' && <DeliveryPricesTab />}
+              {activeTab === 'colors' && <ColorsTab />}
+            </div>
           </div>
         </div>
       </div>
@@ -229,16 +270,20 @@ const StatCard = ({ icon, title, value, color }) => (
   </motion.div>
 );
 
-const TabButton = ({ active, onClick, icon, label }) => (
+const SidebarItem = ({ active, onClick, icon, label }) => (
   <button
     onClick={onClick}
-    className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors whitespace-nowrap ${active
-        ? 'text-primary border-b-2 border-primary'
-        : 'text-text/60 hover:text-text'
+    className={`flex items-center gap-4 p-3 mx-4 rounded-xl font-medium transition-all duration-200 overflow-hidden whitespace-nowrap ${active
+      ? 'bg-primary text-white shadow-md shadow-primary/20'
+      : 'text-text/60 hover:bg-primary/5 hover:text-primary'
       }`}
   >
-    {icon}
-    {label}
+    <div className="flex items-center justify-center w-6 h-6 shrink-0">
+      {icon}
+    </div>
+    <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      {label}
+    </span>
   </button>
 );
 
@@ -604,8 +649,8 @@ const ProductsTab = ({ products, onRefresh }) => {
                 {!imagePreview ? (
                   <div
                     className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
-                        ? 'border-primary bg-primary/5'
-                        : 'border-gray-300 hover:border-primary/50'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-gray-300 hover:border-primary/50'
                       }`}
                     onDragEnter={handleDrag}
                     onDragLeave={handleDrag}
@@ -690,50 +735,9 @@ const ProductsTab = ({ products, onRefresh }) => {
 };
 
 const OrdersTab = ({ orders, onRefresh }) => {
-  const navigate = useNavigate();
-  const [expandedOrder, setExpandedOrder] = useState(null);
-  const [updatingOrderId, setUpdatingOrderId] = useState(null);
-  const [depositInput, setDepositInput] = useState({});
-  const [itemPriceInput, setItemPriceInput] = useState({});
-  const [adminNoteInput, setAdminNoteInput] = useState({});
-  const [expandedCustomDetails, setExpandedCustomDetails] = useState({});
-  const [expandedOrderManagement, setExpandedOrderManagement] = useState({});
-  const [zoomedImage, setZoomedImage] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-
-  const toggleCustomDetails = (orderId, itemIdx) => {
-    const key = `${orderId}-${itemIdx}`;
-    setExpandedCustomDetails(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const toggleOrderManagement = (orderId) => {
-    setExpandedOrderManagement(prev => ({ ...prev, [orderId]: !prev[orderId] }));
-  };
-
-  const getStatusColor = (status) => {
-    const colors = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      processing: 'bg-blue-100 text-blue-800',
-      shipped: 'bg-purple-100 text-purple-800',
-      delivered: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800'
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800';
-  };
-
-  const getOrderStateColor = (orderState) => {
-    const colors = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      waiting_deposit: 'bg-orange-100 text-orange-800',
-      confirmed: 'bg-blue-100 text-blue-800',
-      in_progress: 'bg-purple-100 text-purple-800',
-      delivered: 'bg-green-100 text-green-800',
-      done: 'bg-teal-100 text-teal-800',
-      cancelled: 'bg-red-100 text-red-800'
-    };
-    return colors[orderState] || 'bg-gray-100 text-gray-800';
-  };
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   const formatOrderState = (orderState) => {
     const labels = {
@@ -748,258 +752,45 @@ const OrdersTab = ({ orders, onRefresh }) => {
     return labels[orderState] || orderState;
   };
 
-  const getNextStates = (currentState) => {
-    const stateFlow = {
-      pending: ['waiting_deposit'],
-      waiting_deposit: [], // Confirmed status is set automatically when deposit is added
-      confirmed: ['in_progress'],
-      in_progress: ['delivered'],
-      delivered: ['done'],
-      done: [],
-      cancelled: []
-    };
-    return stateFlow[currentState] || [];
-  };
-
-  const getStateButtonStyle = (state) => {
+  const getStatusBadge = (status) => {
     const styles = {
-      waiting_deposit: 'bg-orange-500 hover:bg-orange-600',
-      confirmed: 'bg-blue-500 hover:bg-blue-600',
-      in_progress: 'bg-purple-500 hover:bg-purple-600',
-      delivered: 'bg-green-500 hover:bg-green-600',
-      done: 'bg-teal-500 hover:bg-teal-600',
-      cancelled: 'bg-red-500 hover:bg-red-600'
+      pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      waiting_deposit: 'bg-orange-100 text-orange-800 border-orange-200',
+      confirmed: 'bg-blue-100 text-blue-800 border-blue-200',
+      in_progress: 'bg-purple-100 text-purple-800 border-purple-200',
+      delivered: 'bg-green-100 text-green-800 border-green-200',
+      done: 'bg-teal-100 text-teal-800 border-teal-200',
+      cancelled: 'bg-red-100 text-red-800 border-red-200'
     };
-    return styles[state] || 'bg-gray-500 hover:bg-gray-600';
+    return (
+      <span className={`px-3 py-1 text-xs font-semibold rounded-full border ${styles[status] || 'bg-gray-100 text-gray-800 border-gray-200'}`}>
+        {formatOrderState(status)}
+      </span>
+    );
   };
 
-  const getStateIcon = (state) => {
-    const icons = {
-      waiting_deposit: '💰',
-      confirmed: '✓',
-      in_progress: '🔨',
-      delivered: '📦',
-      done: '✅',
-      cancelled: '❌'
-    };
-    return icons[state] || '→';
-  };
-
-  const updateOrderState = async (orderId, newState, order) => {
-    // Validation: Check if moving from pending to waiting_deposit
-    if (order.status === 'pending' && newState === 'waiting_deposit') {
-      const hasPendingPrice = order.order_items?.some(item => item.price === null);
-      if (hasPendingPrice) {
-        alert('Please set all pending item prices before moving to Waiting Deposit status.');
-        return;
-      }
-    }
-
-    setUpdatingOrderId(orderId);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        alert('Session expired. Please login again.');
-        navigate('/admin/login');
-        return;
-      }
-
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/orders/${orderId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({ status: newState })
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update order state');
-      }
-
-      await onRefresh();
-      alert('Order state updated successfully!');
-    } catch (error) {
-      console.error('Error updating order state:', error);
-      alert(error.message || 'Failed to update order state');
-    } finally {
-      setUpdatingOrderId(null);
-    }
-  };
-
-  const updateDeposit = async (orderId) => {
-    const depositValue = depositInput[orderId];
-    if (!depositValue || depositValue === '') {
-      alert('Please enter a deposit value');
-      return;
-    }
-
-    setUpdatingOrderId(orderId);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        alert('Session expired. Please login again.');
-        navigate('/admin/login');
-        return;
-      }
-
-      // Set deposit
-      const depositResponse = await fetch(`${import.meta.env.VITE_API_URL}/orders/${orderId}/deposit`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({ deposit_value: parseFloat(depositValue) })
-      });
-
-      if (!depositResponse.ok) {
-        const error = await depositResponse.json();
-        throw new Error(error.error || 'Failed to set deposit');
-      }
-
-      // Automatically update status to confirmed after setting deposit
-      const statusResponse = await fetch(`${import.meta.env.VITE_API_URL}/orders/${orderId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({ status: 'confirmed' })
-      });
-
-      if (!statusResponse.ok) {
-        const error = await statusResponse.json();
-        console.error('Failed to update status:', error);
-        // Don't throw error here, deposit was successful
-      }
-
-      await onRefresh();
-      setDepositInput({ ...depositInput, [orderId]: '' });
-      alert('Deposit set successfully and order status updated to Confirmed!');
-    } catch (error) {
-      console.error('Error setting deposit:', error);
-      alert(error.message || 'Failed to set deposit');
-    } finally {
-      setUpdatingOrderId(null);
-    }
-  };
-
-  const updateAdminNote = async (orderId, order) => {
-    // Check if order status is cancelled or done
-    if (order.status === 'cancelled' || order.status === 'done') {
-      alert('Cannot update admin note for orders with status: cancelled or done');
-      return;
-    }
-
-    setUpdatingOrderId(orderId);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        alert('Session expired. Please login again.');
-        navigate('/admin/login');
-        return;
-      }
-
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/orders/${orderId}/admin-note`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({ admin_note: adminNoteInput[orderId] || '' })
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update admin note');
-      }
-
-      await onRefresh();
-      alert('Admin note updated successfully!');
-    } catch (error) {
-      console.error('Error updating admin note:', error);
-      alert(error.message || 'Failed to update admin note');
-    } finally {
-      setUpdatingOrderId(null);
-    }
-  };
-
-  const updateItemPrice = async (orderId, itemId) => {
-    const price = itemPriceInput[itemId];
-    if (!price || price === '') {
-      alert('Please enter a price');
-      return;
-    }
-
-    setUpdatingOrderId(orderId);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        alert('Session expired. Please login again.');
-        navigate('/admin/login');
-        return;
-      }
-
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/orders/${orderId}/custom-price`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({ item_id: itemId, price: parseFloat(price) })
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to set price');
-      }
-
-      await onRefresh();
-      setItemPriceInput({ ...itemPriceInput, [itemId]: '' });
-      alert('Price set successfully!');
-    } catch (error) {
-      console.error('Error setting price:', error);
-      alert(error.message || 'Failed to set price');
-    } finally {
-      setUpdatingOrderId(null);
-    }
-  };
-
-  const toggleOrderExpansion = (orderId) => {
-    setExpandedOrder(expandedOrder === orderId ? null : orderId);
-  };
-
-  // Filter orders based on status and search term
   const filteredOrders = orders.filter(order => {
-    // Status filter
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
-
-    // Search filter (customer name or phone)
     const matchesSearch = searchTerm === '' ||
       order.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer_phone?.includes(searchTerm);
-
+      order.customer_phone?.includes(searchTerm) ||
+      order.order_id?.toString().includes(searchTerm);
     return matchesStatus && matchesSearch;
   });
 
   return (
     <div>
       <div className="flex flex-col gap-4 mb-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold">Orders Management</h2>
-        </div>
+        <h2 className="text-xl font-semibold">Orders Management</h2>
 
         {/* Filters Row */}
         <div className="flex flex-col sm:flex-row gap-3">
-          {/* Search Input */}
           <div className="relative flex-1">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by customer name or phone..."
+              placeholder="Search by order ID, customer name or phone..."
               className="w-full px-4 py-2 pl-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
             />
             <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
@@ -1007,16 +798,7 @@ const OrdersTab = ({ orders, onRefresh }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm('')}
-                className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600"
-              >
-                <FiX className="h-5 w-5" />
-              </button>
-            )}
           </div>
-          {/* Status Filter */}
           <div className="relative flex-1 sm:max-w-xs">
             <select
               value={statusFilter}
@@ -1038,784 +820,84 @@ const OrdersTab = ({ orders, onRefresh }) => {
               </svg>
             </div>
           </div>
-
-
         </div>
-
-        {/* Results Count */}
-        {(statusFilter !== 'all' || searchTerm !== '') && (
-          <div className="text-sm text-gray-600">
-            Showing {filteredOrders.length} of {orders.length} orders
-          </div>
-        )}
       </div>
 
       {filteredOrders.length === 0 ? (
         <div className="text-center py-12 text-text/60">
           <FiShoppingBag className="w-16 h-16 mx-auto mb-4 opacity-30" />
-          <p>{orders.length === 0 ? 'No orders yet.' : 'No orders match your search criteria.'}</p>
+          <p>No orders match your search criteria.</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {filteredOrders.map((order) => {
-            const isExpanded = expandedOrder === order.id;
-            const hasPendingPrice = order.order_items?.some(item => item.price === null);
-
-            return (
-              <div key={order.id} className="bg-white">
-                <div
-                  className={`p-5 cursor-pointer hover:bg-gray-50 transition-colors border-2 border-gray-300 ${isExpanded ? 'rounded-lg rounded-b-none' : 'rounded-lg'}`}
-                  onClick={() => toggleOrderExpansion(order.id)}
-                >
-                  {/* Header Row: Order ID, Status, Arrow */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-grow">
-                      <div className="mb-3">
-                        <h3 className="font-bold text-lg text-gray-900">
-                          Order
-                        </h3>
-                      </div>
-
-                      {/* Info Cards Grid */}
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                        {/* Customer Name Card */}
-                        <div className="border border-gray-300 rounded-lg p-2">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-base">👤</span>
-                            <div>
-                              <p className="text-xs text-gray-600 font-medium">Customer</p>
-                              <p className="text-sm font-semibold text-gray-900">{order.customer_name}</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Phone Card */}
-                        <div className="border border-gray-300 rounded-lg p-2">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-base">📞</span>
-                            <div>
-                              <p className="text-xs text-gray-600 font-medium">Phone</p>
-                              <p className="text-sm font-semibold text-gray-900">{order.customer_phone}</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* City Card */}
-                        <div className="border border-gray-300 rounded-lg p-2">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-base">📍</span>
-                            <div>
-                              <p className="text-xs text-gray-600 font-medium">Wilaya</p>
-                              <p className="text-sm font-semibold text-gray-900">{order.customer_city}</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Delivery Type Card */}
-                        {order.delivery_type && (
-                          <div className="border border-gray-300 rounded-lg p-2">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-base">🚚</span>
-                              <div>
-                                <p className="text-xs text-gray-600 font-medium">Delivery</p>
-                                <p className="text-sm font-semibold text-gray-900 capitalize">
-                                  {order.delivery_type === 'home' ? 'Home' : 'Pickup'}
-                                </p>
-                              </div>
-                            </div>
+        <div className="overflow-hidden bg-white shadow-sm border border-gray-200 rounded-xl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200 text-sm font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-6 py-4">Order ID</th>
+                  <th className="px-6 py-4">Date</th>
+                  <th className="px-6 py-4">Customer</th>
+                  <th className="px-6 py-4">Total</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filteredOrders.map(order => {
+                  const hasPendingPrice = order.order_items?.some(item => item.price === null);
+                  return (
+                    <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="font-mono font-medium text-gray-900">#{order.order_id}</span>
+                        {order.cancel_requested && !('cancelled' === order.status) && (
+                          <div className="mt-1 text-[10px] bg-red-50 text-red-600 px-2 py-0.5 rounded uppercase font-bold inline-block border border-red-200">
+                            Cancel Req.
                           </div>
                         )}
-
-                        {/* Delivery Price Card */}
-                        {order.delivery_price && (
-                          <div className="border border-gray-300 rounded-lg p-2">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-base">💰</span>
-                              <div>
-                                <p className="text-xs text-gray-600 font-medium">Delivery Price</p>
-                                <p className="text-sm font-semibold text-gray-900">
-                                  {order.delivery_price} DZD
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Full Address Card */}
-                        {order.full_address && (
-                          <div className="border border-gray-300 rounded-lg p-2 col-span-2 lg:col-span-3">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-base">🏠</span>
-                              <div>
-                                <p className="text-xs text-gray-600 font-medium">Full Address</p>
-                                <p className="text-sm font-semibold text-gray-900">{order.full_address}</p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${getOrderStateColor(order.status || 'pending')}`}>
-                        {formatOrderState(order.status || 'pending')}
-                      </span>
-                      <span className="text-gray-400 text-2xl">
-                        {isExpanded ? '▼' : '▶'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Bottom Row: Price and Date */}
-                  <div className="flex justify-between items-center pt-3 border-t border-gray-100">
-                    <div>
-                      <span className="text-xs text-gray-500 mt-1 block">Total Amount</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl font-bold text-gray-700">
-                          {order.total_amount} DA
-                        </span>
-                        {hasPendingPrice && (
-                          <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full font-medium">
-                            ⚠️ + Pending Price
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-xs text-gray-500">Order Date</span>
-                      <div className="text-sm font-semibold text-gray-700">
-                        {new Date(order.created_at).toLocaleDateString('en-GB', {
-                          day: '2-digit',
-                          month: 'short',
-                          year: 'numeric'
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Expanded Order Details */}
-                {isExpanded && order.order_items && (
-                  <div className="border-t-0 border-x-2 border-b-2 border-gray-300 bg-white p-4 rounded-b-lg">
-                    <h4 className="font-semibold mb-4 text-lg">Order Items</h4>
-                    <div className="space-y-4">
-                      {order.order_items.map((item, idx) => (
-                        <div key={idx} className="border-2 border-gray-200 rounded-xl p-4 bg-gradient-to-r from-gray-50 to-white">
-                          {/* Custom Order Item */}
-                          {item.custom_order_type ? (
-                            <div>
-                              {/* Header - Clickable */}
-                              <div
-                                className="flex items-start gap-4 mb-4 pb-4 border-b cursor-pointer hover:bg-gray-50/50 -m-4 p-4 rounded-t-xl transition-colors"
-                                onClick={() => toggleCustomDetails(order.id, idx)}
-                              >
-                                <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
-                                  <span className="text-3xl">
-                                    {item.custom_order_type === 'custom_bouquet' ? '💐' : '🧶'}
-                                  </span>
-                                </div>
-                                <div className="flex-grow">
-                                  <h5 className="font-bold text-lg mb-1">
-                                    {item.custom_order_type === 'custom_bouquet'
-                                      ? 'Custom Flower Bouquet'
-                                      : 'Custom Crochet Request'}
-                                  </h5>
-                                  <p className="text-sm text-text/60 mb-2">
-                                    Quantity: {item.quantity || 1}
-                                  </p>
-                                  {item.price !== null ? (
-                                    <div className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold">
-                                      Total: {(item.price * (item.quantity || 1)).toFixed(2)} DA
-                                    </div>
-                                  ) : (
-                                    <div className="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-semibold">
-                                      ⚠️ Price Pending
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="flex-shrink-0">
-                                  <span className="text-primary text-xl">
-                                    {expandedCustomDetails[`${order.id}-${idx}`] ? '▼' : '▶'}
-                                  </span>
-                                </div>
-                              </div>
-
-                              {/* Custom Order Details - Collapsible */}
-                              {expandedCustomDetails[`${order.id}-${idx}`] && item.custom_data && (
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                  {item.custom_order_type === 'custom_bouquet' ? (
-                                    <>
-                                      {/* Left Column: Flowers and Accessories */}
-                                      <div className="space-y-4">
-                                        {/* Flowers */}
-                                        {item.custom_data.flowers && item.custom_data.flowers.length > 0 && (
-                                          <div>
-                                            <h6 className="font-semibold text-sm mb-3 text-gray-900flex items-center gap-2">
-                                              <span>🌸</span> Flowers Selected
-                                            </h6>
-                                            <div className="space-y-2">
-                                              {item.custom_data.flowers.map((f, i) => (
-                                                <div key={i} className="flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-                                                  {f.image_url && (
-                                                    <div className="relative group cursor-pointer" onClick={() => setZoomedImage(f.image_url)}>
-                                                      <img
-                                                        src={f.image_url}
-                                                        alt={f.name}
-                                                        className="w-14 h-14 object-cover rounded-lg shadow-sm flex-shrink-0"
-                                                      />
-                                                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                                                        <FiZoomIn className="text-white text-lg" />
-                                                      </div>
-                                                    </div>
-                                                  )}
-                                                  <div className="flex-grow min-w-0">
-                                                    <p className="font-semibold text-sm truncate">{f.name}</p>
-                                                    <p className="text-xs text-text/60">
-                                                      {f.quantity} × {f.price} DA
-                                                    </p>
-                                                  </div>
-                                                  <div className="text-right flex-shrink-0">
-                                                    <p className="font-bold text-primary text-sm">
-                                                      {(f.quantity * f.price).toFixed(2)} DA
-                                                    </p>
-                                                  </div>
-                                                </div>
-                                              ))}
-                                            </div>
-                                          </div>
-                                        )}
-
-                                        {/* Accessories */}
-                                        {item.custom_data.accessories && item.custom_data.accessories.length > 0 && (
-                                          <div>
-                                            <h6 className="font-semibold text-sm mb-3 text-gray-900flex items-center gap-2">
-                                              <span>✨</span> Accessories
-                                            </h6>
-                                            <div className="space-y-2">
-                                              {item.custom_data.accessories.map((a, i) => (
-                                                <div key={i} className="flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-                                                  {a.image_url && (
-                                                    <div className="relative group cursor-pointer" onClick={() => setZoomedImage(a.image_url)}>
-                                                      <img
-                                                        src={a.image_url}
-                                                        alt={a.name}
-                                                        className="w-14 h-14 object-cover rounded-lg shadow-sm flex-shrink-0"
-                                                      />
-                                                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                                                        <FiZoomIn className="text-white text-lg" />
-                                                      </div>
-                                                    </div>
-                                                  )}
-                                                  <div className="flex-grow min-w-0">
-                                                    <p className="font-semibold text-sm truncate">{a.name}</p>
-                                                    <p className="text-xs text-text/60">
-                                                      {a.quantity} × {a.price} DA
-                                                    </p>
-                                                  </div>
-                                                  <div className="text-right flex-shrink-0">
-                                                    <p className="font-bold text-primary text-sm">
-                                                      {(a.quantity * a.price).toFixed(2)} DA
-                                                    </p>
-                                                  </div>
-                                                </div>
-                                              ))}
-                                            </div>
-                                          </div>
-                                        )}
-
-                                        {/* Description */}
-                                        {item.custom_data.description && (
-                                          <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                                            <h6 className="font-semibold text-sm mb-1 text-blue-900 flex items-center gap-2">
-                                              <span>📝</span> Description
-                                            </h6>
-                                            <p className="text-sm text-blue-800">{item.custom_data.description}</p>
-                                          </div>
-                                        )}
-                                      </div>
-
-                                      {/* Right Column: Wrapping and Colors */}
-                                      <div className="space-y-4">
-                                        {/* Wrapping */}
-                                        {item.custom_data.wrapping && (
-                                          <div>
-                                            <h6 className="font-semibold text-sm mb-3 text-gray-900flex items-center gap-2">
-                                              <span>🎁</span> Wrapping
-                                            </h6>
-                                            <div className="flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-                                              {item.custom_data.wrapping.image_url && (
-                                                <div className="relative group cursor-pointer" onClick={() => setZoomedImage(item.custom_data.wrapping.image_url)}>
-                                                  <img
-                                                    src={item.custom_data.wrapping.image_url}
-                                                    alt={item.custom_data.wrapping.name}
-                                                    className="w-14 h-14 object-cover rounded-lg shadow-sm flex-shrink-0"
-                                                  />
-                                                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                                                    <FiZoomIn className="text-white text-lg" />
-                                                  </div>
-                                                </div>
-                                              )}
-                                              <div className="flex-grow min-w-0">
-                                                <p className="font-semibold text-sm truncate">{item.custom_data.wrapping.name}</p>
-                                                <p className="text-xs text-text/60">1 × {item.custom_data.wrapping.price} DA</p>
-                                              </div>
-                                              <div className="text-right flex-shrink-0">
-                                                <p className="font-bold text-primary text-sm">
-                                                  {item.custom_data.wrapping.price} DA
-                                                </p>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        )}
-
-                                        {/* Colors Preview */}
-                                        {item.custom_data.colors && item.custom_data.colors.length > 0 && (
-                                          <div>
-                                            <h6 className="font-semibold text-sm mb-3 text-gray-900flex items-center gap-2">
-                                              <span>🎨</span> Selected Colors
-                                            </h6>
-                                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                              {item.custom_data.colors.map((color, i) => (
-                                                <div key={i} className="bg-white p-2 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-                                                  {color.image_url ? (
-                                                    <div className="relative group cursor-pointer" onClick={() => setZoomedImage(color.image_url)}>
-                                                      <img
-                                                        src={color.image_url}
-                                                        alt={color.name || 'Color'}
-                                                        className="w-full h-16 object-cover rounded-lg mb-1.5"
-                                                      />
-                                                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                                                        <FiZoomIn className="text-white text-base" />
-                                                      </div>
-                                                    </div>
-                                                  ) : (
-                                                    <div
-                                                      className="w-full h-16 rounded-lg mb-1.5"
-                                                      style={{ backgroundColor: color.id || color }}
-                                                    />
-                                                  )}
-                                                  <p className="text-xs font-medium text-center truncate">
-                                                    {color.name || `Color ${i + 1}`}
-                                                  </p>
-                                                </div>
-                                              ))}
-                                            </div>
-                                          </div>
-                                        )}
-
-                                        {/* Reference Images for Custom Bouquet */}
-                                        {(item.reference_images && item.reference_images.length > 0) && (
-                                          <div className="bg-white p-3 rounded-lg border border-gray-200">
-                                            <h6 className="font-semibold text-sm text-gray-900 mb-2 flex items-center gap-2">
-                                              <span>📷</span> Customer Reference {item.reference_images?.length > 1 ? 'Images' : 'Image'}
-                                            </h6>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                              {item.reference_images.map((img, imgIdx) => {
-                                                const imgUrl = typeof img === 'string' ? img : img.url || img.image_url;
-                                                return (
-                                                  <div key={imgIdx} className="relative group cursor-pointer" onClick={() => setZoomedImage(imgUrl)}>
-                                                    <img
-                                                      src={imgUrl}
-                                                      alt={`Reference ${imgIdx + 1}`}
-                                                      className="w-full h-64 object-cover rounded-lg shadow-md"
-                                                    />
-                                                    <div className="absolute top-2 left-2 bg-black/60 text-white px-2 py-1 rounded text-xs font-medium">
-                                                      {imgIdx + 1}/{item.reference_images.length}
-                                                    </div>
-                                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                                                      <FiZoomIn className="text-white text-3xl" />
-                                                    </div>
-                                                  </div>
-                                                );
-                                              })}
-                                            </div>
-                                          </div>
-                                        )}
-
-                                      </div>
-                                    </>
-                                  ) : (
-                                    /* Custom Crochet Request Details */
-                                    <>
-                                      {/* Left Column: Description */}
-                                      <div className="space-y-4">
-                                        {item.custom_data.description && (
-                                          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                                            <h6 className="font-semibold text-sm mb-2 text-blue-900 flex items-center gap-2">
-                                              <span>📝</span> Description
-                                            </h6>
-                                            <p className="text-sm text-blue-800">{item.custom_data.description}</p>
-                                          </div>
-                                        )}
-                                        {/* Reference Images for Custom Crochet Request */}
-                                        {(item.reference_images && item.reference_images.length > 0) && (
-                                          <div className="bg-white p-3 rounded-lg border border-gray-200">
-                                            <h6 className="font-semibold text-sm text-gray-900 mb-2 flex items-center gap-2">
-                                              <span>📷</span> Customer Reference {item.reference_images?.length > 1 ? 'Images' : 'Image'}
-                                            </h6>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                              {item.reference_images.map((img, imgIdx) => {
-                                                const imgUrl = typeof img === 'string' ? img : img.url || img.image_url;
-                                                return (
-                                                  <div key={imgIdx} className="relative group cursor-pointer" onClick={() => setZoomedImage(imgUrl)}>
-                                                    <img
-                                                      src={imgUrl}
-                                                      alt={`Reference ${imgIdx + 1}`}
-                                                      className="w-full h-64 object-cover rounded-lg shadow-md"
-                                                    />
-                                                    <div className="absolute top-2 left-2 bg-black/60 text-white px-2 py-1 rounded text-xs font-medium">
-                                                      {imgIdx + 1}/{item.reference_images.length}
-                                                    </div>
-                                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                                                      <FiZoomIn className="text-white text-3xl" />
-                                                    </div>
-                                                  </div>
-                                                );
-                                              })}
-                                            </div>
-                                          </div>
-                                        )}
-                                      </div>
-
-                                      {/* Right Column: Selected Colors */}
-                                      <div className="space-y-4">
-                                        {item.custom_data.colors && item.custom_data.colors.length > 0 && (
-                                          <div>
-                                            <h6 className="font-semibold text-sm mb-3 text-primary flex items-center gap-2">
-                                              <span>🎨</span> Selected Colors
-                                            </h6>
-                                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                              {item.custom_data.colors.map((color, i) => (
-                                                <div key={i} className="bg-white p-2 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-                                                  {color.image_url ? (
-                                                    <div className="relative group cursor-pointer" onClick={() => setZoomedImage(color.image_url)}>
-                                                      <img
-                                                        src={color.image_url}
-                                                        alt={color.name || 'Color'}
-                                                        className="w-full h-16 object-cover rounded-lg mb-1.5"
-                                                      />
-                                                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                                                        <FiZoomIn className="text-white text-base" />
-                                                      </div>
-                                                    </div>
-                                                  ) : (
-                                                    <div
-                                                      className="w-full h-16 rounded-lg mb-1.5"
-                                                      style={{ backgroundColor: color.id || color }}
-                                                    />
-                                                  )}
-                                                  <p className="text-xs font-medium text-center truncate">
-                                                    {color.name || `Color ${i + 1}`}
-                                                  </p>
-                                                </div>
-                                              ))}
-                                            </div>
-                                          </div>
-                                        )}
-
-
-                                      </div>
-                                    </>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            /* Regular Product Item - Enhanced Display */
-                            <div className="flex items-center gap-4">
-                              {(item.products?.product_images?.[0]?.image_url || item.image_url) && (
-                                <div className="relative group cursor-pointer" onClick={() => setZoomedImage(item.products?.product_images?.[0]?.image_url || item.image_url)}>
-                                  <img
-                                    src={item.products?.product_images?.[0]?.image_url || item.image_url}
-                                    alt={item.products?.category || 'Product'}
-                                    className="w-20 h-20 object-cover rounded-lg shadow-md"
-                                  />
-                                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                                    <FiZoomIn className="text-white text-lg" />
-                                  </div>
-                                </div>
-                              )}
-                              <div className="flex-grow">
-                                <h5 className="font-bold text-base mb-1">
-                                  {item.products?.category || 'Product'}
-                                </h5>
-                                <div className="flex items-center gap-4 text-sm text-text/60">
-                                  <span>{item.quantity} × {item.price} DA</span>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold">
-                                  Total: {(item.price * item.quantity).toFixed(2)} DA
-                                </div>
-                              </div>
-                            </div>
-                          )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(order.created_at).toLocaleDateString('en-GB')}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="font-medium text-gray-900">{order.customer_name}</span>
+                          <span className="text-xs text-gray-500">{order.customer_phone}</span>
                         </div>
-                      ))}
-                    </div>
-
-                    {/* Order Lifecycle Management Panel */}
-                    <div className="mt-6 bg-gradient-to-r from-primary/5 to-accent/5 rounded-lg border-2 border-primary/20">
-                      <div
-                        className="p-4 cursor-pointer hover:bg-primary/5 rounded-t-lg transition-colors"
-                        onClick={() => toggleOrderManagement(order.id)}
-                      >
-                        <h4 className="font-semibold text-lg flex items-center gap-2">
-                          <FiSettings className="text-primary" />
-                          Order Management
-                          <span className="text-primary text-xl ml-auto">
-                            {expandedOrderManagement[order.id] ? '▼' : '▶'}
-                          </span>
-                        </h4>
-                      </div>
-
-                      {expandedOrderManagement[order.id] && (
-                        <div className="p-4 pt-0">
-
-                          {/* Order State & Financial Overview */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            {/* Order State Actions */}
-                            <div className="bg-white p-4 rounded border">
-                              <div className="flex items-center justify-between mb-3">
-                                <label className="text-sm font-medium">Order State Management</label>
-                                <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${getOrderStateColor(order.status || 'pending')}`}>
-                                  {formatOrderState(order.status || 'pending')}
-                                </span>
-                              </div>
-
-                              {/* Action Buttons */}
-                              {(order.status !== 'done' && order.status !== 'cancelled') && (
-                                <div className="space-y-2">
-                                  <p className="text-xs text-gray-600 mb-2">Available Actions:</p>
-
-                                  {/* Waiting Deposit Info Message */}
-                                  {order.status === 'waiting_deposit' && getNextStates(order.status).length === 0 && (
-                                    <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
-                                      <p className="text-sm font-medium text-blue-800">
-                                        💰 Awaiting Deposit
-                                      </p>
-                                      <p className="text-xs mt-1 text-blue-600">
-                                        Use the deposit section below to set the deposit amount and automatically confirm this order.
-                                      </p>
-                                    </div>
-                                  )}
-
-                                  {/* Next State Buttons */}
-                                  {getNextStates(order.status || 'pending').map((nextState) => {
-                                    // Check if button should be disabled based on validation rules
-                                    const isDisabled = (() => {
-                                      if (order.status === 'pending' && nextState === 'waiting_deposit') {
-                                        return hasPendingPrice;
-                                      }
-                                      return false;
-                                    })();
-
-                                    return (
-                                      <div key={nextState}>
-                                        <button
-                                          onClick={() => updateOrderState(order.id, nextState, order)}
-                                          disabled={updatingOrderId === order.id || isDisabled}
-                                          className={`w-full px-4 py-2.5 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${getStateButtonStyle(nextState)} disabled:opacity-50 disabled:cursor-not-allowed`}
-                                        >
-                                          <span>{getStateIcon(nextState)}</span>
-                                          <span>Move to {formatOrderState(nextState)}</span>
-                                        </button>
-                                        {isDisabled && (
-                                          <p className="text-xs text-red-600 mt-1 ml-1">
-                                            {order.status === 'pending' && nextState === 'waiting_deposit'
-                                              ? '⚠️ Set all pending prices first'
-                                              : ''}
-                                          </p>
-                                        )}
-                                      </div>
-                                    );
-                                  })}
-
-                                  {/* Cancel Button - Always available except for done state */}
-                                  <button
-                                    onClick={() => {
-                                      if (confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
-                                        updateOrderState(order.id, 'cancelled', order);
-                                      }
-                                    }}
-                                    disabled={updatingOrderId === order.id}
-                                    className="w-full px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border-2 border-red-600"
-                                  >
-                                    <span>❌</span>
-                                    <span>Cancel Order</span>
-                                  </button>
-                                </div>
-                              )}
-
-                              {/* Final State Message */}
-                              {(order.status === 'done' || order.status === 'cancelled') && (
-                                <div className={`p-3 rounded-lg ${order.status === 'done' ? 'bg-teal-50 border border-teal-200' : 'bg-red-50 border border-red-200'}`}>
-                                  <p className={`text-sm font-medium ${order.status === 'done' ? 'text-teal-800' : 'text-red-800'}`}>
-                                    {order.status === 'done' ? '✅ Order completed' : '❌ Order cancelled'}
-                                  </p>
-                                  <p className={`text-xs mt-1 ${order.status === 'done' ? 'text-teal-600' : 'text-red-600'}`}>
-                                    This is a final state. No further actions available.
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Financial Summary */}
-                            <div className="bg-white p-3 rounded border">
-                              <label className="block text-sm font-medium mb-2">Financial Status</label>
-                              <div className="space-y-2 text-sm">
-                                <div className="flex justify-between">
-                                  <span className="text-text/60">Total Amount:</span>
-                                  <span className="font-semibold">{order.total_amount || 0} DA</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-text/60">Deposit Paid:</span>
-                                  <span className="font-semibold text-green-600">
-                                    {order.deposit_value || 0} DA
-                                  </span>
-                                </div>
-                                <div className="flex justify-between pt-2 border-t">
-                                  <span className="font-medium">Remaining:</span>
-                                  <span className="font-bold text-red-600">
-                                    {(order.remaining_balance !== null && order.remaining_balance !== undefined)
-                                      ? `${order.remaining_balance} DA`
-                                      : `${(order.total_amount || 0) - (order.deposit_value || 0)} DA`}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Set Deposit */}
-                          {(!order.deposit_value || order.deposit_value === 0) && order.status === 'waiting_deposit' && (
-                            <div className="bg-white p-3 rounded border mb-4">
-                              <label className="block text-sm font-medium mb-2">Set Deposit Amount</label>
-                              <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded flex items-center gap-2">
-                                <span className="text-blue-600">ℹ️</span>
-                                <p className="text-xs text-blue-800">
-                                  Setting a deposit will automatically move the order to <strong>Confirmed</strong> status.
-                                </p>
-                              </div>
-                              <div className="flex gap-2">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  max={order.total_amount}
-                                  step="0.01"
-                                  placeholder="Enter deposit amount"
-                                  value={depositInput[order.id] || ''}
-                                  onChange={(e) => setDepositInput({ ...depositInput, [order.id]: e.target.value })}
-                                  disabled={updatingOrderId === order.id}
-                                  className="flex-1 px-3 py-2 border rounded focus:ring-2 focus:ring-primary disabled:bg-gray-100 disabled:cursor-not-allowed"
-                                />
-                                <button
-                                  onClick={() => updateDeposit(order.id)}
-                                  disabled={updatingOrderId === order.id || !depositInput[order.id]}
-                                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                  Set Deposit
-                                </button>
-                              </div>
-                              <p className="text-xs text-text/60 mt-1">
-                                Maximum: {order.total_amount} DA
-                              </p>
-                            </div>
-                          )}
-
-                          {/* Custom Item Price Setting */}
-                          {order.order_items?.some(item => item.custom_order_type && item.price === null) && (
-                            <div className="bg-white p-3 rounded border mb-4">
-                              <label className="block text-sm font-medium mb-3">Set Custom Item Prices</label>
-                              <div className="space-y-3">
-                                {order.order_items
-                                  .filter(item => item.custom_order_type && item.price === null)
-                                  .map(item => (
-                                    <div key={item.id} className="flex items-start gap-3 p-2 bg-yellow-50 rounded">
-                                      <div className="flex-1">
-                                        <p className="font-medium text-sm">
-                                          {item.custom_order_type === 'custom_bouquet'
-                                            ? '🌹 Custom Flower Bouquet'
-                                            : '🧶 Custom Crochet Request'}
-                                        </p>
-                                        <p className="text-xs text-text/60 mt-1">
-                                          ⚠️ Price not set - please contact customer and set price
-                                        </p>
-                                      </div>
-                                      <div className="flex gap-2 items-center">
-                                        <input
-                                          type="number"
-                                          min="0"
-                                          step="0.01"
-                                          placeholder="Price"
-                                          value={itemPriceInput[item.id] || ''}
-                                          onChange={(e) => setItemPriceInput({ ...itemPriceInput, [item.id]: e.target.value })}
-                                          disabled={updatingOrderId === order.id}
-                                          className="w-32 px-3 py-1 text-sm border rounded focus:ring-2 focus:ring-primary"
-                                        />
-                                        <span className="text-sm text-text/60">DA</span>
-                                        <button
-                                          onClick={() => updateItemPrice(order.id, item.id)}
-                                          disabled={updatingOrderId === order.id || !itemPriceInput[item.id]}
-                                          className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                          Set Price
-                                        </button>
-                                      </div>
-                                    </div>
-                                  ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Admin Note Section */}
-                          <div className="bg-white p-3 rounded border">
-                            <label className="text-sm font-medium mb-2 flex items-center gap-2">
-                              <span>📝</span>
-                              Admin Note
-                              {(order.status === 'cancelled' || order.status === 'done') && (
-                                <span className="text-xs text-red-600 font-normal">
-                                  (Read-only - order is {order.status})
-                                </span>
-                              )}
-                            </label>
-                            <div className="space-y-2">
-                              <textarea
-                                rows="3"
-                                placeholder={order.status === 'cancelled' || order.status === 'done'
-                                  ? "Cannot edit admin note for completed or cancelled orders"
-                                  : "Add a note about this order..."}
-                                value={adminNoteInput[order.id] !== undefined ? adminNoteInput[order.id] : (order.admin_note || '')}
-                                onChange={(e) => setAdminNoteInput({ ...adminNoteInput, [order.id]: e.target.value })}
-                                disabled={updatingOrderId === order.id || order.status === 'cancelled' || order.status === 'done'}
-                                className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-primary disabled:bg-gray-100 disabled:cursor-not-allowed resize-none"
-                              />
-                              {order.status !== 'cancelled' && order.status !== 'done' && (
-                                <button
-                                  onClick={() => updateAdminNote(order.id, order)}
-                                  disabled={updatingOrderId === order.id}
-                                  className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                                >
-                                  <FiSave />
-                                  {order.admin_note ? 'Update Note' : 'Save Note'}
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="font-bold text-gray-900">{order.total_amount} DA</div>
+                        {hasPendingPrice && <span className="text-[10px] font-bold text-yellow-600 uppercase tracking-wider">+ Pending</span>}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getStatusBadge(order.status)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <button
+                          onClick={() => setSelectedOrder(order)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary-dark transition-colors font-semibold rounded-lg text-sm"
+                        >
+                          <FiZoomIn className="w-4 h-4" /> View
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
-      {/* Image Zoom Modal */}
-      <ImageZoomModal
-        imageUrl={zoomedImage}
-        onClose={() => setZoomedImage(null)}
-      />
+      {selectedOrder && (
+        <AdminOrderDetailsModal
+          order={selectedOrder}
+          isOpen={!!selectedOrder}
+          onClose={() => setSelectedOrder(null)}
+          onRefresh={async () => {
+            await onRefresh();
+          }}
+        />
+      )}
     </div>
   );
 };
@@ -2278,8 +1360,8 @@ const ItemsTab = () => {
                 {!imagePreview ? (
                   <div
                     className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
-                        ? 'border-primary bg-primary/5'
-                        : 'border-gray-300 hover:border-primary/50'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-gray-300 hover:border-primary/50'
                       }`}
                     onDragEnter={handleDrag}
                     onDragLeave={handleDrag}
@@ -2731,8 +1813,8 @@ const ColorsTab = () => {
                 {/* Availability Badge */}
                 <div className="absolute top-2 left-2">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${color.available
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-red-100 text-red-700'
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-red-100 text-red-700'
                     }`}>
                     {color.available ? 'Available' : 'Unavailable'}
                   </span>
@@ -2816,8 +1898,8 @@ const ColorsTab = () => {
                       onDragOver={handleDrag}
                       onDrop={handleDrop}
                       className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
-                          ? 'border-primary bg-primary/5'
-                          : 'border-gray-300 hover:border-primary'
+                        ? 'border-primary bg-primary/5'
+                        : 'border-gray-300 hover:border-primary'
                         }`}
                     >
                       <FiUpload className="w-12 h-12 mx-auto mb-3 text-gray-400" />

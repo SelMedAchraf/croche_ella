@@ -36,6 +36,10 @@ class AuthService {
     return session?.user || null;
   }
 
+  async getSession() {
+    return await supabase.auth.getSession();
+  }
+
   onAuthStateChange(callback) {
     return supabase.auth.onAuthStateChange(callback);
   }

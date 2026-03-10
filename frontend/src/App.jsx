@@ -11,9 +11,11 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
+import MyOrders from './pages/MyOrders';
 import AuthCallback from './pages/AuthCallback';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AccountSettings from './pages/AccountSettings';
 
 function AppContent() {
   const location = useLocation();
@@ -33,7 +35,9 @@ function AppContent() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/my-orders" element={<MyOrders />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/account" element={<AccountSettings />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Routes>

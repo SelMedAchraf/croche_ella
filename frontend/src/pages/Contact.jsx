@@ -118,6 +118,7 @@ const Contact = () => {
                   />
                 </div>
 
+
                 <div>
                   <label className="block text-sm font-medium text-text mb-2">
                     {t('contact.email')} *

@@ -67,6 +67,7 @@ CREATE TABLE product_images (
 -- Orders Table
 CREATE TABLE orders (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  order_id VARCHAR(50) UNIQUE,
   user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   customer_name VARCHAR(255) NOT NULL,
   customer_phone VARCHAR(50) NOT NULL,
@@ -77,6 +78,9 @@ CREATE TABLE orders (
   delivery_type VARCHAR(50) DEFAULT 'home',
   delivery_price DECIMAL(10, 2) DEFAULT 0,
   admin_note TEXT,
+  cancel_requested BOOLEAN DEFAULT FALSE,
+  cancel_requested_at TIMESTAMP WITH TIME ZONE,
+  cancelled_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   CONSTRAINT check_delivery_type_valid CHECK (delivery_type IN ('home', 'stopdesk'))
@@ -94,6 +98,23 @@ CREATE TABLE order_items (
   reference_images JSONB,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Sequence and Trigger for order_id
+CREATE SEQUENCE IF NOT EXISTS order_seq START 1;
+
+CREATE OR REPLACE FUNCTION generate_order_id()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.order_id := 'OD' || to_char(CURRENT_TIMESTAMP, 'YYMMDD') || lpad(nextval('order_seq')::text, 4, '0');
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_generate_order_id
+BEFORE INSERT ON orders
+FOR EACH ROW
+WHEN (NEW.order_id IS NULL)
+EXECUTE FUNCTION generate_order_id();
 
 -- Create indexes for better performance
 CREATE INDEX idx_products_category ON products(category);

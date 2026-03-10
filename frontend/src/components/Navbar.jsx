@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiShoppingCart, FiMenu, FiX, FiLogOut, FiUser } from 'react-icons/fi';
+import { FiShoppingCart, FiMenu, FiX, FiLogOut, FiUser, FiShoppingBag } from 'react-icons/fi';
 import { useCart } from '../context/CartContext';
 import { authService } from '../services/authService';
 import { FcGoogle } from 'react-icons/fc';
@@ -54,12 +54,15 @@ const Navbar = () => {
     }
   };
 
+  const isAdmin = user && (user.app_metadata?.is_admin || user.user_metadata?.is_admin || user.email === 'crocheella19@gmail.com');
+
   const navLinks = [
     { path: '/', label: t('nav.home') },
     { path: '/products', label: t('nav.products') },
     { path: '/custom-orders', label: t('nav.customOrders') },
     { path: '/about', label: t('nav.about') },
-    { path: '/contact', label: t('nav.contact') }
+    { path: '/contact', label: t('nav.contact') },
+    ...(isAdmin ? [{ path: '/admin/dashboard', label: 'Dashboard' }] : [])
   ];
 
   return (
@@ -120,28 +123,55 @@ const Navbar = () => {
             {/* Auth section desktop */}
             <div className="hidden lg:flex items-center ml-2 border-l pl-4 border-gray-200">
               {user ? (
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
+                <div className="relative group">
+                  <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1.5 rounded-xl transition-colors border border-transparent hover:border-gray-100">
                     {user.user_metadata?.avatar_url ? (
-                      <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-8 h-8 rounded-full" />
+                      <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-8 h-8 rounded-full object-cover shadow-sm" />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shadow-sm">
                         <FiUser />
                       </div>
                     )}
-                    <span className="text-sm font-medium hidden xl:block">
-                      {user.user_metadata?.full_name?.split(' ')[0] ||
-                        (user.email?.includes('admin') ? 'Admin' : user.email?.split('@')[0]) ||
-                        'User'}
-                    </span>
+                    <div className="flex flex-col items-start xl:flex hidden">
+                      <span className="text-sm font-semibold text-gray-900 max-w-[120px] truncate leading-tight">
+                        {user.user_metadata?.full_name?.split(' ')[0] ||
+                          (user.email?.includes('admin') ? 'Admin' : user.email?.split('@')[0]) ||
+                          'User'}
+                      </span>
+                      {isAdmin && <span className="text-[10px] text-primary font-bold uppercase tracking-wider leading-tight mt-0.5">Admin</span>}
+                    </div>
                   </div>
-                  <button
-                    onClick={handleLogout}
-                    className="p-2 text-text/60 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Logout"
-                  >
-                    <FiLogOut className="w-5 h-5" />
-                  </button>
+
+                  {/* Dropdown Menu */}
+                  <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-100 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-50 py-2">
+                    <div className="px-4 py-2 border-b border-gray-50 mb-1">
+                      <p className="text-xs text-text/50 uppercase tracking-wider font-semibold mb-0.5">Signed in as</p>
+                      <p className="text-sm text-gray-900 font-medium truncate">{user.email}</p>
+                    </div>
+                    <Link
+                      to="/account"
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors"
+                    >
+                      <FiUser className="w-4 h-4" />
+                      Manage Account
+                    </Link>
+                    {!isAdmin && (
+                      <Link
+                        to="/my-orders"
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors"
+                      >
+                        <FiShoppingBag className="w-4 h-4" />
+                        My Orders
+                      </Link>
+                    )}
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
+                    >
+                      <FiLogOut className="w-4 h-4" />
+                      Logout
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <button
@@ -194,36 +224,63 @@ const Navbar = () => {
                 </Link>
               ))}
 
-              <div className="border-t pt-2 mt-2">
+              <div className="border-t pt-4 mt-2">
                 {user ? (
-                  <div className="flex items-center justify-between px-4 py-2">
-                    <div className="flex items-center gap-3">
+                  <div className="space-y-1">
+                    {/* User Profile Info Header */}
+                    <div className="flex items-center gap-3 px-4 py-3 mb-2 bg-gray-50 rounded-xl">
                       {user.user_metadata?.avatar_url ? (
-                        <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-8 h-8 rounded-full" />
+                        <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-white shadow-sm" />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                          <FiUser />
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary border-2 border-white shadow-sm">
+                          <FiUser className="w-5 h-5" />
                         </div>
                       )}
-                      <span className="font-medium">
-                        {user.user_metadata?.full_name ||
-                          (user.email?.includes('admin') ? 'Admin' : user.email?.split('@')[0]) ||
-                          'User'}
-                      </span>
+                      <div className="flex flex-col overflow-hidden">
+                        <span className="font-bold text-gray-900 truncate">
+                          {user.user_metadata?.full_name ||
+                            (user.email?.includes('admin') ? 'Admin' : user.email?.split('@')[0]) ||
+                            'User'}
+                        </span>
+                        <span className="text-xs text-text/50 truncate">{user.email}</span>
+                      </div>
                     </div>
+
+                    {/* Menu Links */}
+                    <Link
+                      to="/account"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center gap-3 w-full py-3 px-4 rounded-xl text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors font-medium"
+                    >
+                      <FiUser className="w-5 h-5 text-gray-400" />
+                      Manage Account
+                    </Link>
+
+                    {!isAdmin && (
+                      <Link
+                        to="/my-orders"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex items-center gap-3 w-full py-3 px-4 rounded-xl text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors font-medium"
+                      >
+                        <FiShoppingBag className="w-5 h-5 text-gray-400" />
+                        My Orders
+                      </Link>
+                    )}
+
                     <button
                       onClick={handleLogout}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors flex flex-col items-center"
+                      className="flex items-center gap-3 w-full py-3 px-4 rounded-xl text-red-600 hover:bg-red-50 transition-colors font-medium text-left mt-1"
                     >
                       <FiLogOut className="w-5 h-5" />
+                      Logout
                     </button>
                   </div>
                 ) : (
                   <button
                     onClick={handleLogin}
-                    className="w-full flex items-center justify-center gap-2 py-3 mt-2 bg-gray-50 border border-gray-200 rounded-lg text-text font-medium"
+                    className="w-full flex items-center justify-center gap-3 py-4 mt-2 bg-white border border-gray-200 rounded-xl text-text font-bold shadow-sm hover:bg-gray-50 active:scale-[0.98] transition-all"
                   >
-                    <FcGoogle className="w-5 h-5" />
+                    <FcGoogle className="w-6 h-6" />
                     Continue with Google
                   </button>
                 )}

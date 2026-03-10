@@ -38,8 +38,14 @@ const Checkout = () => {
       } else {
         setUserId(user.id);
         // Pre-fill user data if possible
-        if (user.user_metadata?.full_name) {
-          setFormData(prev => ({ ...prev, customer_name: user.user_metadata.full_name }));
+        if (user.user_metadata) {
+          setFormData(prev => ({
+            ...prev,
+            customer_name: user.user_metadata.full_name || prev.customer_name,
+            customer_phone: user.user_metadata.phone || prev.customer_phone,
+            full_address: user.user_metadata.full_address || prev.full_address,
+            wilaya_code: user.user_metadata.wilaya_code || prev.wilaya_code
+          }));
         }
       }
       setCheckingAuth(false);

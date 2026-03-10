@@ -25,6 +25,15 @@ const AdminLogin = () => {
       if (error) throw error;
 
       if (data.session) {
+        const user = data.session.user;
+        const isAdmin = user.app_metadata?.is_admin || user.user_metadata?.is_admin || user.email === 'crocheella19@gmail.com';
+
+        if (!isAdmin) {
+          await supabase.auth.signOut();
+          setError('Access Denied: Admin privileges required.');
+          return;
+        }
+
         localStorage.setItem('supabase.auth.token', data.session.access_token);
         navigate('/admin/dashboard');
       }
