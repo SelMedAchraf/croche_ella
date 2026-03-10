@@ -67,6 +67,7 @@ CREATE TABLE product_images (
 -- Orders Table
 CREATE TABLE orders (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   customer_name VARCHAR(255) NOT NULL,
   customer_phone VARCHAR(50) NOT NULL,
   customer_city VARCHAR(100) NOT NULL,

@@ -5,12 +5,34 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiTrash2, FiShoppingBag, FiX, FiEye, FiZoomIn } from 'react-icons/fi';
 import { useCart } from '../context/CartContext';
 import { useColors } from '../hooks/useColors';
+import { authService } from '../services/authService';
+import { FcGoogle } from 'react-icons/fc';
 
 const Cart = () => {
   const { t } = useTranslation();
   const { cartItems, removeFromCart, updateQuantity, getCartTotal } = useCart();
   const [selectedCustomOrder, setSelectedCustomOrder] = useState(null);
   const [zoomedImage, setZoomedImage] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  const handleProceedToCheckout = async () => {
+    const user = await authService.getCurrentUser();
+    if (!user) {
+      setShowLoginModal(true);
+    } else {
+      window.location.href = '/checkout';
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      localStorage.setItem('returnToAfterLogin', '/checkout');
+      await authService.signInWithGoogle();
+    } catch (error) {
+      console.error('Login failed', error);
+      alert('Failed to launch Google Login. Please try again.');
+    }
+  };
 
   if (cartItems.length === 0) {
     return (
@@ -55,7 +77,7 @@ const Cart = () => {
             {cartItems.map((item, index) => {
               const isCustomOrder = item.isCustomOrder || false;
               const itemKey = isCustomOrder ? `custom-${item.cartItemId}` : `${item.id}-${item.selectedColor}`;
-              
+
               return (
                 <motion.div
                   key={itemKey}
@@ -100,7 +122,7 @@ const Cart = () => {
                               Custom
                             </span>
                           </div>
-                          <button 
+                          <button
                             onClick={() => setSelectedCustomOrder(item)}
                             className="text-sm bg-primary text-white px-3 py-2 rounded-lg hover:bg-highlight inline-flex items-center gap-1 transition-colors whitespace-nowrap"
                           >
@@ -109,7 +131,7 @@ const Cart = () => {
                           </button>
                         </div>
                       )}
-                      
+
                       {item.selectedColor && !isCustomOrder && (
                         <div className="flex items-center gap-2 mt-2">
                           <span className="text-sm text-text/60">Color:</span>
@@ -128,7 +150,7 @@ const Cart = () => {
 
                       {isCustomOrder && item.customData && (
                         <p className="text-sm text-text/60 mt-1">
-                          {item.customOrderType === 'custom_bouquet' 
+                          {item.customOrderType === 'custom_bouquet'
                             ? `Custom bouquet with ${Object.keys(item.customData.flowers || {}).length} flower types`
                             : 'Custom crochet design'}
                         </p>
@@ -157,13 +179,13 @@ const Cart = () => {
 
                     <div className="flex items-center justify-end gap-4">
                       <span className="text-xl font-bold text-primary">
-                        {item.price === null 
-                          ? 'Price TBD' 
+                        {item.price === null
+                          ? 'Price TBD'
                           : `${(item.price * (item.quantity || 1)).toFixed(2)} DA`}
                       </span>
                       <button
-                        onClick={() => isCustomOrder 
-                          ? removeFromCart(null, null, item.cartItemId) 
+                        onClick={() => isCustomOrder
+                          ? removeFromCart(null, null, item.cartItemId)
                           : removeFromCart(item.id, item.selectedColor)}
                         className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                         aria-label={t('cart.remove')}
@@ -172,7 +194,7 @@ const Cart = () => {
                       </button>
                     </div>
                   </div>
-              </motion.div>
+                </motion.div>
               );
             })}
           </div>
@@ -213,12 +235,12 @@ const Cart = () => {
                 </div>
               </div>
 
-              <Link
-                to="/checkout"
-                className="btn-primary w-full text-center block mb-3"
+              <button
+                onClick={handleProceedToCheckout}
+                className="btn-primary w-full text-center block mb-3 text-lg py-3"
               >
                 {t('cart.checkout')}
-              </Link>
+              </button>
 
               <Link
                 to="/products"
@@ -231,17 +253,64 @@ const Cart = () => {
         </div>
 
         {/* Custom Order Details Modal */}
-        <CustomOrderModal 
-          order={selectedCustomOrder} 
+        <CustomOrderModal
+          order={selectedCustomOrder}
           onClose={() => setSelectedCustomOrder(null)}
           onZoomImage={setZoomedImage}
         />
 
         {/* Image Zoom Modal */}
-        <ImageZoomModal 
+        <ImageZoomModal
           imageUrl={zoomedImage}
           onClose={() => setZoomedImage(null)}
         />
+
+        <AnimatePresence>
+          {showLoginModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4"
+              onClick={() => setShowLoginModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white rounded-2xl p-8 max-w-md w-full text-center"
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <FiShoppingBag className="w-8 h-8 text-primary" />
+                </div>
+
+                <h2 className="text-2xl font-display font-bold text-primary mb-3">
+                  Almost there!
+                </h2>
+
+                <p className="text-text/70 mb-8">
+                  Sign in securely with Google to complete your order and easily track its progress later.
+                </p>
+
+                <button
+                  onClick={handleGoogleLogin}
+                  className="w-full bg-white border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-text font-medium py-3 px-4 rounded-xl flex items-center justify-center gap-3 transition-all mb-4"
+                >
+                  <FcGoogle className="w-6 h-6" />
+                  Continue with Google
+                </button>
+
+                <button
+                  onClick={() => setShowLoginModal(false)}
+                  className="text-text/60 hover:text-text text-sm font-medium transition-colors"
+                >
+                  Cancel and browsing
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -254,7 +323,7 @@ const CustomOrderModal = ({ order, onClose, onZoomImage }) => {
   if (!order) return null;
 
   const isBouquet = order.customOrderType === 'custom_bouquet';
-  
+
   // Get selected color objects from IDs
   const selectedColorObjects = (order.customData?.colors || [])
     .map(colorId => colors.find(c => c.id === colorId))
@@ -272,7 +341,7 @@ const CustomOrderModal = ({ order, onClose, onZoomImage }) => {
             className="fixed inset-0 bg-black/50 z-50"
             onClick={onClose}
           />
-          
+
           {/* Side Panel */}
           <motion.div
             initial={{ x: '100%' }}
@@ -297,281 +366,281 @@ const CustomOrderModal = ({ order, onClose, onZoomImage }) => {
 
             {/* Content */}
             <div className="p-6 space-y-6">
-            {isBouquet ? (
-              <>
-                {/* Flowers */}
-                {order.customData?.flowers && order.customData.flowers.length > 0 && (
-                  <div className="card p-6">
-                    <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                      🌸 Flowers
-                    </h3>
-                    <div className="space-y-4">
-                      {order.customData.flowers.map((flower, index) => {
-                        const totalPrice = (flower.price * flower.quantity).toFixed(2);
-                        const unitPrice = flower.price.toFixed(2);
-                        return (
-                          <div key={index} className="flex items-center gap-4 pb-4 border-b last:border-0">
-                            {flower.image_url && (
-                              <div className="relative group cursor-pointer" onClick={() => onZoomImage(flower.image_url)}>
-                                <img 
-                                  src={flower.image_url} 
-                                  alt={flower.name}
-                                  className="w-20 h-20 rounded-lg object-cover"
-                                />
-                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                                  <FiZoomIn className="text-white text-xl" />
+              {isBouquet ? (
+                <>
+                  {/* Flowers */}
+                  {order.customData?.flowers && order.customData.flowers.length > 0 && (
+                    <div className="card p-6">
+                      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                        🌸 Flowers
+                      </h3>
+                      <div className="space-y-4">
+                        {order.customData.flowers.map((flower, index) => {
+                          const totalPrice = (flower.price * flower.quantity).toFixed(2);
+                          const unitPrice = flower.price.toFixed(2);
+                          return (
+                            <div key={index} className="flex items-center gap-4 pb-4 border-b last:border-0">
+                              {flower.image_url && (
+                                <div className="relative group cursor-pointer" onClick={() => onZoomImage(flower.image_url)}>
+                                  <img
+                                    src={flower.image_url}
+                                    alt={flower.name}
+                                    className="w-20 h-20 rounded-lg object-cover"
+                                  />
+                                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                    <FiZoomIn className="text-white text-xl" />
+                                  </div>
                                 </div>
+                              )}
+                              <div className="flex-grow">
+                                <div className="font-semibold text-lg">{flower.name}</div>
+                                <div className="text-text/60 text-sm">Quantity: {flower.quantity}</div>
                               </div>
-                            )}
-                            <div className="flex-grow">
-                              <div className="font-semibold text-lg">{flower.name}</div>
-                              <div className="text-text/60 text-sm">Quantity: {flower.quantity}</div>
+                              <div className="text-right">
+                                <div className="font-bold text-primary text-lg">{totalPrice} DA</div>
+                                <div className="text-text/60 text-sm">{unitPrice} DA each</div>
+                              </div>
                             </div>
-                            <div className="text-right">
-                              <div className="font-bold text-primary text-lg">{totalPrice} DA</div>
-                              <div className="text-text/60 text-sm">{unitPrice} DA each</div>
-                            </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Colors */}
-                {selectedColorObjects.length > 0 && (
-                  <div className="card p-6">
-                    <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                      🎨 Colors
-                    </h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                      {selectedColorObjects.map(color => (
-                        <div key={color.id} className="text-center group cursor-pointer" onClick={() => onZoomImage(color.image_url)}>
-                          <div className="relative">
-                            <img 
-                              src={color.image_url} 
-                              alt={color.name}
-                              className="w-full h-20 rounded-lg object-cover mb-2"
+                  {/* Colors */}
+                  {selectedColorObjects.length > 0 && (
+                    <div className="card p-6">
+                      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                        🎨 Colors
+                      </h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {selectedColorObjects.map(color => (
+                          <div key={color.id} className="text-center group cursor-pointer" onClick={() => onZoomImage(color.image_url)}>
+                            <div className="relative">
+                              <img
+                                src={color.image_url}
+                                alt={color.name}
+                                className="w-full h-20 rounded-lg object-cover mb-2"
+                              />
+                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                <FiZoomIn className="text-white text-xl" />
+                              </div>
+                            </div>
+                            <p className="text-sm font-medium">{color.name}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Wrapping */}
+                  {order.customData?.wrapping && (
+                    <div className="card p-6">
+                      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                        🎁 Wrapping
+                      </h3>
+                      <div className="flex items-center gap-4">
+                        {order.customData.wrapping.image_url && (
+                          <div className="relative group cursor-pointer" onClick={() => onZoomImage(order.customData.wrapping.image_url)}>
+                            <img
+                              src={order.customData.wrapping.image_url}
+                              alt={order.customData.wrapping.name}
+                              className="w-20 h-20 rounded-lg object-cover"
                             />
                             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
                               <FiZoomIn className="text-white text-xl" />
                             </div>
                           </div>
-                          <p className="text-sm font-medium">{color.name}</p>
+                        )}
+                        <div className="flex-grow">
+                          <span className="font-semibold text-lg">{order.customData.wrapping.name}</span>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Wrapping */}
-                {order.customData?.wrapping && (
-                  <div className="card p-6">
-                    <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                      🎁 Wrapping
-                    </h3>
-                    <div className="flex items-center gap-4">
-                      {order.customData.wrapping.image_url && (
-                        <div className="relative group cursor-pointer" onClick={() => onZoomImage(order.customData.wrapping.image_url)}>
-                          <img 
-                            src={order.customData.wrapping.image_url} 
-                            alt={order.customData.wrapping.name}
-                            className="w-20 h-20 rounded-lg object-cover"
-                          />
-                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                            <FiZoomIn className="text-white text-xl" />
-                          </div>
-                        </div>
-                      )}
-                      <div className="flex-grow">
-                        <span className="font-semibold text-lg">{order.customData.wrapping.name}</span>
+                        <span className="font-bold text-primary text-lg">
+                          {order.customData.wrapping.price.toFixed(2)} DA
+                        </span>
                       </div>
-                      <span className="font-bold text-primary text-lg">
-                        {order.customData.wrapping.price.toFixed(2)} DA
+                    </div>
+                  )}
+
+                  {/* Accessories */}
+                  {order.customData?.accessories && order.customData.accessories.length > 0 && (
+                    <div className="card p-6">
+                      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                        ✨ Accessories
+                      </h3>
+                      <div className="space-y-4">
+                        {order.customData.accessories.map((accessory, index) => {
+                          const totalPrice = (accessory.price * accessory.quantity).toFixed(2);
+                          const unitPrice = accessory.price.toFixed(2);
+                          return (
+                            <div key={index} className="flex items-center gap-4 pb-4 border-b last:border-0">
+                              {accessory.image_url && (
+                                <div className="relative group cursor-pointer" onClick={() => onZoomImage(accessory.image_url)}>
+                                  <img
+                                    src={accessory.image_url}
+                                    alt={accessory.name}
+                                    className="w-20 h-20 rounded-lg object-cover"
+                                  />
+                                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                    <FiZoomIn className="text-white text-xl" />
+                                  </div>
+                                </div>
+                              )}
+                              <div className="flex-grow">
+                                <div className="font-semibold text-lg">{accessory.name}</div>
+                                <div className="text-text/60 text-sm">Quantity: {accessory.quantity}</div>
+                              </div>
+                              <div className="text-right">
+                                <div className="font-bold text-primary text-lg">{totalPrice} DA</div>
+                                <div className="text-text/60 text-sm">{unitPrice} DA each</div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Reference Image */}
+                  {order.referenceImageUrl && (
+                    <div className="card p-6">
+                      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                        📸 Reference Image
+                      </h3>
+                      <div className="relative group cursor-pointer" onClick={() => onZoomImage(order.referenceImageUrl)}>
+                        <img
+                          src={order.referenceImageUrl}
+                          alt="Reference"
+                          className="w-full max-h-96 object-contain rounded-lg"
+                        />
+                        <div className="absolute top-4 right-4 bg-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                          <FiZoomIn className="w-5 h-5 text-primary" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  {order.customData?.description && (
+                    <div className="card p-6">
+                      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                        ✍️ Details
+                      </h3>
+                      <p className="text-text/80 whitespace-pre-wrap">{order.customData.description}</p>
+                    </div>
+                  )}
+
+                  {/* Total Price */}
+                  <div className="card p-6 bg-primary/5">
+                    <div className="flex justify-between items-center">
+                      <span className="text-2xl font-semibold">Total Price:</span>
+                      <span className="text-3xl font-semibold text-primary">
+                        {order.price?.toFixed(2)} DA
                       </span>
                     </div>
                   </div>
-                )}
-
-                {/* Accessories */}
-                {order.customData?.accessories && order.customData.accessories.length > 0 && (
-                  <div className="card p-6">
-                    <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                      ✨ Accessories
-                    </h3>
-                    <div className="space-y-4">
-                      {order.customData.accessories.map((accessory, index) => {
-                        const totalPrice = (accessory.price * accessory.quantity).toFixed(2);
-                        const unitPrice = accessory.price.toFixed(2);
-                        return (
-                          <div key={index} className="flex items-center gap-4 pb-4 border-b last:border-0">
-                            {accessory.image_url && (
-                              <div className="relative group cursor-pointer" onClick={() => onZoomImage(accessory.image_url)}>
-                                <img 
-                                  src={accessory.image_url} 
-                                  alt={accessory.name}
-                                  className="w-20 h-20 rounded-lg object-cover"
-                                />
-                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                                  <FiZoomIn className="text-white text-xl" />
-                                </div>
-                              </div>
-                            )}
-                            <div className="flex-grow">
-                              <div className="font-semibold text-lg">{accessory.name}</div>
-                              <div className="text-text/60 text-sm">Quantity: {accessory.quantity}</div>
-                            </div>
-                            <div className="text-right">
-                              <div className="font-bold text-primary text-lg">{totalPrice} DA</div>
-                              <div className="text-text/60 text-sm">{unitPrice} DA each</div>
+                </>
+              ) : (
+                <>
+                  {/* Reference Images */}
+                  {(order.allReferenceImages?.length > 0 || order.referenceImageUrl) && (
+                    <div className="card p-6">
+                      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                        📸 Reference Images
+                      </h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        {(order.allReferenceImages || [order.referenceImageUrl]).filter(Boolean).map((imageUrl, index) => (
+                          <div key={index} className="relative group cursor-pointer" onClick={() => onZoomImage(imageUrl)}>
+                            <img
+                              src={imageUrl}
+                              alt={`Reference ${index + 1}`}
+                              className="w-full h-48 object-cover rounded-lg"
+                            />
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                              <FiZoomIn className="text-white text-2xl" />
                             </div>
                           </div>
-                        );
-                      })}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Reference Image */}
-                {order.referenceImageUrl && (
-                  <div className="card p-6">
-                    <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                      📸 Reference Image
-                    </h3>
-                    <div className="relative group cursor-pointer" onClick={() => onZoomImage(order.referenceImageUrl)}>
-                      <img
-                        src={order.referenceImageUrl}
-                        alt="Reference"
-                        className="w-full max-h-96 object-contain rounded-lg"
-                      />
-                      <div className="absolute top-4 right-4 bg-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                        <FiZoomIn className="w-5 h-5 text-primary" />
+                  {/* Colors */}
+                  {selectedColorObjects.length > 0 && (
+                    <div className="card p-6">
+                      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                        🎨 Colors
+                      </h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {selectedColorObjects.map(color => (
+                          <div key={color.id} className="text-center group cursor-pointer" onClick={() => onZoomImage(color.image_url)}>
+                            <div className="relative">
+                              <img
+                                src={color.image_url}
+                                alt={color.name}
+                                className="w-full h-20 rounded-lg object-cover mb-2"
+                              />
+                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                <FiZoomIn className="text-white text-xl" />
+                              </div>
+                            </div>
+                            <p className="text-sm font-medium">{color.name}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  {order.customData?.description && (
+                    <div className="card p-6">
+                      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                        ✍️ Details
+                      </h3>
+                      <p className="text-text/80 whitespace-pre-wrap">{order.customData.description}</p>
+                    </div>
+                  )}
+
+                  {/* Size */}
+                  {order.customData?.size && (
+                    <div className="card p-6">
+                      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                        📏 Size
+                      </h3>
+                      <p className="text-text/80">{order.customData.size}</p>
+                    </div>
+                  )}
+
+                  {/* Deadline */}
+                  {order.customData?.deadline && (
+                    <div className="card p-6">
+                      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                        📅 Preferred Deadline
+                      </h3>
+                      <p className="text-text/80">
+                        {new Date(order.customData.deadline).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Price Notice */}
+                  <div className="card p-6 bg-yellow-50 border border-yellow-200">
+                    <div className="flex items-start gap-3">
+                      <div className="text-2xl">💰</div>
+                      <div>
+                        <h3 className="font-semibold mb-2">Price To Be Determined</h3>
+                        <p className="text-sm text-text/70">
+                          Our team will review your request and provide a custom quote before you complete your order.
+                        </p>
                       </div>
                     </div>
                   </div>
-                )}
-
-                {/* Description */}
-                {order.customData?.description && (
-                  <div className="card p-6">
-                    <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                      ✍️ Details
-                    </h3>
-                    <p className="text-text/80 whitespace-pre-wrap">{order.customData.description}</p>
-                  </div>
-                )}
-
-                {/* Total Price */}
-                <div className="card p-6 bg-primary/5">
-                  <div className="flex justify-between items-center">
-                    <span className="text-2xl font-semibold">Total Price:</span>
-                    <span className="text-3xl font-semibold text-primary">
-                      {order.price?.toFixed(2)} DA
-                    </span>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                {/* Reference Images */}
-                {(order.allReferenceImages?.length > 0 || order.referenceImageUrl) && (
-                  <div className="card p-6">
-                    <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                      📸 Reference Images
-                    </h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      {(order.allReferenceImages || [order.referenceImageUrl]).filter(Boolean).map((imageUrl, index) => (
-                        <div key={index} className="relative group cursor-pointer" onClick={() => onZoomImage(imageUrl)}>
-                          <img
-                            src={imageUrl}
-                            alt={`Reference ${index + 1}`}
-                            className="w-full h-48 object-cover rounded-lg"
-                          />
-                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                            <FiZoomIn className="text-white text-2xl" />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Colors */}
-                {selectedColorObjects.length > 0 && (
-                  <div className="card p-6">
-                    <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                      🎨 Colors
-                    </h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                      {selectedColorObjects.map(color => (
-                        <div key={color.id} className="text-center group cursor-pointer" onClick={() => onZoomImage(color.image_url)}>
-                          <div className="relative">
-                            <img 
-                              src={color.image_url} 
-                              alt={color.name}
-                              className="w-full h-20 rounded-lg object-cover mb-2"
-                            />
-                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                              <FiZoomIn className="text-white text-xl" />
-                            </div>
-                          </div>
-                          <p className="text-sm font-medium">{color.name}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Description */}
-                {order.customData?.description && (
-                  <div className="card p-6">
-                    <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                      ✍️ Details
-                    </h3>
-                    <p className="text-text/80 whitespace-pre-wrap">{order.customData.description}</p>
-                  </div>
-                )}
-
-                {/* Size */}
-                {order.customData?.size && (
-                  <div className="card p-6">
-                    <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                      📏 Size
-                    </h3>
-                    <p className="text-text/80">{order.customData.size}</p>
-                  </div>
-                )}
-
-                {/* Deadline */}
-                {order.customData?.deadline && (
-                  <div className="card p-6">
-                    <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                      📅 Preferred Deadline
-                    </h3>
-                    <p className="text-text/80">
-                      {new Date(order.customData.deadline).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </p>
-                  </div>
-                )}
-
-                {/* Price Notice */}
-                <div className="card p-6 bg-yellow-50 border border-yellow-200">
-                  <div className="flex items-start gap-3">
-                    <div className="text-2xl">💰</div>
-                    <div>
-                      <h3 className="font-semibold mb-2">Price To Be Determined</h3>
-                      <p className="text-sm text-text/70">
-                        Our team will review your request and provide a custom quote before you complete your order.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
+                </>
+              )}
             </div>
           </motion.div>
         </>

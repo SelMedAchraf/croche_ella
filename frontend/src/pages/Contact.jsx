@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { FiMail, FiPhone, FiMapPin, FiInstagram, FiSend } from 'react-icons/fi';
 import { FaWhatsapp, FaTiktok } from 'react-icons/fa';
 import axios from 'axios';
+import { authService } from '../services/authService';
+import { useEffect } from 'react';
 
 const Contact = () => {
   const { t } = useTranslation();
@@ -12,9 +14,25 @@ const Contact = () => {
     email: '',
     message: ''
   });
+  const [isEmailReadOnly, setIsEmailReadOnly] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await authService.getCurrentUser();
+      if (user && user.email) {
+        setFormData(prev => ({
+          ...prev,
+          name: user.user_metadata?.full_name || prev.name,
+          email: user.email
+        }));
+        setIsEmailReadOnly(true);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -110,7 +128,8 @@ const Contact = () => {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="input-field"
+                    readOnly={isEmailReadOnly}
+                    className={`input-field ${isEmailReadOnly ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
                     placeholder="you@example.com"
                   />
                 </div>
@@ -161,8 +180,8 @@ const Contact = () => {
                   </div>
                   <div>
                     <h4 className="font-semibold mb-1">Email</h4>
-                    <a href="mailto:crocheella@gmail.com" className="text-text/70 hover:text-primary">
-                      crocheella@gmail.com
+                    <a href="mailto:crocheella19@gmail.com" className="text-text/70 hover:text-primary">
+                      crocheella19@gmail.com
                     </a>
                   </div>
                 </div>

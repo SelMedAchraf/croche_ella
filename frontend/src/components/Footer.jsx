@@ -8,7 +8,7 @@ import axios from 'axios';
 const Footer = () => {
   const { t } = useTranslation();
   const [categories, setCategories] = useState([]);
-  
+
   const currentYear = new Date().getFullYear();
 
   useEffect(() => {
@@ -109,8 +109,8 @@ const Footer = () => {
             <ul className="space-y-2">
               {categories.map((category) => (
                 <li key={category.id}>
-                  <Link 
-                    to={`/products?category=${encodeURIComponent(category.name)}`} 
+                  <Link
+                    to={`/products?category=${encodeURIComponent(category.name)}`}
                     className="text-text/70 hover:text-primary transition-colors text-sm"
                   >
                     {category.name}
@@ -132,7 +132,7 @@ const Footer = () => {
               </li>
               <li className="flex items-center text-text/70 text-sm">
                 <FiMail className="w-4 h-4 mr-2 text-primary" />
-                crocheella@gmail.com
+                crocheella19@gmail.com
               </li>
               <li className="flex items-start text-text/70 text-sm">
                 <FiMapPin className="w-4 h-4 mr-2 mt-1 text-primary flex-shrink-0" />

@@ -21,6 +21,7 @@ router.post('/',
       }
 
       const {
+        user_id,
         customer_name,
         customer_phone,
         customer_city,
@@ -35,6 +36,7 @@ router.post('/',
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert([{
+          user_id: user_id || null,
           customer_name,
           customer_phone,
           customer_city,

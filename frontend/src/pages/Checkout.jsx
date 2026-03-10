@@ -6,6 +6,7 @@ import { FiCheck, FiCreditCard, FiTruck, FiHome } from 'react-icons/fi';
 import axios from 'axios';
 import { useCart } from '../context/CartContext';
 import { useDeliveryPrices } from '../hooks/useDeliveryPrices';
+import { authService } from '../services/authService';
 
 const Checkout = () => {
   const { t } = useTranslation();
@@ -25,6 +26,26 @@ const Checkout = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [deliveryPrice, setDeliveryPrice] = useState(0);
+  const [userId, setUserId] = useState(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  // Check authentication
+  useEffect(() => {
+    const checkAuth = async () => {
+      const user = await authService.getCurrentUser();
+      if (!user) {
+        navigate('/cart');
+      } else {
+        setUserId(user.id);
+        // Pre-fill user data if possible
+        if (user.user_metadata?.full_name) {
+          setFormData(prev => ({ ...prev, customer_name: user.user_metadata.full_name }));
+        }
+      }
+      setCheckingAuth(false);
+    };
+    checkAuth();
+  }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -41,8 +62,8 @@ const Checkout = () => {
         (w) => w.wilaya_code === parseInt(formData.wilaya_code)
       );
       if (selectedWilaya) {
-        const price = formData.delivery_type === 'home' 
-          ? selectedWilaya.home_delivery_price 
+        const price = formData.delivery_type === 'home'
+          ? selectedWilaya.home_delivery_price
           : selectedWilaya.stopdesk_delivery_price;
         setDeliveryPrice(parseFloat(price));
         // Update customer_city with wilaya name
@@ -62,8 +83,9 @@ const Checkout = () => {
 
     try {
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-      
+
       const orderData = {
+        user_id: userId,
         customer_name: formData.customer_name,
         customer_phone: formData.customer_phone,
         customer_city: formData.customer_city,
@@ -94,7 +116,7 @@ const Checkout = () => {
       };
 
       const response = await axios.post(`${apiUrl}/orders`, orderData);
-      
+
       if (response.status === 201) {
         setSuccess(true);
         clearCart();
@@ -113,6 +135,14 @@ const Checkout = () => {
   if (cartItems.length === 0 && !success) {
     navigate('/cart');
     return null;
+  }
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen section-padding flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   if (success) {
@@ -198,11 +228,10 @@ const Checkout = () => {
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, delivery_type: 'home' })}
-                      className={`p-4 rounded-lg border-2 transition-all ${
-                        formData.delivery_type === 'home'
-                          ? 'border-primary bg-primary/10'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
+                      className={`p-4 rounded-lg border-2 transition-all ${formData.delivery_type === 'home'
+                        ? 'border-primary bg-primary/10'
+                        : 'border-gray-200 hover:border-gray-300'
+                        }`}
                     >
                       <FiHome className="w-6 h-6 mx-auto mb-2" />
                       <p className="font-medium text-sm">Home Delivery</p>
@@ -215,11 +244,10 @@ const Checkout = () => {
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, delivery_type: 'stopdesk', full_address: '' })}
-                      className={`p-4 rounded-lg border-2 transition-all ${
-                        formData.delivery_type === 'stopdesk'
-                          ? 'border-primary bg-primary/10'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
+                      className={`p-4 rounded-lg border-2 transition-all ${formData.delivery_type === 'stopdesk'
+                        ? 'border-primary bg-primary/10'
+                        : 'border-gray-200 hover:border-gray-300'
+                        }`}
                     >
                       <FiTruck className="w-6 h-6 mx-auto mb-2" />
                       <p className="font-medium text-sm">Stop Desk</p>
@@ -325,7 +353,7 @@ const Checkout = () => {
                 {cartItems.map((item) => {
                   const isCustomOrder = item.isCustomOrder || false;
                   const itemKey = isCustomOrder ? `custom-${item.cartItemId}` : `${item.id}`;
-                  
+
                   return (
                     <div key={itemKey} className="flex gap-3">
                       {!isCustomOrder ? (
@@ -363,7 +391,7 @@ const Checkout = () => {
                         )}
                       </div>
                       <div className="font-semibold text-primary">
-                        {item.price !== null 
+                        {item.price !== null
                           ? `${(item.price * (item.quantity || 1)).toFixed(2)} DA`
                           : 'TBD'}
                       </div>
