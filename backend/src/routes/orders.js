@@ -6,7 +6,10 @@ import {
   sendNewOrderNotification, 
   sendCustomerOrderConfirmation,
   sendOrderCancelledNotification,
-  sendCancelRequestNotification
+  sendCancelRequestNotification,
+  sendDepositConfirmationToCustomer,
+  sendCustomPriceSetToCustomer,
+  sendOrderStatusUpdateToCustomer
 } from '../utils/emailService.js';
 
 const router = express.Router();
@@ -375,6 +378,9 @@ router.patch('/:id/status',
         return res.status(404).json({ error: 'Order not found' });
       }
 
+      // Notify customer of status change (non-blocking)
+      sendOrderStatusUpdateToCustomer(data, status).catch(console.error);
+
       res.json(data);
     } catch (error) {
       console.error('Error updating order:', error);
@@ -485,6 +491,9 @@ router.patch('/:id/deposit',
 
       if (error) throw error;
 
+      // Notify customer about deposit confirmation (non-blocking)
+      sendDepositConfirmationToCustomer(data).catch(console.error);
+
       res.json(data);
     } catch (error) {
       console.error('Error setting deposit:', error);
@@ -588,6 +597,9 @@ router.patch('/:id/custom-price',
         .single();
 
       if (updateOrderError) throw updateOrderError;
+
+      // Notify customer that custom item price has been set (non-blocking)
+      sendCustomPriceSetToCustomer(updatedOrder).catch(console.error);
 
       res.json(updatedOrder);
     } catch (error) {
@@ -747,6 +759,45 @@ router.patch('/:id/admin-note',
     } catch (error) {
       console.error('Error updating admin note:', error);
       res.status(500).json({ error: 'Failed to update admin note' });
+    }
+  }
+);
+
+// Update cancel request status (admin only)
+router.patch('/:id/cancel-request',
+  authenticateAdmin,
+  [
+    body('cancel_requested').isBoolean()
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { cancel_requested } = req.body;
+      const orderId = req.params.id;
+
+      const { data, error } = await supabase
+        .from('orders')
+        .update({ 
+          cancel_requested,
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', orderId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      if (!data) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+
+      res.json(data);
+    } catch (error) {
+      console.error('Error updating cancel request status:', error);
+      res.status(500).json({ error: 'Failed to update cancel request status' });
     }
   }
 );

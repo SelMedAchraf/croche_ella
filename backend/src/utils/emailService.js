@@ -219,3 +219,155 @@ CUSTOMER INFORMATION
   }
 };
 
+export const sendDepositConfirmationToCustomer = async (order) => {
+  const transporter = createTransporter();
+  if (!transporter) return false;
+
+  const customerEmail = await getCustomerEmail(order.user_id);
+  if (!customerEmail) {
+    console.warn(`Customer email missing for Order ID: ${order.id}. Skipping deposit confirmation.`);
+    return false;
+  }
+
+  const depositAmount = parseFloat(order.deposit_value || 0).toFixed(2);
+  const totalAmount = parseFloat(order.total_amount || 0).toFixed(2);
+  const remaining = (parseFloat(totalAmount) - parseFloat(depositAmount)).toFixed(2);
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: customerEmail,
+    subject: `Deposit Confirmed for Order #${order.order_id} - Crochet Ella`,
+    text: `Hello ${order.customer_name},
+
+Great news! We have recorded your deposit payment for Order #${order.order_id}.
+
+Payment Summary:
+- Total Order Amount: ${totalAmount} DA
+- Deposit Paid: ${depositAmount} DA
+- Remaining Balance: ${remaining} DA
+
+Your order is now Confirmed. Our team will begin working on it soon.
+You can track your order anytime in the "My Orders" section on our website.
+
+Thank you for trusting Crochet Ella!
+
+Best regards,
+Crochet Ella`
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Deposit confirmation email sent to ${customerEmail} for Order ID: ${order.id}`);
+    return true;
+  } catch (error) {
+    console.error(`Failed to send deposit confirmation for Order ID: ${order.id}`, error);
+    return false;
+  }
+};
+
+export const sendCustomPriceSetToCustomer = async (order) => {
+  const transporter = createTransporter();
+  if (!transporter) return false;
+
+  const customerEmail = await getCustomerEmail(order.user_id);
+  if (!customerEmail) {
+    console.warn(`Customer email missing for Order ID: ${order.id}. Skipping custom price notification.`);
+    return false;
+  }
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: customerEmail,
+    subject: `Your Custom Order Price Has Been Set - Order #${order.order_id} - Crochet Ella`,
+    text: `Hello ${order.customer_name},
+
+The price for your custom item in Order #${order.order_id} has been set by our team.
+
+Updated Order Total: ${order.total_amount} DA
+
+Please log in to our website and visit "My Orders" to review the price details.
+If you have any questions, feel free to contact us.
+
+Thank you for choosing Crochet Ella!
+
+Best regards,
+Crochet Ella`
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Custom price notification sent to ${customerEmail} for Order ID: ${order.id}`);
+    return true;
+  } catch (error) {
+    console.error(`Failed to send custom price notification for Order ID: ${order.id}`, error);
+    return false;
+  }
+};
+
+export const sendOrderStatusUpdateToCustomer = async (order, newStatus) => {
+  const transporter = createTransporter();
+  if (!transporter) return false;
+
+  const customerEmail = await getCustomerEmail(order.user_id);
+  if (!customerEmail) {
+    console.warn(`Customer email missing for Order ID: ${order.id}. Skipping status update email.`);
+    return false;
+  }
+
+  const statusLabels = {
+    pending: 'Pending Review',
+    waiting_deposit: 'Waiting for Deposit',
+    confirmed: 'Confirmed',
+    in_progress: 'In Progress',
+    delivered: 'Delivered',
+    done: 'Completed',
+    cancelled: 'Cancelled'
+  };
+
+  const statusMessages = {
+    pending: 'Your order is pending review by our team.',
+    waiting_deposit: 'Your order is awaiting your deposit payment. Please contact us to arrange it.',
+    confirmed: 'Your order has been confirmed. Our team will start working on it soon.',
+    in_progress: 'Great news! Our team has started crafting your order.',
+    delivered: 'Your order has been handed over for delivery. It should reach you soon!',
+    done: 'Your order has been completed. We hope you love it!',
+    cancelled: 'Your order has been cancelled. Please contact us if you have any questions.'
+  };
+
+  const statusLabel = statusLabels[newStatus] || newStatus;
+  const statusMessage = statusMessages[newStatus] || `Your order status is now: ${statusLabel}.`;
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: customerEmail,
+    subject: `Order #${order.order_id} Update: ${statusLabel} - Crochet Ella`,
+    text: `Hello ${order.customer_name},
+
+Your order status has been updated!
+
+Order #${order.order_id} is now: ${statusLabel}
+
+${statusMessage}
+
+Order Summary:
+- Order ID: ${order.order_id}
+- Total Amount: ${order.total_amount} DA
+- Current Status: ${statusLabel}
+
+Track your order anytime in the "My Orders" section on our website.
+
+Thank you for shopping with Crochet Ella!
+
+Best regards,
+Crochet Ella`
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Status update email (${newStatus}) sent to ${customerEmail} for Order ID: ${order.id}`);
+    return true;
+  } catch (error) {
+    console.error(`Failed to send status update email for Order ID: ${order.id}`, error);
+    return false;
+  }
+};

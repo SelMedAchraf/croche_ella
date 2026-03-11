@@ -852,8 +852,42 @@ const OrdersTab = ({ orders, onRefresh }) => {
     }
   };
 
+  const toggleCancelRequest = async (order, requested) => {
+    setUpdatingOrderId(order.id);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        alert('Session expired. Please login again.');
+        return;
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/orders/${order.id}/cancel-request`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ cancel_requested: requested })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update cancel request status');
+      }
+
+      await onRefresh();
+      alert(requested ? 'Cancellation requested tagged.' : 'Cancellation request removed. Order is now active again.');
+    } catch (error) {
+      console.error('Error updating cancel request status:', error);
+      alert(error.message || 'Failed to update cancel request status');
+    } finally {
+      setUpdatingOrderId(null);
+    }
+  };
+
   const filteredOrders = orders.filter(order => {
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+    const matchesStatus = statusFilter === 'all' ||
+      (statusFilter === 'cancel_requested' ? (order.cancel_requested && order.status !== 'cancelled') : order.status === statusFilter);
     const matchesSearch = searchTerm === '' ||
       order.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.customer_phone?.includes(searchTerm) ||
@@ -889,6 +923,7 @@ const OrdersTab = ({ orders, onRefresh }) => {
               className="w-full px-4 py-2 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all appearance-none"
             >
               <option value="all">All Statuses</option>
+              <option value="cancel_requested">Cancellation Requested</option>
               <option value="pending">Pending</option>
               <option value="waiting_deposit">Waiting Deposit</option>
               <option value="confirmed">Confirmed</option>
@@ -980,9 +1015,9 @@ const OrdersTab = ({ orders, onRefresh }) => {
                                       updateOrderStatus(order, nextState);
                                     }
                                   }}
-                                  disabled={updatingOrderId === order.id}
+                                  disabled={updatingOrderId === order.id || (order.cancel_requested && order.status !== 'cancelled')}
                                   className="inline-flex items-center gap-1.5 px-3 py-2 h-8 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all font-medium rounded-md text-xs disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-                                  title={`Move to ${formatOrderState(nextState)}`}
+                                  title={order.cancel_requested ? "Pending cancellation request. Resolve it first." : `Move to ${formatOrderState(nextState)}`}
                                 >
                                   <span className="text-sm">{getStateIcon(nextState)}</span>
                                   <span>{formatOrderState(nextState)}</span>
@@ -1005,6 +1040,23 @@ const OrdersTab = ({ orders, onRefresh }) => {
                             >
                               <FiX className="w-3.5 h-3.5" />
                               <span>Cancel</span>
+                            </button>
+                          )}
+
+                          {/* Keep Order (Remove cancel request) */}
+                          {order.cancel_requested && order.status !== 'cancelled' && (
+                            <button
+                              onClick={() => {
+                                if (confirm(`Remove cancellation request for order #${order.order_id}? This will re-enable status changes.`)) {
+                                  toggleCancelRequest(order, false);
+                                }
+                              }}
+                              disabled={updatingOrderId === order.id}
+                              className="inline-flex items-center gap-1.5 px-3 py-2 h-8 bg-green-50 border border-green-200 text-green-700 hover:bg-green-100 transition-all font-medium rounded-md text-xs disabled:opacity-50 shadow-sm"
+                              title="Resolve cancellation request"
+                            >
+                              <span className="text-base leading-none">✅</span>
+                              <span>Keep Order</span>
                             </button>
                           )}
 
