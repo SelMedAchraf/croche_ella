@@ -19,10 +19,19 @@ const AuthCallback = () => {
             }
 
             if (session) {
-                // If there is a return URL in local storage from before the login redirect
-                const returnTo = localStorage.getItem('returnToAfterLogin') || '/';
-                localStorage.removeItem('returnToAfterLogin');
-                navigate(returnTo);
+                const user = session.user;
+                const isAdmin = user.app_metadata?.is_admin ||
+                    user.user_metadata?.is_admin ||
+                    user.email === 'crocheella19@gmail.com';
+
+                if (isAdmin) {
+                    localStorage.removeItem('returnToAfterLogin');
+                    navigate('/admin/dashboard');
+                } else {
+                    const returnTo = localStorage.getItem('returnToAfterLogin') || '/';
+                    localStorage.removeItem('returnToAfterLogin');
+                    navigate(returnTo);
+                }
             } else {
                 navigate('/');
             }

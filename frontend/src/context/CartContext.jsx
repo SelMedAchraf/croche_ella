@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { toast } from 'sonner';
 
 const CartContext = createContext();
 
@@ -24,8 +25,8 @@ export const CartProvider = ({ children }) => {
     setCartItems(prevItems => {
       // Handle custom orders (they always get added as new items)
       if (product.isCustomOrder) {
-        return [...prevItems, { 
-          ...product, 
+        return [...prevItems, {
+          ...product,
           quantity,
           // Generate unique ID for custom orders
           cartItemId: Date.now() + Math.random()
@@ -46,6 +47,11 @@ export const CartProvider = ({ children }) => {
       }
 
       return [...prevItems, { ...product, quantity, selectedColor }];
+    });
+
+    toast.success(`${product.name} added to cart!`, {
+      description: quantity > 1 ? `${quantity} items added` : 'Product successfully added',
+      duration: 3000,
     });
   };
 

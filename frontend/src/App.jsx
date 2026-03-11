@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
+import { Toaster } from 'sonner';
 import './i18n/config';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -13,7 +14,6 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import MyOrders from './pages/MyOrders';
 import AuthCallback from './pages/AuthCallback';
-import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AccountSettings from './pages/AccountSettings';
 
@@ -38,7 +38,6 @@ function AppContent() {
           <Route path="/my-orders" element={<MyOrders />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/account" element={<AccountSettings />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Routes>
       </main>
@@ -50,6 +49,7 @@ function AppContent() {
 function App() {
   return (
     <CartProvider>
+      <Toaster position="top-right" richColors closeButton />
       <Router>
         <AppContent />
       </Router>

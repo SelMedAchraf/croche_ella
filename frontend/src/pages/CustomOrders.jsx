@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -770,7 +771,7 @@ const ReferenceImageUpload = ({ image, onImageChange }) => {
     const file = e.target.files[0];
     if (file && file.type.startsWith('image/')) {
       if (file.size > 10 * 1024 * 1024) {
-        alert('Image size should be less than 10MB');
+        toast.error('Image size should be less than 10MB');
         return;
       }
       onImageChange(file);
@@ -804,12 +805,12 @@ const ReferenceImageUpload = ({ image, onImageChange }) => {
       const file = files[0];
       if (file.type.startsWith('image/')) {
         if (file.size > 10 * 1024 * 1024) {
-          alert('Image size should be less than 10MB');
+          toast.error('Image size should be less than 10MB');
           return;
         }
         onImageChange(file);
       } else {
-        alert('Please upload only image files');
+        toast.warning('Please upload only image files');
       }
     }
   };
@@ -920,7 +921,7 @@ const ReferenceImagesUpload = ({ images, onImagesChange }) => {
     const remainingSlots = MAX_IMAGES - images.length;
 
     if (remainingSlots <= 0) {
-      alert(`Maximum ${MAX_IMAGES} images allowed`);
+      toast.warning(`Maximum ${MAX_IMAGES} images allowed`);
       return;
     }
 
@@ -928,14 +929,14 @@ const ReferenceImagesUpload = ({ images, onImagesChange }) => {
     const validFiles = filesToAdd.filter(file => {
       if (!file.type.startsWith('image/')) return false;
       if (file.size > 10 * 1024 * 1024) {
-        alert(`${file.name} is too large. Maximum size is 10MB`);
+        toast.error(`${file.name} is too large. Maximum size is 10MB`);
         return false;
       }
       return true;
     });
 
     if (files.length > remainingSlots) {
-      alert(`Only ${remainingSlots} more image(s) can be added (maximum ${MAX_IMAGES} total)`);
+      toast.warning(`Only ${remainingSlots} more image(s) can be added (maximum ${MAX_IMAGES} total)`);
     }
 
     onImagesChange([...images, ...validFiles]);
@@ -967,25 +968,25 @@ const ReferenceImagesUpload = ({ images, onImagesChange }) => {
     const remainingSlots = MAX_IMAGES - images.length;
 
     if (remainingSlots <= 0) {
-      alert(`Maximum ${MAX_IMAGES} images allowed`);
+      toast.warning(`Maximum ${MAX_IMAGES} images allowed`);
       return;
     }
 
     const filesToAdd = files.slice(0, remainingSlots);
     const validFiles = filesToAdd.filter(file => {
       if (!file.type.startsWith('image/')) {
-        alert(`${file.name} is not an image file`);
+        toast.warning(`${file.name} is not an image file`);
         return false;
       }
       if (file.size > 10 * 1024 * 1024) {
-        alert(`${file.name} is too large. Maximum size is 10MB`);
+        toast.error(`${file.name} is too large. Maximum size is 10MB`);
         return false;
       }
       return true;
     });
 
     if (files.length > remainingSlots) {
-      alert(`Only ${remainingSlots} more image(s) can be added (maximum ${MAX_IMAGES} total)`);
+      toast.warning(`Only ${remainingSlots} more image(s) can be added (maximum ${MAX_IMAGES} total)`);
     }
 
     if (validFiles.length > 0) {

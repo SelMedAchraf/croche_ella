@@ -160,7 +160,7 @@ const AccountSettings = () => {
 
             setTimeout(async () => {
                 await supabase.auth.signOut();
-                window.location.href = '/admin/login';
+                window.location.href = '/';
             }, 3000);
         } catch (err) {
             console.error('Error changing password:', err);

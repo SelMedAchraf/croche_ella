@@ -40,8 +40,6 @@ const ProductDetails = () => {
 
   const handleAddToCart = () => {
     addToCart(product, quantity);
-    // Show success notification (you can add a toast notification here)
-    alert('Added to cart!');
   };
 
   if (loading) {

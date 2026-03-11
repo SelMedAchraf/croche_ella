@@ -138,10 +138,10 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
 
             // Update local order state immediately
             setOrder({ ...order, admin_note: adminNoteInput });
-            
+
             // Refresh parent data in background
             onRefresh();
-            
+
             alert('Admin note updated successfully!');
         } catch (error) {
             console.error('Error updating admin note:', error);
@@ -182,7 +182,7 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
 
             // Clear input immediately for better UX
             setItemPriceInput({ ...itemPriceInput, [itemId]: '' });
-            
+
             // Fetch the updated order data to refresh the modal UI immediately
             const orderResponse = await fetch(`${import.meta.env.VITE_API_URL}/orders/${order.id}`, {
                 headers: {
@@ -194,10 +194,10 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                 const updatedOrder = await orderResponse.json();
                 setOrder(updatedOrder);
             }
-            
+
             // Refresh parent data in background
             onRefresh();
-            
+
             // Show success message
             alert('Price set successfully!');
         } catch (error) {
@@ -337,20 +337,21 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                                                             {!isCustom && <p className="text-sm text-gray-500">Quantity: {item.quantity || 1}</p>}
                                                         </div>
                                                         <div className="sm:text-right flex flex-row sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto mt-2 sm:mt-0 gap-2">
+                                                            {isCustom && (
+                                                                <span className="text-gray-400 text-sm">
+                                                                    {expandedCustomDetails[idx] ? 'Collapse ▲' : 'Details ▼'}
+                                                                </span>
+                                                            )}
                                                             {item.price !== null ? (
                                                                 <div className="px-3 py-1 bg-green-50 text-green-700 border border-green-200 rounded-lg text-sm font-semibold shadow-sm">
                                                                     Total: {(item.price * (item.quantity || 1)).toFixed(2)} DA
                                                                 </div>
                                                             ) : (
-                                                                <div className="px-3 py-1 bg-yellow-50 text-yellow-800 border border-yellow-200 rounded-lg text-sm font-semibold shadow-sm">
-                                                                    ⚠️ Pending
+                                                                <div className="px-3 py-1 bg-yellow-50 text-yellow-800 border border-yellow-200 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-1 whitespace-nowrap">
+                                                                    ⚠️ Pending Price
                                                                 </div>
                                                             )}
-                                                            {isCustom && (
-                                                                <span className="text-gray-400 text-sm">
-                                                                    {expandedCustomDetails[idx] ? '▲ Collapse' : '▼ Details'}
-                                                                </span>
-                                                            )}
+
                                                         </div>
                                                     </div>
 
@@ -662,7 +663,7 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                                                     <p className="text-2xl font-bold text-blue-900">{order.total_amount} DA</p>
                                                 </div>
                                             </div>
-                                            
+
                                             <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 mb-4 border border-blue-100">
                                                 <label className="block text-sm font-semibold text-gray-700 mb-2">Enter Deposit Amount</label>
                                                 <div className="relative">
@@ -683,7 +684,7 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                                                     />
                                                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">DA</span>
                                                 </div>
-                                                
+
                                                 {/* Quick Percentage Buttons */}
                                                 <div className="mt-3 flex gap-2 flex-wrap">
                                                     <p className="text-xs text-gray-600 w-full mb-1">Quick select:</p>
@@ -698,7 +699,7 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                                                         </button>
                                                     ))}
                                                 </div>
-                                                
+
                                                 {/* Validation Message */}
                                                 {depositInput && parseFloat(depositInput) > order.total_amount && (
                                                     <p className="mt-2 text-xs text-red-600 flex items-center gap-1">
@@ -713,7 +714,7 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                                                     </div>
                                                 )}
                                             </div>
-                                            
+
                                             <button
                                                 onClick={updateDeposit}
                                                 disabled={updatingOrderId === order.id || !depositInput || parseFloat(depositInput) <= 0 || parseFloat(depositInput) > order.total_amount}

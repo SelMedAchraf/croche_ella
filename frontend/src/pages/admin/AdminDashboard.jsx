@@ -44,7 +44,7 @@ const AdminDashboard = () => {
     // Listen for auth state changes (e.g., logout in another tab)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT' || !session) {
-        navigate('/admin/login');
+        navigate('/');
       } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         // Re-verify if the user is still an admin if they changed accounts in another tab
         const isAdmin = session.user?.app_metadata?.is_admin ||
@@ -64,7 +64,7 @@ const AdminDashboard = () => {
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-      navigate('/admin/login');
+      navigate('/');
       return;
     }
 
@@ -84,7 +84,7 @@ const AdminDashboard = () => {
       // Get token from session
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        navigate('/admin/login');
+        navigate('/');
         return;
       }
 
@@ -116,7 +116,7 @@ const AdminDashboard = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     localStorage.removeItem('supabase.auth.token');
-    navigate('/admin/login');
+    navigate('/');
   };
 
   const stats = {
@@ -407,7 +407,7 @@ const ProductsTab = ({ products, onRefresh }) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       alert('Session expired. Please login again.');
-      navigate('/admin/login');
+      navigate('/');
       return;
     }
     const token = session.access_token;
@@ -497,7 +497,7 @@ const ProductsTab = ({ products, onRefresh }) => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         alert('Session expired. Please login again.');
-        navigate('/admin/login');
+        navigate('/');
         return;
       }
       const token = session.access_token;
@@ -990,7 +990,7 @@ const OrdersTab = ({ orders, onRefresh }) => {
                               ))}
                             </>
                           )}
-                          
+
                           {/* Cancel Button */}
                           {order.status !== 'done' && order.status !== 'cancelled' && (
                             <button
@@ -1007,7 +1007,7 @@ const OrdersTab = ({ orders, onRefresh }) => {
                               <span>Cancel</span>
                             </button>
                           )}
-                          
+
                           {/* View Details Button */}
                           <button
                             onClick={() => setSelectedOrder(order)}
@@ -1056,7 +1056,7 @@ const CategoriesTab = ({ onRefresh }) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       alert('Session expired. Please login again.');
-      navigate('/admin/login');
+      navigate('/');
       return;
     }
     const token = session.access_token;
@@ -1089,7 +1089,7 @@ const CategoriesTab = ({ onRefresh }) => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         alert('Session expired. Please login again.');
-        navigate('/admin/login');
+        navigate('/');
         return;
       }
       const token = session.access_token;
@@ -1299,7 +1299,7 @@ const ItemsTab = () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       alert('Session expired. Please login again.');
-      navigate('/admin/login');
+      navigate('/');
       return;
     }
     const token = session.access_token;
@@ -1344,7 +1344,7 @@ const ItemsTab = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         alert('Session expired. Please login again.');
-        navigate('/admin/login');
+        navigate('/');
         return;
       }
       const token = session.access_token;
@@ -1617,7 +1617,7 @@ const DeliveryPricesTab = () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       alert('Session expired. Please login again.');
-      navigate('/admin/login');
+      navigate('/');
       return;
     }
     const token = session.access_token;
@@ -1809,7 +1809,7 @@ const ColorsTab = () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       alert('Session expired. Please login again.');
-      navigate('/admin/login');
+      navigate('/');
       return;
     }
     const token = session.access_token;
@@ -1865,7 +1865,7 @@ const ColorsTab = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         alert('Session expired. Please login again.');
-        navigate('/admin/login');
+        navigate('/');
         return;
       }
       const token = session.access_token;

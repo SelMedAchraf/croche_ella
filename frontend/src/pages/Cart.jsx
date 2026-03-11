@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,7 +11,7 @@ import { FcGoogle } from 'react-icons/fc';
 
 const Cart = () => {
   const { t } = useTranslation();
-  const { cartItems, removeFromCart, updateQuantity, getCartTotal } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
   const [selectedCustomOrder, setSelectedCustomOrder] = useState(null);
   const [zoomedImage, setZoomedImage] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -30,7 +31,7 @@ const Cart = () => {
       await authService.signInWithGoogle();
     } catch (error) {
       console.error('Login failed', error);
-      alert('Failed to launch Google Login. Please try again.');
+      toast.error('Failed to launch Google Login. Please try again.');
     }
   };
 
@@ -72,131 +73,146 @@ const Cart = () => {
         </motion.h1>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Cart Items */}
-          <div className="lg:col-span-2 space-y-4">
-            {cartItems.map((item, index) => {
-              const isCustomOrder = item.isCustomOrder || false;
-              const itemKey = isCustomOrder ? `custom-${item.cartItemId}` : `${item.id}-${item.selectedColor}`;
+          <div className="lg:col-span-2 flex flex-col">
+            <div className="flex justify-end mb-4">
+              <motion.button
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                onClick={() => {
+                  clearCart();
+                  toast.success('Cart cleared successfully');
+                }}
+                className="flex items-center gap-2 text-red-500 hover:text-red-700 font-medium transition-colors p-2 rounded-lg hover:bg-red-50"
+              >
+                <FiTrash2 className="w-5 h-5" />
+                Clear Cart
+              </motion.button>
+            </div>
+            <div className="space-y-4">
+              {cartItems.map((item, index) => {
+                const isCustomOrder = item.isCustomOrder || false;
+                const itemKey = isCustomOrder ? `custom-${item.cartItemId}` : `${item.id}-${item.selectedColor}`;
 
-              return (
-                <motion.div
-                  key={itemKey}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="card p-4 flex gap-4"
-                >
-                  {!isCustomOrder ? (
-                    <Link
-                      to={`/products/${item.id}`}
-                      className="w-28 h-28 rounded-lg overflow-hidden flex-shrink-0"
-                    >
-                      <img
-                        src={item.product_images?.[0]?.image_url}
-                        alt={item.name}
-                        className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
-                      />
-                    </Link>
-                  ) : (
-                    <div className="w-28 h-28 rounded-lg overflow-hidden flex-shrink-0 bg-primary/10 flex items-center justify-center">
-                      <span className="text-4xl">
-                        {item.customOrderType === 'custom_bouquet' ? '💐' : '🧶'}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="flex-grow flex flex-col justify-between min-h-[7rem]">
-                    <div>
-                      {!isCustomOrder ? (
-                        <Link
-                          to={`/products/${item.id}`}
-                          className="font-display font-semibold text-lg hover:text-primary transition-colors"
-                        >
-                          {item.name}
-                        </Link>
-                      ) : (
-                        <div className="flex items-center justify-between">
-                          <div className="font-display font-semibold text-lg">
-                            {item.name}
-                            <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
-                              Custom
-                            </span>
-                          </div>
-                          <button
-                            onClick={() => setSelectedCustomOrder(item)}
-                            className="text-sm bg-primary text-white px-3 py-2 rounded-lg hover:bg-highlight inline-flex items-center gap-1 transition-colors whitespace-nowrap"
-                          >
-                            <FiEye className="w-4 h-4" />
-                            View Details
-                          </button>
-                        </div>
-                      )}
-
-                      {item.selectedColor && !isCustomOrder && (
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className="text-sm text-text/60">Color:</span>
-                          <div
-                            className="w-6 h-6 rounded-full border-2 border-gray-200"
-                            style={{ backgroundColor: item.selectedColor }}
-                          />
-                        </div>
-                      )}
-
-                      {!isCustomOrder && (
-                        <div className="text-sm text-text/60 mt-2">
-                          {item.price?.toFixed(2)} DA each
-                        </div>
-                      )}
-
-                      {isCustomOrder && item.customData && (
-                        <p className="text-sm text-text/60 mt-1">
-                          {item.customOrderType === 'custom_bouquet'
-                            ? `Custom bouquet with ${Object.keys(item.customData.flowers || {}).length} flower types`
-                            : 'Custom crochet design'}
-                        </p>
-                      )}
-
-                      {!isCustomOrder && (
-                        <div className="flex items-center gap-2 mt-2">
-                          <button
-                            onClick={() => updateQuantity(item.id, item.selectedColor, item.quantity - 1)}
-                            className="w-8 h-8 rounded bg-gray-100 hover:bg-gray-200 transition-colors font-bold"
-                          >
-                            -
-                          </button>
-                          <span className="w-12 text-center font-semibold">
-                            {item.quantity}
-                          </span>
-                          <button
-                            onClick={() => updateQuantity(item.id, item.selectedColor, item.quantity + 1)}
-                            className="w-8 h-8 rounded bg-gray-100 hover:bg-gray-200 transition-colors font-bold"
-                          >
-                            +
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-end gap-4">
-                      <span className="text-xl font-bold text-primary">
-                        {item.price === null
-                          ? 'Price TBD'
-                          : `${(item.price * (item.quantity || 1)).toFixed(2)} DA`}
-                      </span>
-                      <button
-                        onClick={() => isCustomOrder
-                          ? removeFromCart(null, null, item.cartItemId)
-                          : removeFromCart(item.id, item.selectedColor)}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                        aria-label={t('cart.remove')}
+                return (
+                  <motion.div
+                    key={itemKey}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="card p-4 flex gap-4"
+                  >
+                    {!isCustomOrder ? (
+                      <Link
+                        to={`/products/${item.id}`}
+                        className="w-28 h-28 rounded-lg overflow-hidden flex-shrink-0"
                       >
-                        <FiTrash2 className="w-5 h-5" />
-                      </button>
+                        <img
+                          src={item.product_images?.[0]?.image_url}
+                          alt={item.name}
+                          className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                        />
+                      </Link>
+                    ) : (
+                      <div className="w-28 h-28 rounded-lg overflow-hidden flex-shrink-0 bg-primary/10 flex items-center justify-center">
+                        <span className="text-4xl">
+                          {item.customOrderType === 'custom_bouquet' ? '💐' : '🧶'}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="flex-grow flex flex-col justify-between min-h-[7rem]">
+                      <div>
+                        {!isCustomOrder ? (
+                          <Link
+                            to={`/products/${item.id}`}
+                            className="font-display font-semibold text-lg hover:text-primary transition-colors"
+                          >
+                            {item.name}
+                          </Link>
+                        ) : (
+                          <div className="flex items-center justify-between">
+                            <div className="font-display font-semibold text-lg">
+                              {item.name}
+                              <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                                Custom
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => setSelectedCustomOrder(item)}
+                              className="text-sm bg-primary text-white px-3 py-2 rounded-lg hover:bg-highlight inline-flex items-center gap-1 transition-colors whitespace-nowrap"
+                            >
+                              <FiEye className="w-4 h-4" />
+                              View Details
+                            </button>
+                          </div>
+                        )}
+
+                        {item.selectedColor && !isCustomOrder && (
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className="text-sm text-text/60">Color:</span>
+                            <div
+                              className="w-6 h-6 rounded-full border-2 border-gray-200"
+                              style={{ backgroundColor: item.selectedColor }}
+                            />
+                          </div>
+                        )}
+
+                        {!isCustomOrder && (
+                          <div className="text-sm text-text/60 mt-2">
+                            {item.price?.toFixed(2)} DA each
+                          </div>
+                        )}
+
+                        {isCustomOrder && item.customData && (
+                          <p className="text-sm text-text/60 mt-1">
+                            {item.customOrderType === 'custom_bouquet'
+                              ? `Custom bouquet with ${Object.keys(item.customData.flowers || {}).length} flower types`
+                              : 'Custom crochet design'}
+                          </p>
+                        )}
+
+                        {!isCustomOrder && (
+                          <div className="flex items-center gap-2 mt-2">
+                            <button
+                              onClick={() => updateQuantity(item.id, item.selectedColor, item.quantity - 1)}
+                              className="w-8 h-8 rounded bg-gray-100 hover:bg-gray-200 transition-colors font-bold"
+                            >
+                              -
+                            </button>
+                            <span className="w-12 text-center font-semibold">
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() => updateQuantity(item.id, item.selectedColor, item.quantity + 1)}
+                              className="w-8 h-8 rounded bg-gray-100 hover:bg-gray-200 transition-colors font-bold"
+                            >
+                              +
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-end gap-4">
+                        <span className="text-xl font-bold text-primary">
+                          {item.price === null
+                            ? 'Price TBD'
+                            : `${(item.price * (item.quantity || 1)).toFixed(2)} DA`}
+                        </span>
+                        <button
+                          onClick={() => isCustomOrder
+                            ? removeFromCart(null, null, item.cartItemId)
+                            : removeFromCart(item.id, item.selectedColor)}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          aria-label={t('cart.remove')}
+                        >
+                          <FiTrash2 className="w-5 h-5" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              );
-            })}
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Order Summary */}
