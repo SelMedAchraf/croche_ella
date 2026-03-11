@@ -155,15 +155,13 @@ const Navbar = () => {
                       <FiUser className="w-4 h-4" />
                       Manage Account
                     </Link>
-                    {!isAdmin && (
-                      <Link
-                        to="/my-orders"
-                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors"
-                      >
-                        <FiShoppingBag className="w-4 h-4" />
-                        My Orders
-                      </Link>
-                    )}
+                    <Link
+                      to="/my-orders"
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors"
+                    >
+                      <FiShoppingBag className="w-4 h-4" />
+                      My Orders
+                    </Link>
                     <button
                       onClick={handleLogout}
                       className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
@@ -256,16 +254,14 @@ const Navbar = () => {
                       Manage Account
                     </Link>
 
-                    {!isAdmin && (
-                      <Link
-                        to="/my-orders"
-                        onClick={() => setIsMenuOpen(false)}
-                        className="flex items-center gap-3 w-full py-3 px-4 rounded-xl text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors font-medium"
-                      >
-                        <FiShoppingBag className="w-5 h-5 text-gray-400" />
-                        My Orders
-                      </Link>
-                    )}
+                    <Link
+                      to="/my-orders"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center gap-3 w-full py-3 px-4 rounded-xl text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors font-medium"
+                    >
+                      <FiShoppingBag className="w-5 h-5 text-gray-400" />
+                      My Orders
+                    </Link>
 
                     <button
                       onClick={handleLogout}

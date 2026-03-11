@@ -3,25 +3,27 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiX, FiZoomIn, FiSettings, FiSave } from 'react-icons/fi';
 import { supabase } from '../../config/supabase';
 
-const AdminOrderDetailsModal = ({ order, isOpen, onClose, onRefresh }) => {
+const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefresh }) => {
     const [activeTab, setActiveTab] = useState('order_info');
     const [updatingOrderId, setUpdatingOrderId] = useState(null);
     const [depositInput, setDepositInput] = useState('');
     const [itemPriceInput, setItemPriceInput] = useState({});
-    const [adminNoteInput, setAdminNoteInput] = useState(order?.admin_note || '');
+    const [adminNoteInput, setAdminNoteInput] = useState(initialOrder?.admin_note || '');
     const [zoomedImage, setZoomedImage] = useState(null);
     const [expandedCustomDetails, setExpandedCustomDetails] = useState({});
+    const [order, setOrder] = useState(initialOrder);
 
     // Reset states when order changes
     React.useEffect(() => {
-        if (order) {
-            setAdminNoteInput(order.admin_note || '');
+        if (initialOrder) {
+            setOrder(initialOrder);
+            setAdminNoteInput(initialOrder.admin_note || '');
             setDepositInput('');
             setItemPriceInput({});
             setExpandedCustomDetails({});
             setActiveTab('order_info');
         }
-    }, [order]);
+    }, [initialOrder]);
 
     if (!isOpen || !order) return null;
 
@@ -55,84 +57,6 @@ const AdminOrderDetailsModal = ({ order, isOpen, onClose, onRefresh }) => {
             cancelled: 'Cancelled'
         };
         return labels[orderState] || orderState;
-    };
-
-    const getNextStates = (currentState) => {
-        const stateFlow = {
-            pending: ['waiting_deposit'],
-            waiting_deposit: [],
-            confirmed: ['in_progress'],
-            in_progress: ['delivered'],
-            delivered: ['done'],
-            done: [],
-            cancelled: []
-        };
-        return stateFlow[currentState] || [];
-    };
-
-    const getStateButtonStyle = (state) => {
-        const styles = {
-            waiting_deposit: 'bg-orange-500 hover:bg-orange-600',
-            confirmed: 'bg-blue-500 hover:bg-blue-600',
-            in_progress: 'bg-purple-500 hover:bg-purple-600',
-            delivered: 'bg-green-500 hover:bg-green-600',
-            done: 'bg-teal-500 hover:bg-teal-600',
-            cancelled: 'bg-red-500 hover:bg-red-600'
-        };
-        return styles[state] || 'bg-gray-500 hover:bg-gray-600';
-    };
-
-    const getStateIcon = (state) => {
-        const icons = {
-            waiting_deposit: '💰',
-            confirmed: '✓',
-            in_progress: '🔨',
-            delivered: '📦',
-            done: '✅',
-            cancelled: '❌'
-        };
-        return icons[state] || '→';
-    };
-
-    const updateOrderState = async (newState) => {
-        if (order.status === 'pending' && newState === 'waiting_deposit') {
-            if (hasPendingPrice) {
-                alert('Please set all pending item prices before moving to Waiting Deposit status.');
-                return;
-            }
-        }
-
-        setUpdatingOrderId(order.id);
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-                alert('Session expired. Please login again.');
-                return;
-            }
-
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/orders/${order.id}/status`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.access_token}`
-                },
-                body: JSON.stringify({ status: newState })
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to update order state');
-            }
-
-            await onRefresh();
-            alert('Order state updated successfully!');
-            onClose();
-        } catch (error) {
-            console.error('Error updating order state:', error);
-            alert(error.message || 'Failed to update order state');
-        } finally {
-            setUpdatingOrderId(null);
-        }
     };
 
     const updateDeposit = async () => {
@@ -212,7 +136,12 @@ const AdminOrderDetailsModal = ({ order, isOpen, onClose, onRefresh }) => {
                 throw new Error(error.error || 'Failed to update admin note');
             }
 
-            await onRefresh();
+            // Update local order state immediately
+            setOrder({ ...order, admin_note: adminNoteInput });
+            
+            // Refresh parent data in background
+            onRefresh();
+            
             alert('Admin note updated successfully!');
         } catch (error) {
             console.error('Error updating admin note:', error);
@@ -251,8 +180,25 @@ const AdminOrderDetailsModal = ({ order, isOpen, onClose, onRefresh }) => {
                 throw new Error(error.error || 'Failed to set price');
             }
 
-            await onRefresh();
+            // Clear input immediately for better UX
             setItemPriceInput({ ...itemPriceInput, [itemId]: '' });
+            
+            // Fetch the updated order data to refresh the modal UI immediately
+            const orderResponse = await fetch(`${import.meta.env.VITE_API_URL}/orders/${order.id}`, {
+                headers: {
+                    'Authorization': `Bearer ${session.access_token}`
+                }
+            });
+
+            if (orderResponse.ok) {
+                const updatedOrder = await orderResponse.json();
+                setOrder(updatedOrder);
+            }
+            
+            // Refresh parent data in background
+            onRefresh();
+            
+            // Show success message
             alert('Price set successfully!');
         } catch (error) {
             console.error('Error setting price:', error);
@@ -331,7 +277,7 @@ const AdminOrderDetailsModal = ({ order, isOpen, onClose, onRefresh }) => {
                                         <div>
                                             <h3 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Total Amount</h3>
                                             <div className="flex items-center justify-center sm:justify-start gap-2">
-                                                <span className="text-2xl font-bold text-gray-900">
+                                                <span className="text-lg font-semibold text-gray-900">
                                                     {order.total_amount} DA
                                                 </span>
                                                 {hasPendingPrice && (
@@ -376,15 +322,19 @@ const AdminOrderDetailsModal = ({ order, isOpen, onClose, onRefresh }) => {
                                                             {isBouquet && <span className="text-2xl">💐</span>}
                                                             {isRequest && <span className="text-2xl">🧶</span>}
                                                             {!isCustom && (item.products?.product_images?.[0]?.image_url || item.image_url) && (
-                                                                <img src={item.products?.product_images?.[0]?.image_url || item.image_url} alt="Product" className="w-full h-full object-cover" />
+                                                                <div className="relative group w-full h-full">
+                                                                    <img src={item.products?.product_images?.[0]?.image_url || item.image_url} alt="Product" className="w-full h-full object-cover cursor-pointer" onClick={() => setZoomedImage(item.products?.product_images?.[0]?.image_url || item.image_url)} />
+                                                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center pointer-events-none">
+                                                                        <FiZoomIn className="text-white text-sm" />
+                                                                    </div>
+                                                                </div>
                                                             )}
                                                         </div>
                                                         <div className="flex-grow w-full">
                                                             <h5 className="font-bold text-gray-900 text-lg flex items-center gap-2 flex-wrap">
                                                                 {isBouquet ? 'Custom Flower Bouquet' : isRequest ? 'Custom Crochet Request' : (item.products?.category || 'Product')}
-                                                                {isCustom && <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap">Custom</span>}
                                                             </h5>
-                                                            <p className="text-sm text-gray-500">Quantity: {item.quantity || 1}</p>
+                                                            {!isCustom && <p className="text-sm text-gray-500">Quantity: {item.quantity || 1}</p>}
                                                         </div>
                                                         <div className="sm:text-right flex flex-row sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto mt-2 sm:mt-0 gap-2">
                                                             {item.price !== null ? (
@@ -420,7 +370,12 @@ const AdminOrderDetailsModal = ({ order, isOpen, onClose, onRefresh }) => {
                                                                                             <div key={i} className="flex justify-between text-sm bg-white p-2 rounded border border-gray-200 hover:border-primary/50 transition-colors">
                                                                                                 <div className="flex items-center gap-2">
                                                                                                     {f.image_url && (
-                                                                                                        <img src={f.image_url} alt="" className="w-8 h-8 rounded object-cover cursor-pointer" onClick={() => setZoomedImage(f.image_url)} />
+                                                                                                        <div className="relative group">
+                                                                                                            <img src={f.image_url} alt="" className="w-8 h-8 rounded object-cover cursor-pointer" onClick={() => setZoomedImage(f.image_url)} />
+                                                                                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center pointer-events-none">
+                                                                                                                <FiZoomIn className="text-white text-xs" />
+                                                                                                            </div>
+                                                                                                        </div>
                                                                                                     )}
                                                                                                     <span className="font-medium">{f.name} (x{f.quantity})</span>
                                                                                                 </div>
@@ -438,7 +393,12 @@ const AdminOrderDetailsModal = ({ order, isOpen, onClose, onRefresh }) => {
                                                                                             <div key={i} className="flex justify-between text-sm bg-white p-2 rounded border border-gray-200 hover:border-primary/50 transition-colors">
                                                                                                 <div className="flex items-center gap-2">
                                                                                                     {a.image_url && (
-                                                                                                        <img src={a.image_url} alt="" className="w-8 h-8 rounded object-cover cursor-pointer" onClick={() => setZoomedImage(a.image_url)} />
+                                                                                                        <div className="relative group">
+                                                                                                            <img src={a.image_url} alt="" className="w-8 h-8 rounded object-cover cursor-pointer" onClick={() => setZoomedImage(a.image_url)} />
+                                                                                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center pointer-events-none">
+                                                                                                                <FiZoomIn className="text-white text-xs" />
+                                                                                                            </div>
+                                                                                                        </div>
                                                                                                     )}
                                                                                                     <span className="font-medium">{a.name} (x{a.quantity})</span>
                                                                                                 </div>
@@ -456,7 +416,12 @@ const AdminOrderDetailsModal = ({ order, isOpen, onClose, onRefresh }) => {
                                                                                     <div className="flex justify-between text-sm bg-white p-2 rounded border border-gray-200 hover:border-primary/50 transition-colors">
                                                                                         <div className="flex items-center gap-2">
                                                                                             {data.wrapping.image_url && (
-                                                                                                <img src={data.wrapping.image_url} alt="" className="w-8 h-8 rounded object-cover cursor-pointer" onClick={() => setZoomedImage(data.wrapping.image_url)} />
+                                                                                                <div className="relative group">
+                                                                                                    <img src={data.wrapping.image_url} alt="" className="w-8 h-8 rounded object-cover cursor-pointer" onClick={() => setZoomedImage(data.wrapping.image_url)} />
+                                                                                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center pointer-events-none">
+                                                                                                        <FiZoomIn className="text-white text-xs" />
+                                                                                                    </div>
+                                                                                                </div>
                                                                                             )}
                                                                                             <span className="font-medium">{data.wrapping.name}</span>
                                                                                         </div>
@@ -471,7 +436,12 @@ const AdminOrderDetailsModal = ({ order, isOpen, onClose, onRefresh }) => {
                                                                                         {data.colors.map((c, i) => (
                                                                                             <div key={i} className="flex items-center gap-2 bg-white px-2 py-1 rounded border border-gray-200">
                                                                                                 {c.image_url ? (
-                                                                                                    <img src={c.image_url} alt="" className="w-6 h-6 rounded cursor-pointer" onClick={() => setZoomedImage(c.image_url)} />
+                                                                                                    <div className="relative group">
+                                                                                                        <img src={c.image_url} alt="" className="w-6 h-6 rounded cursor-pointer" onClick={() => setZoomedImage(c.image_url)} />
+                                                                                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center pointer-events-none">
+                                                                                                            <FiZoomIn className="text-white text-[10px]" />
+                                                                                                        </div>
+                                                                                                    </div>
                                                                                                 ) : (
                                                                                                     <div className="w-4 h-4 rounded" style={{ backgroundColor: c.name }} />
                                                                                                 )}
@@ -487,7 +457,56 @@ const AdminOrderDetailsModal = ({ order, isOpen, onClose, onRefresh }) => {
                                                                                     <p className="text-sm bg-blue-50 p-2 text-blue-800 rounded">{data.colorNote}</p>
                                                                                 </div>
                                                                             )}
+                                                                            {/* Reference Images for Bouquet */}
+                                                                            {item.reference_images?.length > 0 && (
+                                                                                <div>
+                                                                                    <p className="text-xs font-bold text-gray-500 uppercase mb-2">Reference Image</p>
+                                                                                    <div className="flex gap-2">
+                                                                                        {item.reference_images.slice(0, 1).map((img, i) => {
+                                                                                            const src = typeof img === 'string' ? img : img.url || img.image_url;
+                                                                                            return (
+                                                                                                <div key={i} className="relative group">
+                                                                                                    <img
+                                                                                                        src={src}
+                                                                                                        alt="Reference"
+                                                                                                        className="w-full h-32 object-cover rounded-lg border border-gray-300 cursor-pointer"
+                                                                                                        onClick={() => setZoomedImage(src)}
+                                                                                                    />
+                                                                                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center pointer-events-none">
+                                                                                                        <FiZoomIn className="text-white" />
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            )
+                                                                                        })}
+                                                                                    </div>
+                                                                                </div>
+                                                                            )}
                                                                         </div>
+                                                                        {/* Set Price for Custom Bouquet */}
+                                                                        {item.price === null && (
+                                                                            <div className="lg:col-span-2 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                                                                <p className="text-xs font-bold text-yellow-900 uppercase mb-2 flex items-center gap-2">
+                                                                                    <span>💰</span> Set Price
+                                                                                </p>
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <input
+                                                                                        type="number"
+                                                                                        placeholder="Price (DA)"
+                                                                                        value={itemPriceInput[item.id] || ''}
+                                                                                        onChange={(e) => setItemPriceInput({ ...itemPriceInput, [item.id]: e.target.value })}
+                                                                                        className="flex-1 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-yellow-400 outline-none text-sm"
+                                                                                    />
+                                                                                    <button
+                                                                                        onClick={() => updateItemPrice(item.id)}
+                                                                                        disabled={updatingOrderId === order.id || !itemPriceInput[item.id]}
+                                                                                        className="px-4 py-2 bg-yellow-400 text-yellow-900 font-bold rounded hover:bg-yellow-500 disabled:opacity-50 transition-colors text-sm whitespace-nowrap"
+                                                                                    >
+                                                                                        Save Price
+                                                                                    </button>
+                                                                                </div>
+                                                                                <p className="text-xs text-yellow-700 mt-2">Price must be set before moving to 'Waiting Deposit' status.</p>
+                                                                            </div>
+                                                                        )}
                                                                     </>
                                                                 )}
 
@@ -500,43 +519,81 @@ const AdminOrderDetailsModal = ({ order, isOpen, onClose, onRefresh }) => {
                                                                                     <p className="text-sm bg-white p-3 rounded border border-gray-200 text-gray-700">{data.description}</p>
                                                                                 </div>
                                                                             )}
+                                                                        </div>
+                                                                        <div className="space-y-4">
                                                                             {data.colors?.length > 0 && (
                                                                                 <div>
                                                                                     <p className="text-xs font-bold text-gray-500 uppercase mb-2">Colors</p>
-                                                                                    <div className="flex gap-2">
+                                                                                    <div className="flex flex-wrap gap-2">
                                                                                         {data.colors.map((c, i) => (
-                                                                                            <span key={i} className="bg-white px-2 py-1 border border-gray-200 rounded text-xs">{c.name}</span>
+                                                                                            <div key={i} className="flex items-center gap-2 bg-white px-2 py-1 rounded border border-gray-200">
+                                                                                                {c.image_url ? (
+                                                                                                    <div className="relative group">
+                                                                                                        <img src={c.image_url} alt="" className="w-6 h-6 rounded cursor-pointer" onClick={() => setZoomedImage(c.image_url)} />
+                                                                                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center pointer-events-none">
+                                                                                                            <FiZoomIn className="text-white text-[10px]" />
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                ) : (
+                                                                                                    <div className="w-4 h-4 rounded" style={{ backgroundColor: c.name }} />
+                                                                                                )}
+                                                                                                <span className="text-xs font-medium">{c.name}</span>
+                                                                                            </div>
                                                                                         ))}
                                                                                     </div>
                                                                                 </div>
                                                                             )}
-                                                                        </div>
-                                                                    </>
-                                                                )}
-
-                                                                {/* Reference Images */}
-                                                                {item.reference_images?.length > 0 && (
-                                                                    <div className="lg:col-span-2 mt-2">
-                                                                        <p className="text-xs font-bold text-gray-500 uppercase mb-2">Reference Images</p>
-                                                                        <div className="flex gap-2 overflow-x-auto pb-2">
-                                                                            {item.reference_images.map((img, i) => {
-                                                                                const src = typeof img === 'string' ? img : img.url || img.image_url;
-                                                                                return (
-                                                                                    <div key={i} className="relative group">
-                                                                                        <img
-                                                                                            src={src}
-                                                                                            alt="Reference"
-                                                                                            className="w-24 h-24 object-cover rounded-lg border border-gray-300 cursor-pointer"
-                                                                                            onClick={() => setZoomedImage(src)}
-                                                                                        />
-                                                                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center pointer-events-none">
-                                                                                            <FiZoomIn className="text-white" />
-                                                                                        </div>
+                                                                            {/* Reference Images for Custom Request */}
+                                                                            {item.reference_images?.length > 0 && (
+                                                                                <div>
+                                                                                    <p className="text-xs font-bold text-gray-500 uppercase mb-2">Reference Images</p>
+                                                                                    <div className="flex gap-2 flex-wrap">
+                                                                                        {item.reference_images.map((img, i) => {
+                                                                                            const src = typeof img === 'string' ? img : img.url || img.image_url;
+                                                                                            return (
+                                                                                                <div key={i} className="relative group">
+                                                                                                    <img
+                                                                                                        src={src}
+                                                                                                        alt="Reference"
+                                                                                                        className="w-24 h-24 object-cover rounded-lg border border-gray-300 cursor-pointer"
+                                                                                                        onClick={() => setZoomedImage(src)}
+                                                                                                    />
+                                                                                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center pointer-events-none">
+                                                                                                        <FiZoomIn className="text-white" />
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            )
+                                                                                        })}
                                                                                     </div>
-                                                                                )
-                                                                            })}
+                                                                                </div>
+                                                                            )}
                                                                         </div>
-                                                                    </div>
+                                                                        {/* Set Price for Custom Request */}
+                                                                        {item.price === null && (
+                                                                            <div className="lg:col-span-2 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                                                                <p className="text-xs font-bold text-yellow-900 uppercase mb-2 flex items-center gap-2">
+                                                                                    <span>💰</span> Set Price
+                                                                                </p>
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <input
+                                                                                        type="number"
+                                                                                        placeholder="Price (DA)"
+                                                                                        value={itemPriceInput[item.id] || ''}
+                                                                                        onChange={(e) => setItemPriceInput({ ...itemPriceInput, [item.id]: e.target.value })}
+                                                                                        className="flex-1 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-yellow-400 outline-none text-sm"
+                                                                                    />
+                                                                                    <button
+                                                                                        onClick={() => updateItemPrice(item.id)}
+                                                                                        disabled={updatingOrderId === order.id || !itemPriceInput[item.id]}
+                                                                                        className="px-4 py-2 bg-yellow-400 text-yellow-900 font-bold rounded hover:bg-yellow-500 disabled:opacity-50 transition-colors text-sm whitespace-nowrap"
+                                                                                    >
+                                                                                        Save Price
+                                                                                    </button>
+                                                                                </div>
+                                                                                <p className="text-xs text-yellow-700 mt-2">Price must be set before moving to 'Waiting Deposit' status.</p>
+                                                                            </div>
+                                                                        )}
+                                                                    </>
                                                                 )}
                                                             </div>
                                                         </div>
@@ -555,11 +612,11 @@ const AdminOrderDetailsModal = ({ order, isOpen, onClose, onRefresh }) => {
                                         <h3 className="font-bold text-gray-900 border-b pb-2">Contact Details</h3>
                                         <div>
                                             <p className="text-xs text-gray-500 uppercase">Name</p>
-                                            <p className="font-semibold text-lg">{order.customer_name}</p>
+                                            <p className="font-medium capitalize">{order.customer_name}</p>
                                         </div>
                                         <div>
                                             <p className="text-xs text-gray-500 uppercase">Phone</p>
-                                            <p className="font-semibold text-lg">{order.customer_phone}</p>
+                                            <p className="font-medium capitalize">{order.customer_phone}</p>
                                         </div>
                                     </div>
 
@@ -576,7 +633,7 @@ const AdminOrderDetailsModal = ({ order, isOpen, onClose, onRefresh }) => {
                                         {order.full_address && (
                                             <div>
                                                 <p className="text-xs text-gray-500 uppercase">Full Address</p>
-                                                <p className="font-medium text-gray-700 bg-gray-50 p-2 rounded">{order.full_address}</p>
+                                                <p className="font-medium">{order.full_address}</p>
                                             </div>
                                         )}
                                         <div>
@@ -590,130 +647,89 @@ const AdminOrderDetailsModal = ({ order, isOpen, onClose, onRefresh }) => {
                             {/* TAB: MANAGE ORDER */}
                             {activeTab === 'manage_order' && (
                                 <div className="space-y-6">
-                                    <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start gap-4">
-
-                                        <div className="w-full pb-4 border-b flex items-start justify-between">
-                                            <div className="flex flex-col gap-1">
-                                                <h3 className="font-bold text-xl text-gray-900">
-                                                    Order State
-                                                </h3>
-                                                <p className="text-sm text-gray-500">
-                                                    Update the overall state indicating how this order is progressing.
-                                                </p>
-                                            </div>
-                                            <div className={`px-4 py-2 rounded-lg font-bold text-sm border shadow-sm ${getOrderStateColor(order.status)} border-current/20`}>
-                                                Current: {formatOrderState(order.status)}
-                                            </div>
-                                        </div>
-
-                                        {order.status !== 'done' && order.status !== 'cancelled' ? (
-                                            <div className="w-full space-y-4 pt-2">
-                                                {order.status === 'waiting_deposit' && getNextStates(order.status).length === 0 && (
-                                                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800 flex items-start gap-3">
-                                                        <span className="text-2xl leading-none">ℹ️</span>
-                                                        <p className="mt-0.5">To confirm this order, you must set a deposit amount below. Setting it handles the state progression automatically.</p>
-                                                    </div>
-                                                )}
-
-                                                <div className="flex flex-wrap gap-3 w-full">
-                                                    {getNextStates(order.status || 'pending').map((nextState) => {
-                                                        const isDisabled = order.status === 'pending' && nextState === 'waiting_deposit' && hasPendingPrice;
-                                                        return (
-                                                            <button
-                                                                key={nextState}
-                                                                onClick={() => updateOrderState(nextState)}
-                                                                disabled={updatingOrderId === order.id || isDisabled}
-                                                                className={`px-6 py-3 text-white rounded-lg font-medium transition-all flex items-center gap-3 ${getStateButtonStyle(nextState)} shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed flex-1 justify-center min-w-[200px] text-lg`}
-                                                            >
-                                                                <span className="text-xl">{getStateIcon(nextState)}</span>
-                                                                <span>Move to {formatOrderState(nextState)}</span>
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-
-                                                <div className="pt-6 mt-6 border-t border-red-100 flex justify-end">
-                                                    <button
-                                                        onClick={() => {
-                                                            if (confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
-                                                                updateOrderState('cancelled');
-                                                            }
-                                                        }}
-                                                        disabled={updatingOrderId === order.id}
-                                                        className="px-6 py-2.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-bold transition-colors border border-red-200 flex items-center justify-center gap-2 shadow-sm whitespace-nowrap"
-                                                    >
-                                                        <span className="text-lg">❌</span> Cancel Order
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className={`p-4 rounded-lg border w-full flex items-center justify-center gap-2 font-medium ${order.status === 'done' ? 'bg-teal-50 border-teal-200 text-teal-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
-                                                {order.status === 'done' ? '✅ This order is completed.' : '❌ This order is cancelled.'} No further status changes can be made.
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Custom Item Prices */}
-                                    {order.order_items?.some(item => item.custom_order_type && item.price === null) && (
-                                        <div className="bg-gradient-to-r from-yellow-50 to-white p-6 rounded-xl border border-yellow-200 shadow-sm">
-                                            <h3 className="font-bold text-yellow-900 mb-2 flex items-center gap-2">
-                                                <span className="text-xl">💰</span> Set Custom Prices
-                                            </h3>
-                                            <p className="text-sm text-yellow-800 mb-4 opacity-80">These custom items require a price before you can move this order to 'Waiting Deposit'.</p>
-                                            <div className="space-y-3">
-                                                {order.order_items
-                                                    .filter(item => item.custom_order_type && item.price === null)
-                                                    .map(item => (
-                                                        <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white rounded-lg border border-yellow-100 shadow-sm">
-                                                            <div>
-                                                                <p className="font-bold text-gray-900 text-lg">{item.custom_order_type === 'custom_bouquet' ? '💐 Custom Bouquet' : '🧶 Custom Request'}</p>
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <input
-                                                                    type="number"
-                                                                    placeholder="Price (DA)"
-                                                                    value={itemPriceInput[item.id] || ''}
-                                                                    onChange={(e) => setItemPriceInput({ ...itemPriceInput, [item.id]: e.target.value })}
-                                                                    className="w-40 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-yellow-400 outline-none"
-                                                                />
-                                                                <button
-                                                                    onClick={() => updateItemPrice(item.id)}
-                                                                    disabled={updatingOrderId === order.id || !itemPriceInput[item.id]}
-                                                                    className="px-6 py-2 bg-yellow-400 text-yellow-900 font-bold rounded hover:bg-yellow-500 disabled:opacity-50 transition-colors"
-                                                                >
-                                                                    Save
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    ))
-                                                }
-                                            </div>
-                                        </div>
-                                    )}
-
                                     {/* Deposit */}
                                     {(!order.deposit_value || order.deposit_value === 0) && order.status === 'waiting_deposit' && (
-                                        <div className="bg-gradient-to-r from-blue-50 to-white p-6 rounded-xl border border-blue-200 shadow-sm">
-                                            <h3 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
-                                                <span className="text-xl">🏦</span> Set Deposit Amount
-                                            </h3>
-                                            <p className="text-sm text-blue-800 mb-4 opacity-80">Setting a deposit automatically validates the order and turns its state to 'Confirmed'.</p>
-                                            <div className="flex flex-col sm:flex-row items-center gap-3">
-                                                <input
-                                                    type="number"
-                                                    placeholder={`Max: ${order.total_amount} DA`}
-                                                    value={depositInput}
-                                                    onChange={(e) => setDepositInput(e.target.value)}
-                                                    className="w-full sm:w-64 px-4 py-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none text-lg"
-                                                />
-                                                <button
-                                                    onClick={updateDeposit}
-                                                    disabled={updatingOrderId === order.id || !depositInput}
-                                                    className="w-full sm:w-auto px-8 py-3 bg-blue-600 text-white font-bold rounded hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-md hover:shadow-lg"
-                                                >
-                                                    Confirm Deposit
-                                                </button>
+                                        <div className="bg-gradient-to-br from-blue-50 via-white to-blue-50/30 p-6 rounded-2xl border-2 border-blue-200 shadow-lg">
+                                            <div className="flex items-start justify-between mb-4">
+                                                <div>
+                                                    <h3 className="font-bold text-blue-900 text-lg flex items-center gap-2 mb-1">
+                                                        <span className="text-2xl">💰</span> Set Deposit Amount
+                                                    </h3>
+                                                    <p className="text-xs text-blue-700/70">This will confirm the order and update its status</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-0.5">Total Order</p>
+                                                    <p className="text-2xl font-bold text-blue-900">{order.total_amount} DA</p>
+                                                </div>
                                             </div>
+                                            
+                                            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 mb-4 border border-blue-100">
+                                                <label className="block text-sm font-semibold text-gray-700 mb-2">Enter Deposit Amount</label>
+                                                <div className="relative">
+                                                    <input
+                                                        type="number"
+                                                        placeholder="0"
+                                                        value={depositInput}
+                                                        onChange={(e) => {
+                                                            const value = parseFloat(e.target.value);
+                                                            if (value > order.total_amount) {
+                                                                setDepositInput(order.total_amount);
+                                                            } else {
+                                                                setDepositInput(e.target.value);
+                                                            }
+                                                        }}
+                                                        max={order.total_amount}
+                                                        className="w-full px-4 py-3 pr-12 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-lg font-semibold transition-all"
+                                                    />
+                                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">DA</span>
+                                                </div>
+                                                
+                                                {/* Quick Percentage Buttons */}
+                                                <div className="mt-3 flex gap-2 flex-wrap">
+                                                    <p className="text-xs text-gray-600 w-full mb-1">Quick select:</p>
+                                                    {[25, 50, 75, 100].map(percent => (
+                                                        <button
+                                                            key={percent}
+                                                            type="button"
+                                                            onClick={() => setDepositInput((order.total_amount * percent / 100).toFixed(2))}
+                                                            className="px-3 py-1.5 text-xs font-semibold bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors border border-blue-200"
+                                                        >
+                                                            {percent}% ({(order.total_amount * percent / 100).toFixed(0)} DA)
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                
+                                                {/* Validation Message */}
+                                                {depositInput && parseFloat(depositInput) > order.total_amount && (
+                                                    <p className="mt-2 text-xs text-red-600 flex items-center gap-1">
+                                                        <span>⚠️</span> Deposit cannot exceed total amount
+                                                    </p>
+                                                )}
+                                                {depositInput && parseFloat(depositInput) > 0 && parseFloat(depositInput) <= order.total_amount && (
+                                                    <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded-lg">
+                                                        <p className="text-xs text-green-800">
+                                                            <span className="font-semibold">Remaining balance:</span> {(order.total_amount - parseFloat(depositInput)).toFixed(2)} DA
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            
+                                            <button
+                                                onClick={updateDeposit}
+                                                disabled={updatingOrderId === order.id || !depositInput || parseFloat(depositInput) <= 0 || parseFloat(depositInput) > order.total_amount}
+                                                className="w-full px-8 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-xl flex items-center justify-center gap-2"
+                                            >
+                                                {updatingOrderId === order.id ? (
+                                                    <>
+                                                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                                                        Processing...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span>✓</span> Confirm Deposit & Update Status
+                                                    </>
+                                                )}
+                                            </button>
                                         </div>
                                     )}
 

@@ -16,7 +16,9 @@ import {
   FiBox,
   FiDroplet,
   FiClock,
-  FiZoomIn
+  FiZoomIn,
+  FiHome,
+  FiExternalLink
 } from 'react-icons/fi';
 import axios from 'axios';
 import { supabase } from '../../config/supabase';
@@ -179,7 +181,19 @@ const AdminDashboard = () => {
           />
         </div>
 
-        <div className="py-4 border-t border-gray-100 shrink-0">
+        <div className="py-4 border-t border-gray-100 shrink-0 space-y-2">
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-4 p-3 mx-4 rounded-xl text-primary hover:bg-primary/5 transition-colors overflow-hidden whitespace-nowrap group/btn"
+          >
+            <div className="flex items-center justify-center w-6 h-6 shrink-0">
+              <FiHome className="w-5 h-5" />
+            </div>
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-medium flex items-center gap-2">
+              View Website
+              <FiExternalLink className="w-4 h-4" />
+            </span>
+          </button>
           <button
             onClick={handleLogout}
             className="flex items-center gap-4 p-3 mx-4 rounded-xl text-red-600 hover:bg-red-50 transition-colors overflow-hidden whitespace-nowrap"
@@ -738,6 +752,8 @@ const OrdersTab = ({ orders, onRefresh }) => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [updatingOrderId, setUpdatingOrderId] = useState(null);
+  const [openDropdown, setOpenDropdown] = useState(null);
 
   const formatOrderState = (orderState) => {
     const labels = {
@@ -767,6 +783,73 @@ const OrdersTab = ({ orders, onRefresh }) => {
         {formatOrderState(status)}
       </span>
     );
+  };
+
+  const getNextStates = (currentState) => {
+    const stateFlow = {
+      pending: ['waiting_deposit'],
+      waiting_deposit: [],
+      confirmed: ['in_progress'],
+      in_progress: ['delivered'],
+      delivered: ['done'],
+      done: [],
+      cancelled: []
+    };
+    return stateFlow[currentState] || [];
+  };
+
+  const getStateIcon = (state) => {
+    const icons = {
+      waiting_deposit: '💰',
+      confirmed: '✓',
+      in_progress: '🔨',
+      delivered: '📦',
+      done: '✅',
+      cancelled: '❌'
+    };
+    return icons[state] || '→';
+  };
+
+  const updateOrderStatus = async (order, newStatus) => {
+    if (order.status === 'pending' && newStatus === 'waiting_deposit') {
+      const hasPendingPrice = order.order_items?.some(item => item.price === null);
+      if (hasPendingPrice) {
+        alert('Please set all pending item prices before moving to Waiting Deposit status. Open order details to set prices.');
+        return;
+      }
+    }
+
+    setUpdatingOrderId(order.id);
+    setOpenDropdown(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        alert('Session expired. Please login again.');
+        return;
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/orders/${order.id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update order status');
+      }
+
+      await onRefresh();
+      alert('Order status updated successfully!');
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      alert(error.message || 'Failed to update order status');
+    } finally {
+      setUpdatingOrderId(null);
+    }
   };
 
   const filteredOrders = orders.filter(order => {
@@ -839,16 +922,22 @@ const OrdersTab = ({ orders, onRefresh }) => {
                   <th className="px-6 py-4">Customer</th>
                   <th className="px-6 py-4">Total</th>
                   <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-center">Actions</th>
+                  <th className="px-6 py-4 text-center min-w-[200px]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredOrders.map(order => {
                   const hasPendingPrice = order.order_items?.some(item => item.price === null);
+                  const isUpdating = updatingOrderId === order.id;
                   return (
-                    <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={order.id} className={`transition-colors ${isUpdating ? 'bg-blue-50 opacity-60' : 'hover:bg-gray-50'}`}>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="font-mono font-medium text-gray-900">#{order.order_id}</span>
+                        <div className="flex items-center gap-2">
+                          {isUpdating && (
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
+                          )}
+                          <span className="font-mono font-medium text-gray-900">#{order.order_id}</span>
+                        </div>
                         {order.cancel_requested && !('cancelled' === order.status) && (
                           <div className="mt-1 text-[10px] bg-red-50 text-red-600 px-2 py-0.5 rounded uppercase font-bold inline-block border border-red-200">
                             Cancel Req.
@@ -868,16 +957,67 @@ const OrdersTab = ({ orders, onRefresh }) => {
                         <div className="font-bold text-gray-900">{order.total_amount} DA</div>
                         {hasPendingPrice && <span className="text-[10px] font-bold text-yellow-600 uppercase tracking-wider">+ Pending</span>}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {getStatusBadge(order.status)}
-                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <button
-                          onClick={() => setSelectedOrder(order)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary-dark transition-colors font-semibold rounded-lg text-sm"
-                        >
-                          <FiZoomIn className="w-4 h-4" /> View
-                        </button>
+                        <div className="flex flex-col gap-1">
+                          {getStatusBadge(order.status)}
+                          {order.status === 'waiting_deposit' && (
+                            <span className="text-[10px] text-orange-600 font-medium">
+                              💡 Set deposit in details
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center justify-center gap-1.5">
+                          {/* Status Action Buttons */}
+                          {order.status !== 'done' && order.status !== 'cancelled' && getNextStates(order.status).length > 0 && (
+                            <>
+                              {getNextStates(order.status).map(nextState => (
+                                <button
+                                  key={nextState}
+                                  onClick={() => {
+                                    if (confirm(`Move order #${order.order_id} to "${formatOrderState(nextState)}"?`)) {
+                                      updateOrderStatus(order, nextState);
+                                    }
+                                  }}
+                                  disabled={updatingOrderId === order.id}
+                                  className="inline-flex items-center gap-1.5 px-3 py-2 h-8 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all font-medium rounded-md text-xs disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                                  title={`Move to ${formatOrderState(nextState)}`}
+                                >
+                                  <span className="text-sm">{getStateIcon(nextState)}</span>
+                                  <span>{formatOrderState(nextState)}</span>
+                                </button>
+                              ))}
+                            </>
+                          )}
+                          
+                          {/* Cancel Button */}
+                          {order.status !== 'done' && order.status !== 'cancelled' && (
+                            <button
+                              onClick={() => {
+                                if (confirm(`Are you sure you want to cancel order #${order.order_id}? This action cannot be undone.`)) {
+                                  updateOrderStatus(order, 'cancelled');
+                                }
+                              }}
+                              disabled={updatingOrderId === order.id}
+                              className="inline-flex items-center gap-1.5 px-3 py-2 h-8 bg-white border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-all font-medium rounded-md text-xs disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                              title="Cancel Order"
+                            >
+                              <FiX className="w-3.5 h-3.5" />
+                              <span>Cancel</span>
+                            </button>
+                          )}
+                          
+                          {/* View Details Button */}
+                          <button
+                            onClick={() => setSelectedOrder(order)}
+                            className="inline-flex items-center gap-1.5 px-3 py-2 h-8 bg-white border border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-all font-medium rounded-md text-xs shadow-sm"
+                            title="View Details"
+                          >
+                            <FiZoomIn className="w-3.5 h-3.5" />
+                            <span>Details</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   )
