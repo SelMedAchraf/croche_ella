@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
 import { authService } from '../services/authService';
 import OrderTable from '../components/orders/OrderTable';
 import OrderDetailsModal from '../components/orders/OrderDetailsModal';
+import { FiSearch, FiChevronDown, FiShoppingBag, FiPackage } from 'react-icons/fi';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 
@@ -14,6 +14,8 @@ const MyOrders = () => {
     const [loading, setLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -100,6 +102,13 @@ const MyOrders = () => {
         }
     };
 
+    const filteredOrders = orders.filter(order => {
+        const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+        const matchesSearch = searchTerm === '' ||
+            order.order_id?.toString().toLowerCase().includes(searchTerm.toLowerCase());
+        return matchesStatus && matchesSearch;
+    });
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center pt-20">
@@ -127,27 +136,90 @@ const MyOrders = () => {
                         <p className="text-text/70 mb-6">You haven't placed any orders yet.</p>
                         <button
                             onClick={() => navigate('/products')}
-                            className="btn-primary"
+                            className="btn-primary inline-flex items-center gap-2 mx-auto"
                         >
+                            <FiShoppingBag />
                             Start Shopping
                         </button>
                     </div>
                 ) : (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.98 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        layout
-                    >
-                        <OrderTable
-                            orders={orders}
-                            onCancel={handleCancelOrder}
-                            onRequestCancel={handleRequestCancel}
-                            onViewDetails={(selected) => {
-                                setSelectedOrder(selected);
-                                setIsModalOpen(true);
-                            }}
-                        />
-                    </motion.div>
+                    <>
+                        {/* Filters Row */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex flex-col sm:flex-row gap-4 mb-6"
+                        >
+                            <div className="relative flex-1">
+                                <input
+                                    type="text"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    placeholder="Search by order ID..."
+                                    className="w-full px-4 py-2.5 pl-10 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white shadow-sm"
+                                />
+                                <div className="absolute inset-y-0 left-3.5 flex items-center pointer-events-none">
+                                    <FiSearch className="text-gray-400 w-5 h-5" />
+                                </div>
+                            </div>
+                            <div className="relative w-full sm:w-56">
+                                <select
+                                    value={statusFilter}
+                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                    className="w-full px-4 py-2.5 pr-10 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none bg-white cursor-pointer shadow-sm font-medium text-text/80"
+                                >
+                                    <option value="all">All Statuses</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="waiting_deposit">Waiting Deposit</option>
+                                    <option value="confirmed">Confirmed</option>
+                                    <option value="in_progress">In Progress</option>
+                                    <option value="delivered">Delivered</option>
+                                    <option value="done">Done</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                                <div className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center">
+                                    <FiChevronDown className="text-gray-400 w-5 h-5" />
+                                </div>
+                            </div>
+                        </motion.div>
+
+                        {filteredOrders.length === 0 ? (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center"
+                            >
+                                <FiPackage className="w-16 h-16 mx-auto mb-4 text-gray-200" />
+                                <h2 className="text-xl font-display font-bold text-primary mb-2">No matching orders</h2>
+                                <p className="text-text/70 mb-4">Try adjusting your search or filters.</p>
+                                <button
+                                    onClick={() => {
+                                        setSearchTerm('');
+                                        setStatusFilter('all');
+                                    }}
+                                    className="text-primary font-semibold hover:underline"
+                                >
+                                    Clear all filters
+                                </button>
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.98 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                layout
+                            >
+                                <OrderTable
+                                    orders={filteredOrders}
+                                    onCancel={handleCancelOrder}
+                                    onRequestCancel={handleRequestCancel}
+                                    onViewDetails={(selected) => {
+                                        setSelectedOrder(selected);
+                                        setIsModalOpen(true);
+                                    }}
+                                />
+                            </motion.div>
+                        )}
+                    </>
                 )}
 
                 <OrderDetailsModal

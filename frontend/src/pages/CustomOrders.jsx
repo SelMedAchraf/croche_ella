@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  FiCheck, FiChevronLeft, FiChevronRight, FiShoppingCart, 
-  FiUpload, FiX, FiPlus, FiMinus 
+import {
+  FiCheck, FiChevronLeft, FiChevronRight, FiShoppingCart,
+  FiUpload, FiX, FiPlus, FiMinus
 } from 'react-icons/fi';
 import { useItems } from '../hooks/useItems';
 import { useColors } from '../hooks/useColors';
@@ -78,11 +78,10 @@ const OptionSelection = ({ onSelectOption }) => {
           className="card h-full group hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer"
           onClick={() => onSelectOption(option.id)}
         >
-          <div className={`relative h-64 flex items-center justify-center overflow-hidden ${
-            option.id === 'bouquet' 
-              ? 'bg-gradient-to-br from-pink-100 via-purple-50 to-yellow-50'
-              : 'bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50'
-          }`}>
+          <div className={`relative h-64 flex items-center justify-center overflow-hidden ${option.id === 'bouquet'
+            ? 'bg-gradient-to-br from-pink-100 via-purple-50 to-yellow-50'
+            : 'bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50'
+            }`}>
             <div className="absolute inset-0 opacity-20">
               {option.id === 'bouquet' ? (
                 <>
@@ -169,7 +168,7 @@ const CustomFlowerBouquet = ({ onBack }) => {
     if (bouquetData.referenceImage) {
       const formData = new FormData();
       formData.append('image', bouquetData.referenceImage);
-      
+
       try {
         const response = await axios.post(`${API_URL}/upload/custom-order-reference`, formData);
         referenceImageUrl = response.data.url;
@@ -313,20 +312,18 @@ const CustomFlowerBouquet = ({ onBack }) => {
         <button
           onClick={handleBack}
           disabled={currentStep === 1}
-          className={`btn-secondary flex items-center gap-2 ${
-            currentStep === 1 ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
+          className={`btn-secondary flex items-center gap-2 ${currentStep === 1 ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
         >
           <FiChevronLeft /> Previous
         </button>
-        
+
         {currentStep < 7 ? (
           <button
             onClick={handleNext}
             disabled={!canProceed()}
-            className={`btn-primary flex items-center gap-2 ${
-              !canProceed() ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
+            className={`btn-primary flex items-center gap-2 ${!canProceed() ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
           >
             Next <FiChevronRight />
           </button>
@@ -376,7 +373,7 @@ const CustomCrochetRequest = ({ onBack }) => {
     for (const image of requestData.referenceImages) {
       const formData = new FormData();
       formData.append('image', image);
-      
+
       try {
         const response = await axios.post(`${API_URL}/upload/custom-order-reference`, formData);
         referenceImageUrls.push(response.data.url);
@@ -467,20 +464,18 @@ const CustomCrochetRequest = ({ onBack }) => {
         <button
           onClick={handleBack}
           disabled={currentStep === 1}
-          className={`btn-secondary flex items-center gap-2 ${
-            currentStep === 1 ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
+          className={`btn-secondary flex items-center gap-2 ${currentStep === 1 ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
         >
           <FiChevronLeft /> Previous
         </button>
-        
+
         {currentStep < 4 ? (
           <button
             onClick={handleNext}
             disabled={!canProceed()}
-            className={`btn-primary flex items-center gap-2 ${
-              !canProceed() ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
+            className={`btn-primary flex items-center gap-2 ${!canProceed() ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
           >
             Next <FiChevronRight />
           </button>
@@ -505,25 +500,22 @@ const Stepper = ({ steps, currentStep }) => {
         <div key={step.number} className="flex items-center flex-1">
           <div className="flex flex-col items-center">
             <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-                currentStep >= step.number
-                  ? 'bg-primary text-white'
-                  : 'bg-gray-200 text-gray-500'
-              }`}
+              className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${currentStep >= step.number
+                ? 'bg-primary text-white'
+                : 'bg-gray-200 text-gray-500'
+                }`}
             >
               {currentStep > step.number ? <FiCheck /> : step.number}
             </div>
-            <span className={`text-xs mt-2 text-center ${
-              currentStep >= step.number ? 'text-primary font-medium' : 'text-gray-500'
-            }`}>
+            <span className={`text-xs mt-2 text-center ${currentStep >= step.number ? 'text-primary font-medium' : 'text-gray-500'
+              }`}>
               {step.title}
             </span>
           </div>
           {index < steps.length - 1 && (
             <div
-              className={`flex-1 h-1 mx-2 ${
-                currentStep > step.number ? 'bg-primary' : 'bg-gray-200'
-              }`}
+              className={`flex-1 h-1 mx-2 ${currentStep > step.number ? 'bg-primary' : 'bg-gray-200'
+                }`}
             />
           )}
         </div>
@@ -594,7 +586,7 @@ const FlowerSelection = ({ selectedFlowers, onUpdateFlowers }) => {
 // Color Selection Component
 const ColorSelection = ({ selectedColors, onUpdateColors }) => {
   const { colors, loading } = useColors();
-  
+
   // Filter to show only available colors
   const availableColors = colors.filter(color => color.available);
 
@@ -629,11 +621,10 @@ const ColorSelection = ({ selectedColors, onUpdateColors }) => {
             <div
               key={color.id}
               onClick={() => handleToggleColor(color.id)}
-              className={`card p-4 cursor-pointer transition-all ${
-                selectedColors.includes(color.id)
-                  ? 'ring-2 ring-primary shadow-lg'
-                  : 'hover:shadow-md'
-              }`}
+              className={`card p-4 cursor-pointer transition-all ${selectedColors.includes(color.id)
+                ? 'ring-2 ring-primary shadow-lg'
+                : 'hover:shadow-md'
+                }`}
             >
               <img
                 src={color.image_url}
@@ -682,11 +673,10 @@ const WrappingSelection = ({ selectedWrapping, onSelectWrapping }) => {
             <div
               key={wrapping.id}
               onClick={() => onSelectWrapping(wrapping)}
-              className={`card overflow-hidden cursor-pointer transition-all ${
-                selectedWrapping?.id === wrapping.id
-                  ? 'ring-2 ring-primary shadow-lg'
-                  : 'hover:shadow-md'
-              }`}
+              className={`card overflow-hidden cursor-pointer transition-all ${selectedWrapping?.id === wrapping.id
+                ? 'ring-2 ring-primary shadow-lg'
+                : 'hover:shadow-md'
+                }`}
             >
               <img
                 src={wrapping.image_url}
@@ -843,20 +833,18 @@ const ReferenceImageUpload = ({ image, onImageChange }) => {
 
       <div className="max-w-2xl mx-auto">
         {!image ? (
-          <label 
-            className={`card p-12 cursor-pointer transition-all flex flex-col items-center ${
-              isDragging 
-                ? 'border-2 border-primary border-dashed bg-primary/5 shadow-xl' 
-                : 'hover:shadow-lg border-2 border-transparent'
-            }`}
+          <label
+            className={`card p-12 cursor-pointer transition-all flex flex-col items-center ${isDragging
+              ? 'border-2 border-primary border-dashed bg-primary/5 shadow-xl'
+              : 'hover:shadow-lg border-2 border-transparent'
+              }`}
             onDragEnter={handleDragEnter}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            <FiUpload className={`w-16 h-16 mb-4 transition-colors ${
-              isDragging ? 'text-highlight' : 'text-primary'
-            }`} />
+            <FiUpload className={`w-16 h-16 mb-4 transition-colors ${isDragging ? 'text-highlight' : 'text-primary'
+              }`} />
             <p className="text-lg font-medium mb-2">
               {isDragging ? 'Drop image here' : 'Click or drag to upload reference image'}
             </p>
@@ -930,12 +918,12 @@ const ReferenceImagesUpload = ({ images, onImagesChange }) => {
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     const remainingSlots = MAX_IMAGES - images.length;
-    
+
     if (remainingSlots <= 0) {
       alert(`Maximum ${MAX_IMAGES} images allowed`);
       return;
     }
-    
+
     const filesToAdd = files.slice(0, remainingSlots);
     const validFiles = filesToAdd.filter(file => {
       if (!file.type.startsWith('image/')) return false;
@@ -945,11 +933,11 @@ const ReferenceImagesUpload = ({ images, onImagesChange }) => {
       }
       return true;
     });
-    
+
     if (files.length > remainingSlots) {
       alert(`Only ${remainingSlots} more image(s) can be added (maximum ${MAX_IMAGES} total)`);
     }
-    
+
     onImagesChange([...images, ...validFiles]);
   };
 
@@ -977,12 +965,12 @@ const ReferenceImagesUpload = ({ images, onImagesChange }) => {
 
     const files = Array.from(e.dataTransfer.files);
     const remainingSlots = MAX_IMAGES - images.length;
-    
+
     if (remainingSlots <= 0) {
       alert(`Maximum ${MAX_IMAGES} images allowed`);
       return;
     }
-    
+
     const filesToAdd = files.slice(0, remainingSlots);
     const validFiles = filesToAdd.filter(file => {
       if (!file.type.startsWith('image/')) {
@@ -995,11 +983,11 @@ const ReferenceImagesUpload = ({ images, onImagesChange }) => {
       }
       return true;
     });
-    
+
     if (files.length > remainingSlots) {
       alert(`Only ${remainingSlots} more image(s) can be added (maximum ${MAX_IMAGES} total)`);
     }
-    
+
     if (validFiles.length > 0) {
       onImagesChange([...images, ...validFiles]);
     }
@@ -1025,20 +1013,18 @@ const ReferenceImagesUpload = ({ images, onImagesChange }) => {
 
       <div className="max-w-4xl mx-auto">
         {images.length < MAX_IMAGES && (
-          <label 
-            className={`card p-8 cursor-pointer transition-all flex flex-col items-center mb-6 ${
-              isDragging 
-                ? 'border-2 border-primary border-dashed bg-primary/5 shadow-xl' 
-                : 'hover:shadow-lg border-2 border-transparent'
-            }`}
+          <label
+            className={`card p-8 cursor-pointer transition-all flex flex-col items-center mb-6 ${isDragging
+              ? 'border-2 border-primary border-dashed bg-primary/5 shadow-xl'
+              : 'hover:shadow-lg border-2 border-transparent'
+              }`}
             onDragEnter={handleDragEnter}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            <FiUpload className={`w-12 h-12 mb-3 transition-colors ${
-              isDragging ? 'text-highlight' : 'text-primary'
-            }`} />
+            <FiUpload className={`w-12 h-12 mb-3 transition-colors ${isDragging ? 'text-highlight' : 'text-primary'
+              }`} />
             <p className="text-lg font-medium mb-1">
               {isDragging ? 'Drop images here' : 'Click or drag to upload images'}
             </p>
@@ -1052,7 +1038,7 @@ const ReferenceImagesUpload = ({ images, onImagesChange }) => {
             />
           </label>
         )}
-        
+
         {images.length >= MAX_IMAGES && (
           <div className="card p-6 mb-6 bg-primary/5 border-2 border-primary/20">
             <p className="text-center text-text/70">
@@ -1195,7 +1181,7 @@ const ItemCard = ({ item, quantity, onAdd, onRemove }) => {
 // Bouquet Summary Component
 const BouquetSummary = ({ bouquetData }) => {
   const { colors } = useColors();
-  
+
   const flowersTotal = Object.values(bouquetData.flowers).reduce(
     (sum, item) => sum + (item.price * item.quantity), 0
   );
@@ -1210,149 +1196,222 @@ const BouquetSummary = ({ bouquetData }) => {
     .map(colorId => colors.find(c => c.id === colorId))
     .filter(Boolean);
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  };
+
   return (
     <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="w-full"
     >
-      <h2 className="text-3xl font-display font-bold text-primary mb-6">
-        📋 Review Your Custom Bouquet
-      </h2>
+      <div className="text-center mb-10">
+        <h2 className="text-4xl font-display font-bold text-primary mb-3">
+          Review Your Masterpiece
+        </h2>
+        <p className="text-text/60 text-lg">Double check the details of your custom bouquet before ordering</p>
+      </div>
 
-      <div className="max-w-3xl mx-auto space-y-6">
-        {/* Flowers */}
-        <div className="card p-6">
-          <h3 className="text-xl font-semibold mb-4">🌸 Flowers</h3>
-          <div className="space-y-4">
-            {Object.values(bouquetData.flowers).map(flower => (
-              <div key={flower.id} className="flex items-center gap-4 pb-4 border-b last:border-0">
-                <img 
-                  src={flower.image_url} 
-                  alt={flower.name}
-                  className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
-                />
-                <div className="flex-grow">
-                  <div className="font-semibold text-lg">{flower.name}</div>
-                  <div className="text-text/60 text-sm">Quantity: {flower.quantity}</div>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold text-primary text-lg">
-                    {(flower.price * flower.quantity).toFixed(2)} DA
+      <div className="max-w-6xl mx-auto grid lg:grid-cols-3 gap-8">
+        {/* Main Items - Left Column */}
+        <motion.div
+          className="lg:col-span-2 space-y-6"
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+        >
+          {/* Flowers Section */}
+          <motion.div variants={itemVariants} className="bg-white rounded-2xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-primary/10 relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all">
+            <div className="absolute top-0 left-0 w-1 h-full bg-pink-400"></div>
+            <h3 className="text-2xl font-display font-bold mb-6 flex items-center gap-3 text-text">
+              <span className="text-3xl bg-pink-50 p-2 rounded-xl">🌸</span>
+              Selected Flowers
+            </h3>
+            <div className="space-y-5">
+              {Object.values(bouquetData.flowers).map(flower => (
+                <div key={flower.id} className="flex items-center gap-5 p-4 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
+                  <div className="w-20 h-20 rounded-xl overflow-hidden shadow-sm flex-shrink-0">
+                    <img
+                      src={flower.image_url}
+                      alt={flower.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
                   </div>
-                  <div className="text-text/60 text-sm">
-                    {flower.price.toFixed(2)} DA each
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="border-t mt-4 pt-4 flex justify-between font-semibold text-lg">
-            <span>Subtotal:</span>
-            <span className="text-primary">{flowersTotal.toFixed(2)} DA</span>
-          </div>
-        </div>
-
-        {/* Colors */}
-        <div className="card p-6">
-          <h3 className="text-xl font-semibold mb-4">🎨 Colors</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {selectedColorObjects.map(color => (
-              <div key={color.id} className="text-center">
-                <img 
-                  src={color.image_url} 
-                  alt={color.name}
-                  className="w-full h-24 rounded-lg object-cover mb-2"
-                />
-                <p className="text-sm font-medium">{color.name}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Wrapping */}
-        {bouquetData.wrapping && (
-          <div className="card p-6">
-            <h3 className="text-xl font-semibold mb-4">🎁 Wrapping</h3>
-            <div className="flex items-center gap-4">
-              <img 
-                src={bouquetData.wrapping.image_url} 
-                alt={bouquetData.wrapping.name}
-                className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
-              />
-              <div className="flex-grow">
-                <div className="font-semibold text-lg">{bouquetData.wrapping.name}</div>
-              </div>
-              <div className="text-right">
-                <div className="font-bold text-primary text-lg">
-                  {bouquetData.wrapping.price.toFixed(2)} DA
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Accessories */}
-        {Object.keys(bouquetData.accessories).length > 0 && (
-          <div className="card p-6">
-            <h3 className="text-xl font-semibold mb-4">✨ Accessories</h3>
-            <div className="space-y-4">
-              {Object.values(bouquetData.accessories).map(accessory => (
-                <div key={accessory.id} className="flex items-center gap-4 pb-4 border-b last:border-0">
-                  <img 
-                    src={accessory.image_url} 
-                    alt={accessory.name}
-                    className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
-                  />
                   <div className="flex-grow">
-                    <div className="font-semibold text-lg">{accessory.name}</div>
-                    <div className="text-text/60 text-sm">Quantity: {accessory.quantity}</div>
+                    <div className="font-bold text-lg text-text mb-1">{flower.name}</div>
+                    <div className="text-text/60 text-sm font-medium bg-gray-100 inline-block px-2 py-0.5 rounded text-xs">Qty: {flower.quantity}</div>
                   </div>
-                  <div className="text-right">
-                    <div className="font-bold text-primary text-lg">
-                      {(accessory.price * accessory.quantity).toFixed(2)} DA
+                  <div className="text-right flex flex-col items-end">
+                    <div className="font-bold text-primary text-xl">
+                      {(flower.price * flower.quantity).toFixed(2)} <span className="text-sm font-normal text-text/60">DA</span>
                     </div>
-                    <div className="text-text/60 text-sm">
-                      {accessory.price.toFixed(2)} DA each
+                    <div className="text-text/50 text-xs mt-1">
+                      {flower.price.toFixed(2)} DA / ea
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="border-t mt-4 pt-4 flex justify-between font-semibold text-lg">
-              <span>Subtotal:</span>
-              <span className="text-primary">{accessoriesTotal.toFixed(2)} DA</span>
+            <div className="border-t border-gray-100 mt-6 pt-5 flex justify-between items-center text-lg">
+              <span className="text-text/60 font-medium tracking-wide uppercase text-sm">Flowers Subtotal</span>
+              <span className="font-bold text-text">{flowersTotal.toFixed(2)} DA</span>
             </div>
-          </div>
-        )}
+          </motion.div>
 
-        {/* Reference Image */}
-        {bouquetData.referenceImage && (
-          <div className="card p-6">
-            <h3 className="text-xl font-semibold mb-4">📸 Reference Image</h3>
-            <img
-              src={URL.createObjectURL(bouquetData.referenceImage)}
-              alt="Reference"
-              className="w-full h-48 object-contain rounded-lg"
-            />
-          </div>
-        )}
+          {/* Wrapper Section */}
+          {bouquetData.wrapping && (
+            <motion.div variants={itemVariants} className="bg-white rounded-2xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-primary/10 relative overflow-hidden hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all">
+              <div className="absolute top-0 left-0 w-1 h-full bg-purple-400"></div>
+              <h3 className="text-2xl font-display font-bold mb-6 flex items-center gap-3 text-text">
+                <span className="text-3xl bg-purple-50 p-2 rounded-xl">🎁</span>
+                Wrapping Style
+              </h3>
+              <div className="flex items-center gap-5 p-4 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
+                <div className="w-20 h-20 rounded-xl overflow-hidden shadow-sm flex-shrink-0">
+                  <img
+                    src={bouquetData.wrapping.image_url}
+                    alt={bouquetData.wrapping.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className="flex-grow">
+                  <div className="font-bold text-lg text-text">{bouquetData.wrapping.name}</div>
+                </div>
+                <div className="text-right flex flex-col items-end">
+                  <div className="font-bold text-primary text-xl">
+                    {bouquetData.wrapping.price.toFixed(2)} <span className="text-sm font-normal text-text/60">DA</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
-        {/* Description */}
-        {bouquetData.description && (
-          <div className="card p-6">
-            <h3 className="text-xl font-semibold mb-4">✍️ Details</h3>
-            <p className="text-text/80 whitespace-pre-wrap">{bouquetData.description}</p>
-          </div>
-        )}
+          {/* Accessories Section */}
+          {Object.keys(bouquetData.accessories).length > 0 && (
+            <motion.div variants={itemVariants} className="bg-white rounded-2xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-primary/10 relative overflow-hidden hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all">
+              <div className="absolute top-0 left-0 w-1 h-full bg-yellow-400"></div>
+              <h3 className="text-2xl font-display font-bold mb-6 flex items-center gap-3 text-text">
+                <span className="text-3xl bg-yellow-50 p-2 rounded-xl">✨</span>
+                Accessories
+              </h3>
+              <div className="space-y-4">
+                {Object.values(bouquetData.accessories).map(accessory => (
+                  <div key={accessory.id} className="flex items-center gap-5 p-4 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
+                    <div className="w-16 h-16 rounded-xl overflow-hidden shadow-sm flex-shrink-0">
+                      <img
+                        src={accessory.image_url}
+                        alt={accessory.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                    <div className="flex-grow">
+                      <div className="font-bold text-[17px] text-text mb-1">{accessory.name}</div>
+                      <div className="text-text/60 text-xs font-medium bg-gray-100 inline-block px-2 py-0.5 rounded">Qty: {accessory.quantity}</div>
+                    </div>
+                    <div className="text-right flex flex-col items-end">
+                      <div className="font-bold text-primary text-lg">
+                        {(accessory.price * accessory.quantity).toFixed(2)} <span className="text-xs font-normal text-text/60">DA</span>
+                      </div>
+                      <div className="text-text/50 text-xs mt-0.5">
+                        {accessory.price.toFixed(2)} DA / ea
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t border-gray-100 mt-5 pt-4 flex justify-between items-center">
+                <span className="text-text/60 font-medium tracking-wide uppercase text-sm">Accessories Subtotal</span>
+                <span className="font-bold text-text">{accessoriesTotal.toFixed(2)} DA</span>
+              </div>
+            </motion.div>
+          )}
+        </motion.div>
 
-        {/* Total */}
-        <div className="card p-6 bg-gradient-to-r from-primary/10 to-highlight/10">
-          <div className="flex justify-between items-center">
-            <span className="text-2xl font-semibold">Total Price:</span>
-            <span className="text-3xl font-semibold text-primary">{totalPrice.toFixed(2)} DA</span>
-          </div>
-        </div>
+        {/* Sidebar - Right Column */}
+        <motion.div
+          className="lg:col-span-1 space-y-6"
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+        >
+          {/* Colors Section */}
+          <motion.div variants={itemVariants} className="bg-white rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-primary/10">
+            <h3 className="text-xl font-display font-bold mb-5 flex items-center gap-2">
+              <span className="text-2xl">🎨</span> Colors
+            </h3>
+            <div className="grid grid-cols-3 gap-3">
+              {selectedColorObjects.map(color => (
+                <div key={color.id} className="group relative rounded-xl overflow-hidden cursor-pointer shadow-sm border border-gray-100">
+                  <img
+                    src={color.image_url}
+                    alt={color.name}
+                    className="w-full h-16 object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-1">
+                    <p className="text-white text-[10px] font-bold text-center leading-tight drop-shadow-md">
+                      {color.name}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Reference Image Section */}
+          {bouquetData.referenceImage && (
+            <motion.div variants={itemVariants} className="bg-white rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-primary/10">
+              <h3 className="text-xl font-display font-bold mb-4 flex items-center gap-2">
+                <span className="text-2xl">📸</span> Reference
+              </h3>
+              <div className="rounded-xl overflow-hidden shadow-inner border border-gray-100 bg-gray-50 p-2">
+                <img
+                  src={URL.createObjectURL(bouquetData.referenceImage)}
+                  alt="Reference"
+                  className="w-full h-40 object-contain rounded-lg"
+                />
+              </div>
+            </motion.div>
+          )}
+
+          {/* Description Section */}
+          {bouquetData.description && (
+            <motion.div variants={itemVariants} className="bg-white rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-primary/10">
+              <h3 className="text-xl font-display font-bold mb-4 flex items-center gap-2">
+                <span className="text-2xl">✍️</span> Notes
+              </h3>
+              <div className="bg-orange-50/50 rounded-xl p-4 border border-orange-100/50">
+                <p className="text-text/80 text-sm leading-relaxed whitespace-pre-wrap italic">
+                  "{bouquetData.description}"
+                </p>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Total Price Card - Sticky */}
+          <motion.div variants={itemVariants} className="sticky top-24">
+            <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-highlight/10 rounded-2xl p-7 border-2 border-primary/20 shadow-lg relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/40 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+
+              <h3 className="text-lg font-medium text-text/80 mb-2 relative z-10">Total Estimated Price</h3>
+              <div className="flex items-baseline gap-2 mb-2 relative z-10">
+                <span className="text-4xl font-display font-bold text-primary">{totalPrice.toFixed(2)}</span>
+                <span className="text-xl font-semibold text-primary/70">DA</span>
+              </div>
+              <p className="text-xs text-text/60 mt-4 leading-relaxed relative z-10">
+                * Final price includes flowers, wrapping, and all selected accessories. Delivery not included.
+              </p>
+            </div>
+          </motion.div>
+
+        </motion.div>
       </div>
     </motion.div>
   );
@@ -1361,92 +1420,156 @@ const BouquetSummary = ({ bouquetData }) => {
 // Request Summary Component
 const RequestSummary = ({ requestData }) => {
   const { colors } = useColors();
-  
+
   // Get selected color objects from IDs
   const selectedColorObjects = requestData.colors
     .map(colorId => colors.find(c => c.id === colorId))
     .filter(Boolean); // Remove any undefined values
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  };
+
   return (
     <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="w-full"
     >
-      <h2 className="text-3xl font-display font-bold text-primary mb-6">
-        📋 Review Your Custom Request
-      </h2>
+      <div className="text-center mb-10">
+        <h2 className="text-4xl font-display font-bold text-primary mb-3">
+          Review Your Custom Request
+        </h2>
+        <p className="text-text/60 text-lg">Make sure everything looks perfect before confirming</p>
+      </div>
 
-      <div className="max-w-3xl mx-auto space-y-6">
-        {/* Reference Images */}
-        {requestData.referenceImages.length > 0 && (
-          <div className="card p-6">
-            <h3 className="text-xl font-semibold mb-4">📸 Reference Images</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {requestData.referenceImages.map((image, index) => (
-                <img
-                  key={index}
-                  src={URL.createObjectURL(image)}
-                  alt={`Reference ${index + 1}`}
-                  className="w-full h-32 object-cover rounded-lg"
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Colors */}
-        <div className="card p-6">
-          <h3 className="text-xl font-semibold mb-4">🎨 Colors</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {selectedColorObjects.map(color => (
-              <div key={color.id} className="text-center">
-                <img 
-                  src={color.image_url} 
-                  alt={color.name}
-                  className="w-full h-24 rounded-lg object-cover mb-2"
-                />
-                <p className="text-sm font-medium">{color.name}</p>
+      <div className="max-w-6xl mx-auto grid lg:grid-cols-3 gap-8">
+        {/* Main Items - Left Column */}
+        <motion.div
+          className="lg:col-span-2 space-y-6"
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+        >
+          {/* Reference Images */}
+          {requestData.referenceImages.length > 0 && (
+            <motion.div variants={itemVariants} className="bg-white rounded-2xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-primary/10 relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all">
+              <div className="absolute top-0 left-0 w-1 h-full bg-blue-400"></div>
+              <h3 className="text-2xl font-display font-bold mb-6 flex items-center gap-3 text-text">
+                <span className="text-3xl bg-blue-50 p-2 rounded-xl">📸</span>
+                Inspiration Images
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {requestData.referenceImages.map((image, index) => (
+                  <div key={index} className="rounded-xl overflow-hidden shadow-sm border border-gray-100 group/img relative">
+                    <img
+                      src={URL.createObjectURL(image)}
+                      alt={`Reference ${index + 1}`}
+                      className="w-full h-40 object-cover group-hover/img:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
+            </motion.div>
+          )}
 
-        {/* Description */}
-        <div className="card p-6">
-          <h3 className="text-xl font-semibold mb-4">✍️ Details</h3>
-          <p className="text-text/80">{requestData.description}</p>
-        </div>
+          {/* Details & Specs */}
+          <motion.div variants={itemVariants} className="bg-white rounded-2xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-primary/10 relative overflow-hidden hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all">
+            <div className="absolute top-0 left-0 w-1 h-full bg-orange-400"></div>
+            <h3 className="text-2xl font-display font-bold mb-6 flex items-center gap-3 text-text">
+              <span className="text-3xl bg-orange-50 p-2 rounded-xl">✍️</span>
+              Creation Details
+            </h3>
 
-        {/* Size */}
-        {requestData.size && (
-          <div className="card p-6">
-            <h3 className="text-xl font-semibold mb-4">📏 Size</h3>
-            <p className="text-text/80">{requestData.size}</p>
-          </div>
-        )}
+            <div className="space-y-6 flex flex-col">
+              <div className="bg-gray-50/70 rounded-xl p-5 border border-gray-100/70">
+                <h4 className="text-sm uppercase font-bold text-text/50 tracking-wider mb-2">Description</h4>
+                <p className="text-text/80 leading-relaxed whitespace-pre-wrap">
+                  {requestData.description}
+                </p>
+              </div>
 
-        {/* Deadline */}
-        {requestData.deadline && (
-          <div className="card p-6">
-            <h3 className="text-xl font-semibold mb-4">📅 Preferred Deadline</h3>
-            <p className="text-text/80">{new Date(requestData.deadline).toLocaleDateString()}</p>
-          </div>
-        )}
+              {(requestData.size || requestData.deadline) && (
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {requestData.size && (
+                    <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center gap-4">
+                      <div className="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center text-xl">📏</div>
+                      <div>
+                        <div className="text-xs font-bold text-text/50 uppercase tracking-widest mb-0.5">Size</div>
+                        <div className="font-semibold text-text">{requestData.size}</div>
+                      </div>
+                    </div>
+                  )}
 
-        {/* Price Notice */}
-        <div className="card p-6 bg-yellow-50 border border-yellow-200">
-          <div className="flex items-start gap-3">
-            <div className="text-2xl">💰</div>
-            <div>
-              <h3 className="font-semibold mb-2">Price To Be Determined</h3>
-              <p className="text-sm text-text/70">
-                Our team will review your request and provide a custom quote. 
-                You'll be able to see the price before completing your order at checkout.
+                  {requestData.deadline && (
+                    <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center gap-4">
+                      <div className="w-12 h-12 bg-teal-50 text-teal-500 rounded-full flex items-center justify-center text-xl">📅</div>
+                      <div>
+                        <div className="text-xs font-bold text-text/50 uppercase tracking-widest mb-0.5">Deadline</div>
+                        <div className="font-semibold text-text">{new Date(requestData.deadline).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </motion.div>
+
+        {/* Sidebar - Right Column */}
+        <motion.div
+          className="lg:col-span-1 space-y-6"
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+        >
+          {/* Colors Section */}
+          {selectedColorObjects.length > 0 && (
+            <motion.div variants={itemVariants} className="bg-white rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-primary/10">
+              <h3 className="text-xl font-display font-bold mb-5 flex items-center gap-2">
+                <span className="text-2xl">🎨</span> Color
+              </h3>
+              <div className="grid grid-cols-3 gap-3">
+                {selectedColorObjects.map(color => (
+                  <div key={color.id} className="group relative rounded-xl overflow-hidden cursor-pointer shadow-sm border border-gray-100">
+                    <img
+                      src={color.image_url}
+                      alt={color.name}
+                      className="w-full h-16 object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-1">
+                      <p className="text-white text-[10px] font-bold text-center leading-tight drop-shadow-md">
+                        {color.name}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Price Notice Card - Sticky */}
+          <motion.div variants={itemVariants} className="sticky top-24">
+            <div className="bg-gradient-to-br from-yellow-50 via-yellow-100/50 to-orange-50 rounded-2xl p-7 border-2 border-yellow-200/60 shadow-[0_8px_30px_rgb(250,214,165,0.4)] relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/40 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+
+              <h3 className="text-lg font-bold text-yellow-900 flex items-center gap-2 mb-3 relative z-10">
+                <span className="text-2xl">💡</span> Price Estimate
+              </h3>
+              <p className="text-sm text-yellow-800/80 leading-relaxed font-medium relative z-10 ">
+                Because this is a bespoke request, our team will review the details to provide a fair custom quote.
               </p>
             </div>
-          </div>
-        </div>
+          </motion.div>
+
+        </motion.div>
       </div>
     </motion.div>
   );

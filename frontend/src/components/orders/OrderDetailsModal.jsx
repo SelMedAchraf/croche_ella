@@ -1,7 +1,14 @@
-import { FiX, FiInfo, FiCheckCircle } from 'react-icons/fi';
+import { useState } from 'react';
+import { FiX, FiInfo, FiCheckCircle, FiZoomIn, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const OrderDetailsModal = ({ order, isOpen, onClose }) => {
+    const [expandedItems, setExpandedItems] = useState({});
+    const [zoomedImage, setZoomedImage] = useState(null);
+
+    const toggleItem = (itemId) => {
+        setExpandedItems(prev => ({ ...prev, [itemId]: !prev[itemId] }));
+    };
     if (!isOpen || !order) return null;
 
     const hasPendingItems = order.order_items?.some(item => item.price === null);
@@ -94,119 +101,291 @@ const OrderDetailsModal = ({ order, isOpen, onClose }) => {
                                     const isBouquet = item.custom_order_type === 'custom_bouquet';
                                     const isRequest = item.custom_order_type === 'custom_request';
                                     const data = item.custom_data || {};
+                                    const uniqueId = item.id || `item_${idx}`;
 
                                     return (
-                                        <div key={item.id} className="border border-gray-100 rounded-xl p-5 hover:border-gray-200 transition-colors">
-                                            <div className="flex justify-between items-start mb-4 bg-gray-50/50 p-3 rounded-lg border border-gray-50">
-                                                <div>
-                                                    <h4 className="font-bold text-lg text-primary flex items-center gap-2">
-                                                        {isStandard && (item.products?.name || item.products?.category || `Product #${item.product_id.slice(0, 8)}`)}
-                                                        {isBouquet && '💐 Custom Flower Bouquet'}
-                                                        {isRequest && '🧶 Custom Crochet Request'}
-                                                        {!isStandard && (
-                                                            <span className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full font-medium ml-2">
-                                                                Custom Item
-                                                            </span>
+                                        <div
+                                            key={uniqueId}
+                                            className="border border-gray-100 rounded-xl p-4 bg-white transition-all duration-200 hover:border-gray-200"
+                                        >
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex gap-4 items-center">
+                                                    {/* Standard Products Image View */}
+                                                    {isStandard && item.products?.product_images?.[0] && (
+                                                        <div className="relative group/std cursor-pointer rounded-lg overflow-hidden border border-gray-100 flex-shrink-0" onClick={() => setZoomedImage(item.products.product_images[0].image_url)}>
+                                                            <img
+                                                                src={item.products.product_images[0].image_url}
+                                                                alt="Product"
+                                                                className="w-16 h-16 object-cover group-hover/std:scale-110 transition-transform"
+                                                            />
+                                                            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/std:opacity-100 transition-opacity flex items-center justify-center">
+                                                                <FiZoomIn className="text-white text-lg" />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    <div>
+                                                        <h4 className="font-bold text-lg text-primary flex items-center gap-2">
+                                                            {isStandard && (item.products?.name || item.products?.category || `Product #${item.product_id.slice(0, 8)}`)}
+                                                            {isBouquet && '💐 Custom Flower Bouquet'}
+                                                            {isRequest && '🧶 Custom Crochet Request'}
+                                                        </h4>
+                                                        {isStandard && (
+                                                            <p className="text-sm text-text/60 mt-1">Quantity: {item.quantity}</p>
                                                         )}
-                                                    </h4>
-                                                    <p className="text-sm text-text/60 mt-1">Quantity: {item.quantity}</p>
+                                                    </div>
                                                 </div>
-                                                <div className="text-right">
-                                                    <p className="font-bold text-lg text-primary">
-                                                        {item.price !== null ? `${item.price} DA` : 'Price Pending'}
-                                                    </p>
-                                                    {item.price !== null && (
-                                                        <p className="text-xs text-text/60">Total: {(item.price * item.quantity).toFixed(2)} DA</p>
+                                                <div className="text-right flex items-center gap-4">
+                                                    <div className="text-right">
+                                                        <p className={`font-bold text-lg ${item.price !== null ? 'text-primary' : 'text-amber-500'}`}>
+                                                            {item.price !== null ? `${item.price} DA` : 'Price Pending'}
+                                                        </p>
+                                                        {item.price !== null && (
+                                                            <p className="text-xs text-text/60">Total: {(item.price * item.quantity).toFixed(2)} DA</p>
+                                                        )}
+                                                    </div>
+                                                    {(isBouquet || isRequest) && (
+                                                        <button
+                                                            onClick={() => toggleItem(uniqueId)}
+                                                            className="text-primary/70 bg-primary/5 hover:bg-primary/10 transition-colors p-2 rounded-full inline-flex flex-shrink-0 border border-primary/10"
+                                                            title={expandedItems[uniqueId] ? "Hide Details" : "View Details"}
+                                                        >
+                                                            {expandedItems[uniqueId] ? <FiChevronUp className="text-lg" /> : <FiChevronDown className="text-lg" />}
+                                                        </button>
                                                     )}
                                                 </div>
                                             </div>
 
                                             <div className="space-y-4">
-                                                {/* Standard Products Image View */}
-                                                {isStandard && item.products?.product_images?.[0] && (
-                                                    <div className="flex gap-4 items-center">
-                                                        <img
-                                                            src={item.products.product_images[0].image_url}
-                                                            alt="Product"
-                                                            className="w-20 h-20 object-cover rounded-lg border border-gray-100"
-                                                        />
-                                                        {item.products?.category && (
-                                                            <p className="text-sm text-text/70 italic">Category: {item.products.category}</p>
-                                                        )}
-                                                    </div>
-                                                )}
-
                                                 {/* Custom Bouquet Details */}
-                                                {isBouquet && (
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mt-3 border-t border-dashed pt-4">
-                                                        {data.flowers?.length > 0 && (
-                                                            <div>
-                                                                <span className="font-semibold text-text uppercase text-xs mb-1 block">Selected Flowers:</span>
-                                                                <ul className="list-disc pl-4 space-y-1">
-                                                                    {data.flowers.map((f, i) => (
-                                                                        <li key={i}>{f.name} (Qty: {f.quantity})</li>
-                                                                    ))}
-                                                                </ul>
-                                                            </div>
-                                                        )}
-                                                        <div>
-                                                            <span className="font-semibold text-text uppercase text-xs mb-1 block">Colors:</span>
-                                                            <p>{data.selectedColors?.map(c => c.name).join(', ') || 'N/A'}</p>
-                                                        </div>
-                                                        <div>
-                                                            <span className="font-semibold text-text uppercase text-xs mb-1 block">Wrapping:</span>
-                                                            <p>{data.wrapping ? 'Yes' : 'No'}</p>
-                                                        </div>
-                                                        {data.accessories?.length > 0 && (
-                                                            <div>
-                                                                <span className="font-semibold text-text uppercase text-xs mb-1 block">Accessories:</span>
-                                                                <ul className="list-disc pl-4 space-y-1">
-                                                                    {data.accessories.map((a, i) => (
-                                                                        <li key={i}>{a.name} (Qty: {a.quantity})</li>
-                                                                    ))}
-                                                                </ul>
-                                                            </div>
-                                                        )}
-                                                        {data.colorNote && (
-                                                            <div className="sm:col-span-2">
-                                                                <span className="font-semibold text-text uppercase text-xs mb-1 block">Color Note:</span>
-                                                                <p className="bg-gray-50 p-2 rounded-lg italic">{data.colorNote}</p>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
 
-                                                {/* Custom Request Details */}
-                                                {isRequest && (
-                                                    <div className="grid grid-cols-1 gap-4 text-sm mt-3 border-t border-dashed pt-4">
-                                                        {data.selectedColors?.length > 0 && (
-                                                            <div>
-                                                                <span className="font-semibold text-text uppercase text-xs mb-1 block">Colors:</span>
-                                                                <p>{data.selectedColors.map(c => c.name).join(', ')}</p>
-                                                            </div>
-                                                        )}
-                                                        {data.customerNote && (
-                                                            <div>
-                                                                <span className="font-semibold text-text uppercase text-xs mb-1 block">Customer Note:</span>
-                                                                <p className="bg-gray-50 p-3 rounded-lg text-text/80">{data.customerNote}</p>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
+                                                {/* EXPANDABLE SECTION */}
+                                                <AnimatePresence>
+                                                    {((isBouquet || isRequest) && expandedItems[uniqueId]) && (
+                                                        <motion.div
+                                                            initial={{ height: 0, opacity: 0 }}
+                                                            animate={{ height: 'auto', opacity: 1 }}
+                                                            exit={{ height: 0, opacity: 0 }}
+                                                            className="overflow-hidden"
+                                                        >
+                                                            {isBouquet && (
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 border-t pt-4 border-gray-100">
+                                                                    {/* Flowers */}
+                                                                    {data.flowers?.length > 0 && (
+                                                                        <div className="md:col-span-2 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                                                                            <h5 className="font-bold text-text mb-3 flex items-center gap-2">
+                                                                                <span className="text-xl">🌸</span> Selected Flowers
+                                                                            </h5>
+                                                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                                                {data.flowers.map((f, i) => (
+                                                                                    <div key={i} className="flex items-center gap-3 bg-gray-50/50 hover:bg-gray-50 p-2 rounded-lg border border-transparent hover:border-gray-100 transition-colors">
+                                                                                        {f.image_url ? (
+                                                                                            <div className="relative group/flower cursor-pointer flex-shrink-0 w-16 h-16 rounded-md overflow-hidden" onClick={() => setZoomedImage(f.image_url)}>
+                                                                                                <img src={f.image_url} alt={f.name} className="w-full h-full object-cover group-hover/flower:scale-110 transition-transform" />
+                                                                                                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/flower:opacity-100 transition-opacity flex items-center justify-center">
+                                                                                                    <FiZoomIn className="text-white text-lg" />
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        ) : (
+                                                                                            <div className="w-16 h-16 rounded-md bg-gray-100 flex items-center justify-center text-gray-400 font-bold">No Image</div>
+                                                                                        )}
+                                                                                        <div className="overflow-hidden">
+                                                                                            <p className="font-semibold text-sm truncate" title={f.name}>{f.name}</p>
+                                                                                            <p className="text-xs text-text/60 font-medium">Qty: {f.quantity}</p>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
 
-                                                {/* Reference Images for Custom Items */}
-                                                {!isStandard && item.reference_images?.length > 0 && (
-                                                    <div className="mt-4 border-t border-dashed pt-4">
-                                                        <span className="font-semibold text-text uppercase text-xs mb-2 block">Reference Images:</span>
-                                                        <div className="flex gap-2 flex-wrap">
-                                                            {item.reference_images.map((img, i) => (
-                                                                <a key={i} href={img} target="_blank" rel="noopener noreferrer" className="block w-20 h-20 rounded-lg overflow-hidden border border-gray-200">
-                                                                    <img src={img} alt={`Reference ${i + 1}`} className="w-full h-full object-cover hover:scale-110 transition-transform" />
-                                                                </a>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                )}
+                                                                    {/* Colors */}
+                                                                    {data.colors?.length > 0 && (
+                                                                        <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                                                                            <h5 className="font-bold text-text mb-3 flex items-center gap-2">
+                                                                                <span className="text-xl">🎨</span> Colors
+                                                                            </h5>
+                                                                            <div className="flex flex-wrap gap-2">
+                                                                                {data.colors.map((c, i) => (
+                                                                                    <div key={i} className={`group relative w-16 h-16 rounded-lg overflow-hidden border border-gray-200 ${c.image_url ? 'cursor-pointer' : ''}`} onClick={() => c.image_url && setZoomedImage(c.image_url)}>
+                                                                                        {c.image_url ? (
+                                                                                            <img src={c.image_url} alt={c.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                                                                                        ) : (
+                                                                                            <div className="w-16 h-16 bg-gray-100 flex items-center justify-center text-[10px] text-center">{c.name.substring(0, 3)}</div>
+                                                                                        )}
+                                                                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-1">
+                                                                                            {c.image_url && <FiZoomIn className="text-white text-xs mb-1" />}
+                                                                                            <p className="text-white text-[9px] sm:text-[10px] font-bold text-center leading-tight truncate w-full">{c.name}</p>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+
+                                                                    {/* Wrapping */}
+                                                                    {data.wrapping && (
+                                                                        <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                                                                            <h5 className="font-bold text-text mb-3 flex items-center gap-2">
+                                                                                <span className="text-xl">🎁</span> Wrapping
+                                                                            </h5>
+                                                                            <div className="flex items-center gap-3 bg-gray-50/50 p-2 rounded-lg border border-gray-50 inline-flex">
+                                                                                {data.wrapping.image_url && (
+                                                                                    <div className="relative group/wrap cursor-pointer flex-shrink-0 w-16 h-16 rounded-md overflow-hidden" onClick={() => setZoomedImage(data.wrapping.image_url)}>
+                                                                                        <img src={data.wrapping.image_url} alt={data.wrapping.name} className="w-full h-full object-cover group-hover/wrap:scale-110 transition-transform" />
+                                                                                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/wrap:opacity-100 transition-opacity flex items-center justify-center">
+                                                                                            <FiZoomIn className="text-white text-lg" />
+                                                                                        </div>
+                                                                                    </div>
+                                                                                )}
+                                                                                <p className="font-semibold text-sm pr-2 text-text/90">{data.wrapping.name}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+
+                                                                    {/* Accessories */}
+                                                                    {data.accessories?.length > 0 && (
+                                                                        <div className="md:col-span-2 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                                                                            <h5 className="font-bold text-text mb-3 flex items-center gap-2">
+                                                                                <span className="text-xl">✨</span> Accessories
+                                                                            </h5>
+                                                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                                                {data.accessories.map((a, i) => (
+                                                                                    <div key={i} className="flex items-center gap-3 bg-gray-50/50 hover:bg-gray-50 p-2 rounded-lg border border-transparent hover:border-gray-100 transition-colors">
+                                                                                        {a.image_url && (
+                                                                                            <div className="relative group/acc cursor-pointer flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border border-gray-100" onClick={() => setZoomedImage(a.image_url)}>
+                                                                                                <img src={a.image_url} alt={a.name} className="w-full h-full object-cover group-hover/acc:scale-110 transition-transform" />
+                                                                                                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/acc:opacity-100 transition-opacity flex items-center justify-center">
+                                                                                                    <FiZoomIn className="text-white text-lg" />
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        )}
+                                                                                        <div>
+                                                                                            <p className="font-semibold text-sm truncate">{a.name}</p>
+                                                                                            <p className="text-xs text-text/60 font-medium">Qty: {a.quantity}</p>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+
+                                                                    {/* Notes and Reference Images side-by-side */}
+                                                                    {(data.description || item.reference_images?.length > 0) && (
+                                                                        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                                                                            {/* Notes LEFT */}
+                                                                            {data.description && (
+                                                                                <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                                                                                    <h5 className="font-bold text-text mb-2 flex items-center gap-2">
+                                                                                        <span className="text-xl">✍️</span> Notes
+                                                                                    </h5>
+                                                                                    <div className="bg-gray-50/50 p-3 rounded-lg border border-gray-50">
+                                                                                        <p className="text-sm text-text/80 whitespace-pre-wrap leading-relaxed">{data.description}</p>
+                                                                                    </div>
+                                                                                </div>
+                                                                            )}
+                                                                            {/* Reference Images RIGHT */}
+                                                                            {item.reference_images?.length > 0 && (
+                                                                                <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                                                                                    <h5 className="font-bold text-text mb-3 flex items-center gap-2">
+                                                                                        <span className="text-xl">📸</span> Reference Image
+                                                                                    </h5>
+                                                                                    <div className="flex gap-3 flex-wrap">
+                                                                                        {item.reference_images.map((img, i) => (
+                                                                                            <div key={i} className="block w-16 h-16 rounded-lg overflow-hidden border border-gray-200 relative group cursor-pointer" onClick={() => setZoomedImage(img)}>
+                                                                                                <img src={img} alt={`Reference ${i + 1}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                                                                                                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                                                    <FiZoomIn className="text-white" />
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            )}
+
+                                                            {/* Custom Request Details */}
+                                                            {isRequest && (
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 border-t pt-4 border-gray-100">
+                                                                    {/* Colors */}
+                                                                    {data.colors?.length > 0 && (
+                                                                        <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                                                                            <h5 className="font-bold text-text mb-3 flex items-center gap-2">
+                                                                                <span className="text-xl">🎨</span> Colors
+                                                                            </h5>
+                                                                            <div className="flex flex-wrap gap-2">
+                                                                                {data.colors.map((c, i) => (
+                                                                                    <div key={i} className={`group relative w-16 h-16 rounded-lg overflow-hidden border border-gray-200 ${c.image_url ? 'cursor-pointer' : ''}`} onClick={() => c.image_url && setZoomedImage(c.image_url)}>
+                                                                                        {c.image_url ? (
+                                                                                            <img src={c.image_url} alt={c.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                                                                                        ) : (
+                                                                                            <div className="w-full h-full bg-gray-100 flex items-center justify-center text-[10px] text-center">{c.name.substring(0, 3)}</div>
+                                                                                        )}
+                                                                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-1">
+                                                                                            {c.image_url && <FiZoomIn className="text-white text-xs mb-1" />}
+                                                                                            <p className="text-white text-[9px] sm:text-[10px] font-bold text-center leading-tight truncate w-full">{c.name}</p>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+
+                                                                    {/* Description and Specs */}
+                                                                    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                                                                        <h5 className="font-bold text-text mb-3 flex items-center gap-2">
+                                                                            <span className="text-xl">✍️</span> Details
+                                                                        </h5>
+                                                                        <div className="space-y-4">
+                                                                            <div className="bg-gray-50/50 p-3 rounded-lg border border-gray-50">
+                                                                                <p className="text-sm text-text/80 whitespace-pre-wrap leading-relaxed">{data.description}</p>
+                                                                            </div>
+                                                                            <div className="flex flex-wrap gap-4">
+                                                                                {data.size && (
+                                                                                    <div className="bg-white px-4 py-2 rounded-lg border border-gray-100 flex items-center gap-2">
+                                                                                        <span className="text-indigo-400">📏</span>
+                                                                                        <span className="text-xs uppercase font-bold text-text/50">Size:</span>
+                                                                                        <span className="text-sm font-semibold">{data.size}</span>
+                                                                                    </div>
+                                                                                )}
+                                                                                {data.deadline && (
+                                                                                    <div className="bg-white px-4 py-2 rounded-lg border border-gray-100 flex items-center gap-2">
+                                                                                        <span className="text-teal-400">📅</span>
+                                                                                        <span className="text-xs uppercase font-bold text-text/50">Deadline:</span>
+                                                                                        <span className="text-sm font-semibold">{new Date(data.deadline).toLocaleDateString()}</span>
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Reference Images for Custom Requests (shown separately) */}
+                                                            {isRequest && item.reference_images?.length > 0 && (
+                                                                <div className="mt-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                                                                    <h5 className="font-bold text-text mb-3 flex items-center gap-2">
+                                                                        <span className="text-xl">📸</span> Reference Images
+                                                                    </h5>
+                                                                    <div className="flex gap-3 flex-wrap">
+                                                                        {item.reference_images.map((img, i) => (
+                                                                            <div key={i} className="block w-16 h-16 rounded-lg overflow-hidden border border-gray-200 relative group cursor-pointer" onClick={() => setZoomedImage(img)}>
+                                                                                <img src={img} alt={`Reference ${i + 1}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                                                                                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                                    <FiZoomIn className="text-white" />
+                                                                                </div>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
                                             </div>
                                         </div>
                                     );
@@ -217,6 +396,32 @@ const OrderDetailsModal = ({ order, isOpen, onClose }) => {
                     </div>
                 </motion.div>
             </div>
+
+            {/* Image Zoom Modal Component internal */}
+            <AnimatePresence>
+                {zoomedImage && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/90 z-[110] flex items-center justify-center p-4 backdrop-blur-sm"
+                        onClick={() => setZoomedImage(null)}
+                    >
+                        <button
+                            className="absolute top-4 right-4 text-white bg-white/20 p-3 rounded-full hover:bg-white/30 transition-colors shadow-lg"
+                            onClick={() => setZoomedImage(null)}
+                        >
+                            <FiX className="w-6 h-6" />
+                        </button>
+                        <img
+                            src={zoomedImage}
+                            alt="Zoomed Reference"
+                            className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </AnimatePresence>
     );
 };
