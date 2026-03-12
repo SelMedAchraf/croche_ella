@@ -9,11 +9,16 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
   },
-  family: 4, // Force IPv4
-  pool: true, // Use a pool of connections
-  connectionTimeout: 20000, // Increase timeouts for Render environment
-  greetingTimeout: 20000,
-  socketTimeout: 30000
+  // Ensure we use IPv4 to avoid connectivity issues in some regions
+  lookup: (hostname, options, callback) => {
+    dns.lookup(hostname, { family: 4 }, (err, address, family) => {
+      callback(err, address, family);
+    });
+  },
+  pool: true,
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 15000
 });
 
 // Verify connection configuration on startup

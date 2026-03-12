@@ -1,68 +1,56 @@
-# 🚀 Production Deployment Guide & Audit Report
+## 📦 Full Project Deployment (Vercel)
 
-## 🛠 Step 1: Database & Storage Setup (Supabase)
-
-Before deploying the code, you must prepare the database.
-
-1. **Run SQL Schema**:
-   - Go to your [Supabase Dashboard](https://supabase.com/dashboard).
-   - Navigate to **SQL Editor**.
-   - Create a **New Query**.
-   - Paste the contents of `database/schema.sql` and click **Run**.
-2. **Configure Auth**:
-   - Go to **Authentication > URL Configuration**.
-   - Set **Site URL** to your future Vercel domain (e.g., `https://croche-gamma.vercel.app`).
-   - Add `https://croche-gamma.vercel.app/auth/callback` to **Redirect URLs**.
+Both the **Frontend** and the **Backend** of this project are designed to be deployed on **Vercel** for maximum speed, free hosting, and working email support.
 
 ---
 
-## ⚙️ Step 2: Deploy Backend (Render)
+### Step 1: Prepare Database (Supabase)
 
-1. Go to [render.com](https://render.com) and create a new **Web Service**.
-2. Connect your GitHub repository.
-3. **Configuration**:
+1. Go to your [Supabase Dashboard](https://supabase.com/dashboard).
+2. Go to **SQL Editor** and run the contents of `database/schema.sql`.
+3. Go to **Settings > API** and copy:
+   - **Project URL** (as `VITE_SUPABASE_URL`)
+   - **anon public** (as `VITE_SUPABASE_ANON_KEY`)
+   - **service_role secret** (as `SUPABASE_SERVICE_ROLE_KEY`)
+
+---
+
+### Step 2: Deploy Backend (Vercel)
+
+1. Go to your [Vercel Dashboard](https://vercel.com).
+2. Click **Add New > Project** and import your GitHub repository.
+3. **Configure Settings**:
+   - **Project Name**: `croche-backend`
    - **Root Directory**: `backend`
-   - **Build Command**: `npm install`
-   - **Start Command**: `npm start`
+   - **Framework Preset**: `Other` (Vercel will auto-detect the configuration)
 4. **Environment Variables**:
-   - `NODE_ENV`: `production`
-   - `FRONTEND_URL`: `https://croche-gamma.vercel.app` (Your Vercel URL)
-   - `SUPABASE_URL`: (From Supabase Settings > API)
-   - `SUPABASE_SERVICE_ROLE_KEY`: (From Supabase Settings > API - **Use Service Role, not Anon**)
-   - `EMAIL_USER`: `crocheella19@gmail.com`
-   - `EMAIL_PASS`: (16-character Google App Password)
-5. **Deploy** and copy your backend URL (e.g., `https://croche-backend.onrender.com`).
+   Add exactly these variables:
+   - `NODE_ENV` = `production`
+   - `FRONTEND_URL` = `https://croche-gamma.vercel.app` (Your actual frontend URL)
+   - `SUPABASE_URL` = (Your Supabase URL)
+   - `SUPABASE_SERVICE_ROLE_KEY` = (Your secret service role key)
+   - `EMAIL_USER` = `crocheella19@gmail.com`
+   - `EMAIL_PASS` = (Your 16-character Google App Password)
+5. Click **Deploy**. Note your new backend URL (e.g., `https://croche-backend.vercel.app`).
 
 ---
 
-## 💻 Step 3: Deploy Frontend (Vercel)
+### Step 3: Deploy Frontend (Vercel)
 
-1. Go to [vercel.com](https://vercel.com) and import your repository.
-2. **Configuration**:
+1. Repeat the steps above for the **Frontend**.
+2. **Configure Settings**:
    - **Root Directory**: `frontend`
    - **Framework Preset**: `Vite`
 3. **Environment Variables**:
-   - `VITE_API_URL`: `https://croche-backend.onrender.com/api` (**CRITICAL: Must include /api at the end**)
-   - `VITE_SUPABASE_URL`: (From Supabase Settings > API)
-   - `VITE_SUPABASE_ANON_KEY`: (From Supabase Settings > API - Use Anon Key)
-4. **Deploy**.
+   Add exactly these variables:
+   - `VITE_API_URL` = `https://croche-backend.vercel.app/api` (**CRITICAL: must end in /api**)
+   - `VITE_SUPABASE_URL` = (Your Supabase URL)
+   - `VITE_SUPABASE_ANON_KEY` = (Your public anon key)
+4. Click **Deploy**.
 
 ---
 
-## 🧪 Step 4: Verification Checklist
+### 🧪 Post-Deployment Test
 
-### 1. API Health Check
-Run this in your terminal (replace with your URL):
-```bash
-curl https://croche-xhxn.onrender.com/api/health
-```
-**Expected**: `{"status":"ok", "message":"Croche Ella API is running"}`
-
-### 2. Database Connection
-Visit: `https://croche-xhxn.onrender.com/api/products`
-**Expected**: A JSON list of products (or `[]` if empty). If you get a 500 error, your Supabase keys are likely incorrect.
-
-### 3. Frontend Check
-- Open your Vercel URL.
-- Open Developer Tools (F12) -> Console.
-- There should be no red errors regarding `Failed to fetch`.
+1. Visit: `https://croche-backend.vercel.app/api/health`
+   - Should return: `{"status":"ok", "message":"Croche Ella API is running"}`
