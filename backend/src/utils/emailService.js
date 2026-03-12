@@ -3,24 +3,34 @@ import { supabase } from '../config/supabase.js';
 import dns from 'dns';
 
 // Reusable transporter
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  },
+  family: 4, // Force IPv4
+  pool: true, // Use a pool of connections
+  connectionTimeout: 20000, // Increase timeouts for Render environment
+  greetingTimeout: 20000,
+  socketTimeout: 30000
+});
+
+// Verify connection configuration on startup
+transporter.verify(function (error, success) {
+  if (error) {
+    console.error('❌ Email Transporter verification failed:', error);
+  } else {
+    console.log('✅ Email Transporter is ready to send notifications');
+  }
+});
+
 const createTransporter = () => {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.error('CRITICAL ERROR: EMAIL_USER or EMAIL_PASS environment variables are not set.');
+    console.error('CRITICAL ERROR: EMAIL_USER or EMAIL_PASS variables are missing.');
     return null;
   }
-  return nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    },
-    // This forced IPv4 lookup is essential for stability on Render's network
-    lookup: (hostname, options, callback) => {
-      dns.lookup(hostname, { family: 4 }, (err, address, family) => {
-        callback(err, address, family);
-      });
-    }
-  });
+  return transporter;
 };
 
 /*
