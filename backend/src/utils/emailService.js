@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { supabase } from '../config/supabase.js';
+import dns from 'dns';
 
 // Reusable transporter
 const createTransporter = () => {
@@ -8,17 +9,17 @@ const createTransporter = () => {
     return null;
   }
   return nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, 
+    service: 'gmail',
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS
     },
-    family: 4, // Prevents ENETUNREACH on Render
-    connectionTimeout: 10000, // 10 seconds
-    greetingTimeout: 10000,
-    socketTimeout: 20000
+    // This forced IPv4 lookup is essential for stability on Render's network
+    lookup: (hostname, options, callback) => {
+      dns.lookup(hostname, { family: 4 }, (err, address, family) => {
+        callback(err, address, family);
+      });
+    }
   });
 };
 
