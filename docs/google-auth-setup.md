@@ -1,8 +1,4 @@
-## 1. Vue d'ensemble du système de connexion Google
-
-L'application utilise **Supabase Auth** combiné avec le **Fournisseur Google OAuth 2.0** pour permettre aux utilisateurs de se connecter de manière sécurisée sans avoir besoin d'une base de données de comptes utilisateurs personnalisée (e-mail/mot de passe).
-
-## 2. Configuration Google Cloud
+## 1. Configuration Google Cloud
 
 Avant que Supabase puisse authentifier les utilisateurs via Google, vous devez créer des identifiants OAuth dans la console Google Cloud.
 
@@ -24,7 +20,7 @@ Avant que Supabase puisse authentifier les utilisateurs via Google, vous devez c
 
 ---
 
-## 3. Configuration Supabase
+## 2. Configuration Supabase
 
 Une fois que vous avez les identifiants client Google, vous devez activer le fournisseur dans Supabase.
 
@@ -40,7 +36,7 @@ Une fois que vous avez les identifiants client Google, vous devez activer le fou
 
 ---
 
-## 4. Variables d'environnement
+## 3. Variables d'environnement
 
 Votre frontend React (`frontend/.env`) a besoin d'accéder à l'URL Supabase et à la clé Anon pour initialiser le client. **Ne codez pas en dur** ces identifiants dans les fichiers sources.
 
@@ -54,7 +50,7 @@ VITE_SUPABASE_ANON_KEY=votre-cle-publique-anon-supabase
 
 ---
 
-## 5. Configuration pour le développement local
+## 4. Configuration pour le développement local
 
 Lors des tests de connexion Google sur `localhost`, vous devez configurer des URI autorisés supplémentaires pour que la redirection ne renvoie pas d'erreur.
 
@@ -67,7 +63,7 @@ Lors des tests de connexion Google sur `localhost`, vous devez configurer des UR
 
 ---
 
-## 6. Configuration pour la production
+## 5. Configuration pour la production
 
 Pour le déploiement en production :
 

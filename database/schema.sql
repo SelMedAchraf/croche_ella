@@ -366,3 +366,24 @@ CREATE POLICY "Authenticated users can upload item images"
 CREATE POLICY "Authenticated users can delete item images"
   ON storage.objects FOR DELETE
   USING (bucket_id = 'item-images' AND auth.role() = 'authenticated');
+-- ============================================
+-- STORAGE BUCKET FOR CUSTOM ORDER REFERENCE IMAGES
+-- ============================================
+
+-- Insert storage bucket for custom order reference images
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('custom-order-images', 'custom-order-images', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Storage policies
+CREATE POLICY "Public can view custom order images"
+  ON storage.objects FOR SELECT
+  USING (bucket_id = 'custom-order-images');
+
+CREATE POLICY "Anyone can upload custom order reference images"
+  ON storage.objects FOR INSERT
+  WITH CHECK (bucket_id = 'custom-order-images');
+
+CREATE POLICY "Authenticated users can delete custom order images"
+  ON storage.objects FOR DELETE
+  USING (bucket_id = 'custom-order-images' AND auth.role() = 'authenticated');

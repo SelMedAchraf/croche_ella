@@ -1,67 +1,68 @@
-## 📦 Deployment
+# 🚀 Production Deployment Guide & Audit Report
 
-### Step 1: Deploy Backend (Render)
+## 🛠 Step 1: Database & Storage Setup (Supabase)
 
-1. Go to [render.com](https://render.com)
-2. Create new Web Service
-3. Connect your GitHub repository
-4. Configure:
+Before deploying the code, you must prepare the database.
+
+1. **Run SQL Schema**:
+   - Go to your [Supabase Dashboard](https://supabase.com/dashboard).
+   - Navigate to **SQL Editor**.
+   - Create a **New Query**.
+   - Paste the contents of `database/schema.sql` and click **Run**.
+2. **Configure Auth**:
+   - Go to **Authentication > URL Configuration**.
+   - Set **Site URL** to your future Vercel domain (e.g., `https://croche-gamma.vercel.app`).
+   - Add `https://croche-gamma.vercel.app/auth/callback` to **Redirect URLs**.
+
+---
+
+## ⚙️ Step 2: Deploy Backend (Render)
+
+1. Go to [render.com](https://render.com) and create a new **Web Service**.
+2. Connect your GitHub repository.
+3. **Configuration**:
+   - **Root Directory**: `backend`
    - **Build Command**: `npm install`
    - **Start Command**: `npm start`
-   - **Root Directory**: `backend`
-5. Set environment variables:
-   - `NODE_ENV` = `production`
-   - `FRONTEND_URL` = `https://croche-gamma.vercel.app` (your Vercel domain)
-   - `SUPABASE_URL` = (your Supabase project URL)
-   - `SUPABASE_SERVICE_ROLE_KEY` = (your Supabase service role key - from Settings > API)
-   - `PORT` = (leave empty - Render auto-provides)
-6. Click **Deploy**
-7. **Copy your backend URL**: `https://your-service-name.onrender.com`
+4. **Environment Variables**:
+   - `NODE_ENV`: `production`
+   - `FRONTEND_URL`: `https://croche-gamma.vercel.app` (Your Vercel URL)
+   - `SUPABASE_URL`: (From Supabase Settings > API)
+   - `SUPABASE_SERVICE_ROLE_KEY`: (From Supabase Settings > API - **Use Service Role, not Anon**)
+   - `EMAIL_USER`: `crocheella19@gmail.com`
+   - `EMAIL_PASS`: (16-character Google App Password)
+5. **Deploy** and copy your backend URL (e.g., `https://croche-backend.onrender.com`).
 
-### Step 2: Deploy Frontend (Vercel)
+---
 
-1. Push code to GitHub
-2. Go to [vercel.com](https://vercel.com)
-3. Import your repository
-4. Configure:
+## 💻 Step 3: Deploy Frontend (Vercel)
+
+1. Go to [vercel.com](https://vercel.com) and import your repository.
+2. **Configuration**:
    - **Root Directory**: `frontend`
-   - **Framework Preset**: Vite
-5. Set environment variables:
-   - `VITE_API_URL` = `https://your-service-name.onrender.com` (your Render backend URL from Step 1)
-   - `VITE_SUPABASE_URL` = (your Supabase project URL)
-   - `VITE_SUPABASE_ANON_KEY` = (your Supabase anon key)
-6. Click **Deploy**
-7. Your site will be live at: `https://croche-gamma.vercel.app`
+   - **Framework Preset**: `Vite`
+3. **Environment Variables**:
+   - `VITE_API_URL`: `https://croche-backend.onrender.com/api` (**CRITICAL: Must include /api at the end**)
+   - `VITE_SUPABASE_URL`: (From Supabase Settings > API)
+   - `VITE_SUPABASE_ANON_KEY`: (From Supabase Settings > API - Use Anon Key)
+4. **Deploy**.
 
-### Step 3: Connect Frontend & Backend
+---
 
-**After both deployments are complete:**
+## 🧪 Step 4: Verification Checklist
 
-1. **Update Vercel Environment Variable** (if backend URL changed):
-   - Go to Vercel → Your Project → Settings → Environment Variables
-   - Update `VITE_API_URL` with your Render backend URL
-   - Redeploy from Deployments tab
+### 1. API Health Check
+Run this in your terminal (replace with your URL):
+```bash
+curl https://croche-xhxn.onrender.com/api/health
+```
+**Expected**: `{"status":"ok", "message":"Croche Ella API is running"}`
 
-2. **Verify Connection**:
-   - Visit your Vercel frontend: `https://croche-gamma.vercel.app`
-   - Check browser console (F12) for any API errors
-   - Test adding products to cart, etc.
+### 2. Database Connection
+Visit: `https://croche-xhxn.onrender.com/api/products`
+**Expected**: A JSON list of products (or `[]` if empty). If you get a 500 error, your Supabase keys are likely incorrect.
 
-3. **Test Backend is Running**:
-   - Visit: `https://your-service-name.onrender.com/api/products`
-   - Should return JSON data (may take 30-60s if it's spinning up from free tier)
-
-### 🔗 Important URLs
-
-| Service | URL | Used By |
-|---------|-----|---------|
-| **Frontend (Vercel)** | `https://croche-gamma.vercel.app` | 👥 Your customers visit this |
-| **Backend (Render)** | `https://your-service-name.onrender.com` | ⚙️ Frontend calls this API |
-| **Database (Supabase)** | (your Supabase URL) | 💾 Backend stores data here |
-
-### ⚠️ Important Notes
-
-- **Deploy Backend FIRST** so you have the URL to use in frontend environment variables
-- **Render Free Tier** spins down after 15 minutes of inactivity (first request will be slow)
-- After changing environment variables on Vercel, you must **redeploy** for changes to take effect
-- Share the **Vercel URL** with customers, not the Render URL
+### 3. Frontend Check
+- Open your Vercel URL.
+- Open Developer Tools (F12) -> Console.
+- There should be no red errors regarding `Failed to fetch`.
