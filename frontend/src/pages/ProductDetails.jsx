@@ -88,18 +88,18 @@ const ProductDetails = () => {
               animate={{ opacity: 1, x: 0 }}
               className="relative"
             >
-              <div className="relative aspect-square rounded-2xl overflow-hidden shadow-xl group">
+              <div
+                className="relative aspect-square rounded-2xl overflow-hidden shadow-xl group cursor-pointer border border-gray-100"
+                onClick={() => setIsZoomed(true)}
+              >
                 <img
                   src={productImage}
                   alt="Product"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
-                <button
-                  onClick={() => setIsZoomed(true)}
-                  className="absolute top-4 right-4 bg-white p-3 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <FiZoomIn className="w-5 h-5 text-primary" />
-                </button>
+                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <FiZoomIn className="text-white text-4xl" />
+                </div>
               </div>
             </motion.div>
           </div>

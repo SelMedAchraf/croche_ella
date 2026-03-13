@@ -200,11 +200,13 @@ const CustomFlowerBouquet = ({ onBack, onPreviewImage }) => {
   });
 
   useEffect(() => {
-    if (scrollRef.current) {
-      const yOffset = -100;
-      const y = scrollRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
-      window.scrollTo({ top: y, behavior: 'smooth' });
-    }
+    requestAnimationFrame(() => {
+      if (scrollRef.current) {
+        const yOffset = -100;
+        const y = scrollRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
+    });
   }, [currentStep]);
 
   const steps = [
@@ -347,6 +349,7 @@ const CustomFlowerBouquet = ({ onBack, onPreviewImage }) => {
               selectedFlowers={bouquetData.flowers}
               onUpdateFlowers={(flowers) => setBouquetData({ ...bouquetData, flowers })}
               onPreviewImage={onPreviewImage}
+              containerRef={scrollRef}
             />
           )}
           {currentStep === 2 && (
@@ -355,6 +358,7 @@ const CustomFlowerBouquet = ({ onBack, onPreviewImage }) => {
               selectedColors={bouquetData.colors}
               onUpdateColors={(colors) => setBouquetData({ ...bouquetData, colors })}
               onPreviewImage={onPreviewImage}
+              containerRef={scrollRef}
             />
           )}
           {currentStep === 3 && (
@@ -363,6 +367,7 @@ const CustomFlowerBouquet = ({ onBack, onPreviewImage }) => {
               selectedWrapping={bouquetData.wrapping}
               onSelectWrapping={(wrapping) => setBouquetData({ ...bouquetData, wrapping })}
               onPreviewImage={onPreviewImage}
+              containerRef={scrollRef}
             />
           )}
           {currentStep === 4 && (
@@ -371,6 +376,7 @@ const CustomFlowerBouquet = ({ onBack, onPreviewImage }) => {
               selectedAccessories={bouquetData.accessories}
               onUpdateAccessories={(accessories) => setBouquetData({ ...bouquetData, accessories })}
               onPreviewImage={onPreviewImage}
+              containerRef={scrollRef}
             />
           )}
           {currentStep === 5 && (
@@ -388,7 +394,7 @@ const CustomFlowerBouquet = ({ onBack, onPreviewImage }) => {
             />
           )}
           {currentStep === 7 && (
-            <BouquetSummary key="step7" bouquetData={bouquetData} />
+            <BouquetSummary key="step7" bouquetData={bouquetData} onPreviewImage={onPreviewImage} />
           )}
         </AnimatePresence>
       </div>
@@ -461,11 +467,13 @@ const CustomCrochetRequest = ({ onBack, onPreviewImage }) => {
   });
 
   useEffect(() => {
-    if (scrollRef.current) {
-      const yOffset = -100;
-      const y = scrollRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
-      window.scrollTo({ top: y, behavior: 'smooth' });
-    }
+    requestAnimationFrame(() => {
+      if (scrollRef.current) {
+        const yOffset = -100;
+        const y = scrollRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
+    });
   }, [currentStep]);
 
   const steps = [
@@ -581,6 +589,7 @@ const CustomCrochetRequest = ({ onBack, onPreviewImage }) => {
               selectedColors={requestData.colors}
               onUpdateColors={(colors) => setRequestData({ ...requestData, colors })}
               onPreviewImage={onPreviewImage}
+              containerRef={scrollRef}
             />
           )}
           {currentStep === 3 && (
@@ -591,7 +600,7 @@ const CustomCrochetRequest = ({ onBack, onPreviewImage }) => {
             />
           )}
           {currentStep === 4 && (
-            <RequestSummary key="step4" requestData={requestData} />
+            <RequestSummary key="step4" requestData={requestData} onPreviewImage={onPreviewImage} />
           )}
         </AnimatePresence>
       </div>
@@ -671,8 +680,19 @@ const Stepper = ({ steps, currentStep }) => {
   );
 };
 
+// Shared scroll helper – scrolls to just above the step content container
+const scrollToContainer = (ref) => {
+  if (ref?.current) {
+    requestAnimationFrame(() => {
+      const yOffset = -100;
+      const y = ref.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    });
+  }
+};
+
 // Flower Selection Component
-const FlowerSelection = ({ selectedFlowers, onUpdateFlowers, onPreviewImage }) => {
+const FlowerSelection = ({ selectedFlowers, onUpdateFlowers, onPreviewImage, containerRef }) => {
   const { items, loading } = useItems();
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -776,7 +796,7 @@ const FlowerSelection = ({ selectedFlowers, onUpdateFlowers, onPreviewImage }) =
           {totalPages > 1 && (
             <div className="flex justify-center items-center gap-2 mt-10">
               <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                onClick={() => { setCurrentPage(prev => Math.max(prev - 1, 1)); scrollToContainer(containerRef); }}
                 disabled={currentPage === 1}
                 className={`p-2 rounded-lg transition-all ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-primary hover:bg-primary/10'}`}
               >
@@ -787,7 +807,7 @@ const FlowerSelection = ({ selectedFlowers, onUpdateFlowers, onPreviewImage }) =
                 {[...Array(totalPages)].map((_, i) => (
                   <button
                     key={i + 1}
-                    onClick={() => setCurrentPage(i + 1)}
+                    onClick={() => { setCurrentPage(i + 1); scrollToContainer(containerRef); }}
                     className={`w-10 h-10 rounded-lg font-medium transition-all ${currentPage === i + 1 ? 'bg-primary text-white' : 'text-text/70 hover:bg-primary/5'}`}
                   >
                     {i + 1}
@@ -796,7 +816,7 @@ const FlowerSelection = ({ selectedFlowers, onUpdateFlowers, onPreviewImage }) =
               </div>
 
               <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                onClick={() => { setCurrentPage(prev => Math.min(prev + 1, totalPages)); scrollToContainer(containerRef); }}
                 disabled={currentPage === totalPages}
                 className={`p-2 rounded-lg transition-all ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-primary hover:bg-primary/10'}`}
               >
@@ -811,7 +831,7 @@ const FlowerSelection = ({ selectedFlowers, onUpdateFlowers, onPreviewImage }) =
 };
 
 // Wrapping Selection Component
-const WrappingSelection = ({ selectedWrapping, onSelectWrapping, onPreviewImage }) => {
+const WrappingSelection = ({ selectedWrapping, onSelectWrapping, onPreviewImage, containerRef }) => {
   const { items, loading } = useItems();
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -924,7 +944,7 @@ const WrappingSelection = ({ selectedWrapping, onSelectWrapping, onPreviewImage 
           {totalPages > 1 && (
             <div className="flex justify-center items-center gap-2 mt-10">
               <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                onClick={() => { setCurrentPage(prev => Math.max(prev - 1, 1)); scrollToContainer(containerRef); }}
                 disabled={currentPage === 1}
                 className={`p-2 rounded-lg transition-all ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-primary hover:bg-primary/10'}`}
               >
@@ -935,7 +955,7 @@ const WrappingSelection = ({ selectedWrapping, onSelectWrapping, onPreviewImage 
                 {[...Array(totalPages)].map((_, i) => (
                   <button
                     key={i + 1}
-                    onClick={() => setCurrentPage(i + 1)}
+                    onClick={() => { setCurrentPage(i + 1); scrollToContainer(containerRef); }}
                     className={`w-10 h-10 rounded-lg font-medium transition-all ${currentPage === i + 1 ? 'bg-primary text-white' : 'text-text/70 hover:bg-primary/5'}`}
                   >
                     {i + 1}
@@ -944,7 +964,7 @@ const WrappingSelection = ({ selectedWrapping, onSelectWrapping, onPreviewImage 
               </div>
 
               <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                onClick={() => { setCurrentPage(prev => Math.min(prev + 1, totalPages)); scrollToContainer(containerRef); }}
                 disabled={currentPage === totalPages}
                 className={`p-2 rounded-lg transition-all ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-primary hover:bg-primary/10'}`}
               >
@@ -959,7 +979,7 @@ const WrappingSelection = ({ selectedWrapping, onSelectWrapping, onPreviewImage 
 };
 
 // Color Selection Component
-const ColorSelection = ({ selectedColors, onUpdateColors, onPreviewImage }) => {
+const ColorSelection = ({ selectedColors, onUpdateColors, onPreviewImage, containerRef }) => {
   const { colors, loading } = useColors();
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -1079,7 +1099,7 @@ const ColorSelection = ({ selectedColors, onUpdateColors, onPreviewImage }) => {
           {totalPages > 1 && (
             <div className="flex justify-center items-center gap-2 mt-10">
               <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                onClick={() => { setCurrentPage(prev => Math.max(prev - 1, 1)); scrollToContainer(containerRef); }}
                 disabled={currentPage === 1}
                 className={`p-2 rounded-lg transition-all ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-primary hover:bg-primary/10'}`}
               >
@@ -1090,7 +1110,7 @@ const ColorSelection = ({ selectedColors, onUpdateColors, onPreviewImage }) => {
                 {[...Array(totalPages)].map((_, i) => (
                   <button
                     key={i + 1}
-                    onClick={() => setCurrentPage(i + 1)}
+                    onClick={() => { setCurrentPage(i + 1); scrollToContainer(containerRef); }}
                     className={`w-10 h-10 rounded-lg font-medium transition-all ${currentPage === i + 1 ? 'bg-primary text-white' : 'text-text/70 hover:bg-primary/5'}`}
                   >
                     {i + 1}
@@ -1099,7 +1119,7 @@ const ColorSelection = ({ selectedColors, onUpdateColors, onPreviewImage }) => {
               </div>
 
               <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                onClick={() => { setCurrentPage(prev => Math.min(prev + 1, totalPages)); scrollToContainer(containerRef); }}
                 disabled={currentPage === totalPages}
                 className={`p-2 rounded-lg transition-all ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-primary hover:bg-primary/10'}`}
               >
@@ -1114,7 +1134,7 @@ const ColorSelection = ({ selectedColors, onUpdateColors, onPreviewImage }) => {
 };
 
 // Accessory Selection Component
-const AccessorySelection = ({ selectedAccessories, onUpdateAccessories, onPreviewImage }) => {
+const AccessorySelection = ({ selectedAccessories, onUpdateAccessories, onPreviewImage, containerRef }) => {
   const { items, loading } = useItems();
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -1218,7 +1238,7 @@ const AccessorySelection = ({ selectedAccessories, onUpdateAccessories, onPrevie
           {totalPages > 1 && (
             <div className="flex justify-center items-center gap-2 mt-10">
               <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                onClick={() => { setCurrentPage(prev => Math.max(prev - 1, 1)); scrollToContainer(containerRef); }}
                 disabled={currentPage === 1}
                 className={`p-2 rounded-lg transition-all ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-primary hover:bg-primary/10'}`}
               >
@@ -1229,7 +1249,7 @@ const AccessorySelection = ({ selectedAccessories, onUpdateAccessories, onPrevie
                 {[...Array(totalPages)].map((_, i) => (
                   <button
                     key={i + 1}
-                    onClick={() => setCurrentPage(i + 1)}
+                    onClick={() => { setCurrentPage(i + 1); scrollToContainer(containerRef); }}
                     className={`w-10 h-10 rounded-lg font-medium transition-all ${currentPage === i + 1 ? 'bg-primary text-white' : 'text-text/70 hover:bg-primary/5'}`}
                   >
                     {i + 1}
@@ -1238,7 +1258,7 @@ const AccessorySelection = ({ selectedAccessories, onUpdateAccessories, onPrevie
               </div>
 
               <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                onClick={() => { setCurrentPage(prev => Math.min(prev + 1, totalPages)); scrollToContainer(containerRef); }}
                 disabled={currentPage === totalPages}
                 className={`p-2 rounded-lg transition-all ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-primary hover:bg-primary/10'}`}
               >
@@ -1618,7 +1638,7 @@ const ItemCard = ({ item, quantity, onAdd, onRemove, onPreview }) => {
 };
 
 // Bouquet Summary Component
-const BouquetSummary = ({ bouquetData }) => {
+const BouquetSummary = ({ bouquetData, onPreviewImage }) => {
   const { colors } = useColors();
 
   const flowersTotal = Object.values(bouquetData.flowers).reduce(
@@ -1676,12 +1696,18 @@ const BouquetSummary = ({ bouquetData }) => {
             <div className="space-y-5">
               {Object.values(bouquetData.flowers).map(flower => (
                 <div key={flower.id} className="flex items-center gap-5 p-4 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
-                  <div className="w-20 h-20 rounded-xl overflow-hidden shadow-sm flex-shrink-0">
+                  <div
+                    className="relative group/img cursor-pointer w-20 h-20 rounded-xl overflow-hidden shadow-sm flex-shrink-0"
+                    onClick={() => onPreviewImage(flower.image_url)}
+                  >
                     <img
                       src={flower.image_url}
                       alt={flower.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500"
                     />
+                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                      <FiZoomIn className="text-white text-xl" />
+                    </div>
                   </div>
                   <div className="flex-grow">
                     <div className="font-bold text-lg text-text mb-1">{flower.name}</div>
@@ -1712,12 +1738,18 @@ const BouquetSummary = ({ bouquetData }) => {
                 Wrapping Style
               </h3>
               <div className="flex items-center gap-5 p-4 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
-                <div className="w-20 h-20 rounded-xl overflow-hidden shadow-sm flex-shrink-0">
+                <div
+                  className="relative group/img cursor-pointer w-20 h-20 rounded-xl overflow-hidden shadow-sm flex-shrink-0"
+                  onClick={() => onPreviewImage(bouquetData.wrapping.image_url)}
+                >
                   <img
                     src={bouquetData.wrapping.image_url}
                     alt={bouquetData.wrapping.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500"
                   />
+                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                    <FiZoomIn className="text-white text-xl" />
+                  </div>
                 </div>
                 <div className="flex-grow">
                   <div className="font-bold text-lg text-text">{bouquetData.wrapping.name}</div>
@@ -1741,12 +1773,18 @@ const BouquetSummary = ({ bouquetData }) => {
               <div className="space-y-4">
                 {Object.values(bouquetData.accessories).map(accessory => (
                   <div key={accessory.id} className="flex items-center gap-5 p-4 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
-                    <div className="w-16 h-16 rounded-xl overflow-hidden shadow-sm flex-shrink-0">
+                    <div
+                      className="relative group/img cursor-pointer w-16 h-16 rounded-xl overflow-hidden shadow-sm flex-shrink-0"
+                      onClick={() => onPreviewImage(accessory.image_url)}
+                    >
                       <img
                         src={accessory.image_url}
                         alt={accessory.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500"
                       />
+                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                        <FiZoomIn className="text-white text-xl" />
+                      </div>
                     </div>
                     <div className="flex-grow">
                       <div className="font-bold text-[17px] text-text mb-1">{accessory.name}</div>
@@ -1785,14 +1823,19 @@ const BouquetSummary = ({ bouquetData }) => {
             </h3>
             <div className="grid grid-cols-3 gap-3">
               {selectedColorObjects.map(color => (
-                <div key={color.id} className="group relative rounded-xl overflow-hidden cursor-pointer shadow-sm border border-gray-100">
+                <div
+                  key={color.id}
+                  className="group/img relative rounded-xl overflow-hidden cursor-pointer shadow-sm border border-gray-100"
+                  onClick={() => onPreviewImage(color.image_url)}
+                >
                   <img
                     src={color.image_url}
                     alt={color.name}
-                    className="w-full h-16 object-cover group-hover:scale-110 transition-transform duration-300"
+                    className="w-full h-16 object-cover group-hover/img:scale-110 transition-transform duration-300"
                   />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-1">
-                    <p className="text-white text-[10px] font-bold text-center leading-tight drop-shadow-md">
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center p-1">
+                    <FiZoomIn className="text-white text-xl mb-4" />
+                    <p className="absolute bottom-1 left-0 right-0 text-white text-[10px] font-bold text-center leading-tight drop-shadow-md">
                       {color.name}
                     </p>
                   </div>
@@ -1807,12 +1850,18 @@ const BouquetSummary = ({ bouquetData }) => {
               <h3 className="text-xl font-display font-bold mb-4 flex items-center gap-2">
                 Reference Image
               </h3>
-              <div className="rounded-2xl overflow-hidden shadow-md">
+              <div
+                className="relative group/img rounded-2xl overflow-hidden shadow-md cursor-pointer"
+                onClick={() => onPreviewImage(URL.createObjectURL(bouquetData.referenceImage))}
+              >
                 <img
                   src={URL.createObjectURL(bouquetData.referenceImage)}
                   alt="Reference"
-                  className="w-full h-48 object-cover"
+                  className="w-full h-48 object-cover group-hover/img:scale-110 transition-transform duration-500"
                 />
+                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                  <FiZoomIn className="text-white text-3xl" />
+                </div>
               </div>
             </motion.div>
           )}
@@ -1854,7 +1903,7 @@ const BouquetSummary = ({ bouquetData }) => {
 };
 
 // Request Summary Component
-const RequestSummary = ({ requestData }) => {
+const RequestSummary = ({ requestData, onPreviewImage }) => {
   const { colors } = useColors();
 
   // Get selected color objects from IDs
@@ -1903,12 +1952,19 @@ const RequestSummary = ({ requestData }) => {
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {requestData.referenceImages.map((image, index) => (
-                  <div key={index} className="rounded-xl overflow-hidden shadow-sm border border-gray-100 group/img relative">
+                  <div
+                    key={index}
+                    className="rounded-xl overflow-hidden shadow-sm border border-gray-100 group/img relative cursor-pointer"
+                    onClick={() => onPreviewImage(URL.createObjectURL(image))}
+                  >
                     <img
                       src={URL.createObjectURL(image)}
                       alt={`Reference ${index + 1}`}
-                      className="w-full h-40 object-cover group-hover/img:scale-105 transition-transform duration-500"
+                      className="w-full h-40 object-cover group-hover/img:scale-110 transition-transform duration-500"
                     />
+                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                      <FiZoomIn className="text-white text-2xl" />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1972,14 +2028,19 @@ const RequestSummary = ({ requestData }) => {
               </h3>
               <div className="grid grid-cols-3 gap-3">
                 {selectedColorObjects.map(color => (
-                  <div key={color.id} className="group relative rounded-xl overflow-hidden cursor-pointer shadow-sm border border-gray-100">
+                  <div
+                    key={color.id}
+                    className="group/img relative rounded-xl overflow-hidden cursor-pointer shadow-sm border border-gray-100"
+                    onClick={() => onPreviewImage(color.image_url)}
+                  >
                     <img
                       src={color.image_url}
                       alt={color.name}
-                      className="w-full h-16 object-cover group-hover:scale-110 transition-transform duration-300"
+                      className="w-full h-16 object-cover group-hover/img:scale-110 transition-transform duration-300"
                     />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-1">
-                      <p className="text-white text-[10px] font-bold text-center leading-tight drop-shadow-md">
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center p-1">
+                      <FiZoomIn className="text-white text-xl mb-4" />
+                      <p className="absolute bottom-1 left-0 right-0 text-white text-[10px] font-bold text-center leading-tight drop-shadow-md">
                         {color.name}
                       </p>
                     </div>

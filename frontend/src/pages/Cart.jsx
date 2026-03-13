@@ -102,16 +102,19 @@ const Cart = () => {
                     className="card p-4 flex gap-4"
                   >
                     {!isCustomOrder ? (
-                      <Link
-                        to={`/products/${item.id}`}
-                        className="w-28 h-28 rounded-lg overflow-hidden flex-shrink-0"
+                      <div
+                        className="relative group/img cursor-pointer w-28 h-28 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100"
+                        onClick={() => setZoomedImage(item.product_images?.[0]?.image_url)}
                       >
                         <img
                           src={item.product_images?.[0]?.image_url}
                           alt={item.name}
-                          className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                          className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500"
                         />
-                      </Link>
+                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                          <FiZoomIn className="text-white text-2xl" />
+                        </div>
+                      </div>
                     ) : (
                       <div className="w-28 h-28 rounded-lg overflow-hidden flex-shrink-0 bg-primary/10 flex items-center justify-center">
                         <span className="text-4xl">

@@ -36,6 +36,7 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(false);
   const { items } = useItems();
   const { colors } = useColors();
+  const [zoomedImage, setZoomedImage] = useState(null);
 
   useEffect(() => {
     checkAuth();
@@ -251,15 +252,19 @@ const AdminDashboard = () => {
 
           <div className="bg-white rounded-lg shadow-sm border mb-6">
             <div className="p-4 sm:p-6">
-              {activeTab === 'products' && <ProductsTab products={products} onRefresh={fetchData} />}
+              {activeTab === 'products' && <ProductsTab products={products} onRefresh={fetchData} setZoomedImage={setZoomedImage} />}
               {activeTab === 'orders' && <OrdersTab orders={orders} onRefresh={fetchData} />}
               {activeTab === 'categories' && <CategoriesTab onRefresh={fetchData} />}
-              {activeTab === 'items' && <ItemsTab />}
+              {activeTab === 'items' && <ItemsTab setZoomedImage={setZoomedImage} />}
               {activeTab === 'deliveryPrices' && <DeliveryPricesTab />}
               {activeTab === 'colors' && <ColorsTab />}
             </div>
           </div>
         </div>
+        <ImageZoomModal
+          imageUrl={zoomedImage}
+          onClose={() => setZoomedImage(null)}
+        />
       </div>
     </div>
   );
@@ -301,7 +306,7 @@ const SidebarItem = ({ active, onClick, icon, label }) => (
   </button>
 );
 
-const ProductsTab = ({ products, onRefresh }) => {
+const ProductsTab = ({ products, onRefresh, setZoomedImage }) => {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -578,12 +583,18 @@ const ProductsTab = ({ products, onRefresh }) => {
               className="group relative bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden border border-gray-100"
             >
               {/* Product Image */}
-              <div className="aspect-square w-full overflow-hidden bg-gray-100">
+              <div
+                className="relative group/img aspect-square w-full overflow-hidden bg-gray-100 cursor-pointer"
+                onClick={() => setZoomedImage(product.product_images?.[0]?.image_url)}
+              >
                 <img
                   src={product.product_images?.[0]?.image_url}
                   alt={product.category}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                  className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500"
                 />
+                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                  <FiZoomIn className="text-white text-2xl" />
+                </div>
               </div>
 
               {/* Product Info */}
@@ -742,9 +753,9 @@ const ProductsTab = ({ products, onRefresh }) => {
               </div>
             </form>
           </div>
-        </div>
+        </div >
       )}
-    </div>
+    </div >
   );
 };
 
@@ -1255,7 +1266,7 @@ const CategoriesTab = ({ onRefresh }) => {
   );
 };
 
-const ItemsTab = () => {
+const ItemsTab = ({ setZoomedImage }) => {
   const { items, loading, createItem, updateItem, deleteItem } = useItems();
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -1466,12 +1477,18 @@ const ItemsTab = () => {
               className="group relative bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden border border-gray-100"
             >
               {/* Item Image */}
-              <div className="w-full overflow-hidden bg-gray-100">
+              <div
+                className="relative group/img w-full overflow-hidden bg-gray-100 cursor-pointer"
+                onClick={() => setZoomedImage(item.image_url)}
+              >
                 <img
                   src={item.image_url}
                   alt={item.name}
-                  className="w-full h-72 object-cover group-hover:scale-105 transition-transform duration-200"
+                  className="w-full h-72 object-cover group-hover/img:scale-110 transition-transform duration-500"
                 />
+                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                  <FiZoomIn className="text-white text-3xl" />
+                </div>
               </div>
 
               {/* Item Info */}
@@ -1578,72 +1595,71 @@ const ItemsTab = () => {
                       alt="Preview"
                       className="w-full h-48 object-cover"
                     />
-                    <div className="absolute top-2 right-2 flex gap-2">
-                      <label className="bg-white/90 hover:bg-white p-2 rounded-lg cursor-pointer shadow-lg transition-all flex items-center gap-1 text-sm">
-                        <FiEdit className="w-4 h-4" />
-                        <span>Change</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                          className="hidden"
-                        />
-                      </label>
-                      <button
-                        type="button"
-                        onClick={removeImage}
-                        className="bg-red-500/90 hover:bg-red-500 text-white p-2 rounded-lg shadow-lg transition-all"
-                      >
-                        <FiTrash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <label className="bg-white/90 hover:bg-white p-2 rounded-lg cursor-pointer shadow-lg transition-all flex items-center gap-1 text-sm">
+                      <FiEdit className="w-4 h-4" />
+                      <span>Change</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      className="bg-red-500/90 hover:bg-red-500 text-white p-2 rounded-lg shadow-lg transition-all"
+                    >
+                      <FiTrash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                     {selectedImage && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white px-3 py-2 text-xs">
-                        <p className="truncate">{selectedImage.name}</p>
-                        <p className="text-gray-300">
-                          {(selectedImage.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
-                      </div>
-                    )}
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white px-3 py-2 text-xs">
+                    <p className="truncate">{selectedImage.name}</p>
+                    <p className="text-gray-300">
+                      {(selectedImage.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
                   </div>
                 )}
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Price (DA) *</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  className="input-field"
-                  required
-                />
-              </div>
-              <div className="flex gap-3">
-                <button type="submit" className="btn-primary flex-1" disabled={uploading}>
-                  {uploading ? 'Uploading...' : editingItem ? 'Update' : 'Create'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowModal(false);
-                    setEditingItem(null);
-                    setSelectedImage(null);
-                    setImagePreview(null);
-                    setDragActive(false);
-                    setFormData({ name: '', category: 'flower', image_url: '', price: '' });
-                  }}
-                  className="btn-secondary flex-1"
-                  disabled={uploading}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+                )}
           </div>
-        </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Price (DA) *</label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.price}
+              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+              className="input-field"
+              required
+            />
+          </div>
+          <div className="flex gap-3">
+            <button type="submit" className="btn-primary flex-1" disabled={uploading}>
+              {uploading ? 'Uploading...' : editingItem ? 'Update' : 'Create'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowModal(false);
+                setEditingItem(null);
+                setSelectedImage(null);
+                setImagePreview(null);
+                setDragActive(false);
+                setFormData({ name: '', category: 'flower', image_url: '', price: '' });
+              }}
+              className="btn-secondary flex-1"
+              disabled={uploading}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+          </div>
+        </div >
       )}
-    </div>
+    </div >
   );
 };
 
