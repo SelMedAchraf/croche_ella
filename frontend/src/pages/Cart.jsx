@@ -342,6 +342,8 @@ const CustomOrderModal = ({ order, onClose, onZoomImage }) => {
   if (!order) return null;
 
   const isBouquet = order.customOrderType === 'custom_bouquet';
+  const isRequest = order.customOrderType === 'custom_request';
+  const data = order.customData || {};
 
   // Get selected color objects 
   const selectedColorObjects = (order.customData?.colors || []).map(colorItem => {
@@ -398,273 +400,202 @@ const CustomOrderModal = ({ order, onClose, onZoomImage }) => {
               </div>
 
               {/* Scrollable Content Body */}
-              <div className="p-6 bg-gray-50/50 overflow-y-auto overflow-x-hidden">
-                <div className="grid lg:grid-cols-3 gap-6">
-                  {/* MAIN COLUMN */}
-                  <div className="lg:col-span-2 space-y-6">
-                    {isBouquet ? (
-                      <>
-                        {/* Flowers */}
-                        {order.customData?.flowers && order.customData.flowers.length > 0 && (
-                          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-primary/5 relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all">
-                            <div className="absolute top-0 left-0 w-1 h-full bg-pink-400"></div>
-                            <h3 className="text-xl font-display font-bold mb-5 flex items-center gap-3 text-text">
-                              Selected Flowers
-                            </h3>
-                            <div className="space-y-4">
-                              {order.customData.flowers.map((flower, index) => {
-                                const totalPrice = (flower.price * flower.quantity).toFixed(2);
-                                const unitPrice = flower.price.toFixed(2);
-                                return (
-                                  <div key={index} className="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
-                                    {flower.image_url && (
-                                      <div className="relative group/img cursor-pointer w-16 h-16 rounded-xl overflow-hidden shadow-sm flex-shrink-0" onClick={() => onZoomImage(flower.image_url)}>
-                                        <img
-                                          src={flower.image_url}
-                                          alt={flower.name}
-                                          className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500"
-                                        />
-                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex flex-col items-center justify-center">
-                                          <FiZoomIn className="text-white text-lg" />
+              <div className="p-4 bg-gray-50 border-t border-gray-100 overflow-y-auto overflow-x-hidden">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                  {isBouquet && (
+                    <>
+                      <div className="space-y-4">
+                        {data.flowers?.length > 0 && (
+                          <div>
+                            <p className="text-xs font-bold text-gray-500 uppercase mb-2">Flowers</p>
+                            <div className="space-y-2">
+                              {data.flowers.map((f, i) => (
+                                <div key={i} className="flex justify-between text-sm bg-white p-2 rounded border border-gray-200 hover:border-primary/50 transition-colors">
+                                  <div className="flex items-center gap-2">
+                                    {f.image_url && (
+                                      <div className="relative group">
+                                        <img src={f.image_url} alt="" className="w-8 h-8 rounded object-cover cursor-pointer" onClick={() => onZoomImage(f.image_url)} />
+                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center pointer-events-none">
+                                          <FiZoomIn className="text-white text-xs" />
                                         </div>
                                       </div>
                                     )}
-                                    <div className="flex-grow">
-                                      <div className="font-bold text-[15px] mb-1">{flower.name}</div>
-                                      <div className="text-text/60 text-[11px] font-medium bg-gray-100 inline-block px-2 py-0.5 rounded uppercase tracking-wider">Qty: {flower.quantity}</div>
-                                    </div>
-                                    <div className="text-right flex flex-col items-end">
-                                      <div className="font-bold text-primary text-lg">{totalPrice} <span className="text-sm font-normal text-text/60">DA</span></div>
-                                      <div className="text-text/50 text-[11px] mt-0.5">{unitPrice} DA/ea</div>
-                                    </div>
+                                    <span className="font-medium">{f.name} (x{f.quantity})</span>
                                   </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Wrapping */}
-                        {order.customData?.wrapping && (
-                          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-primary/5 relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all">
-                            <div className="absolute top-0 left-0 w-1 h-full bg-purple-400"></div>
-                            <h3 className="text-xl font-display font-bold mb-4 flex items-center gap-3 text-text">
-                              Wrapping
-                            </h3>
-                            <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
-                              {order.customData.wrapping.image_url && (
-                                <div className="relative group/img cursor-pointer w-16 h-16 rounded-xl overflow-hidden shadow-sm flex-shrink-0" onClick={() => onZoomImage(order.customData.wrapping.image_url)}>
-                                  <img
-                                    src={order.customData.wrapping.image_url}
-                                    alt={order.customData.wrapping.name}
-                                    className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500"
-                                  />
-                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex flex-col items-center justify-center">
-                                    <FiZoomIn className="text-white text-lg" />
-                                  </div>
-                                </div>
-                              )}
-                              <div className="flex-grow">
-                                <span className="font-bold text-[15px]">{order.customData.wrapping.name}</span>
-                              </div>
-                              <span className="font-bold text-primary text-lg">
-                                {order.customData.wrapping.price.toFixed(2)} <span className="text-sm font-normal text-text/60">DA</span>
-                              </span>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Accessories */}
-                        {order.customData?.accessories && order.customData.accessories.length > 0 && (
-                          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-primary/5 relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all">
-                            <div className="absolute top-0 left-0 w-1 h-full bg-yellow-400"></div>
-                            <h3 className="text-xl font-display font-bold mb-5 flex items-center gap-3 text-text">
-                              Accessories
-                            </h3>
-                            <div className="space-y-4">
-                              {order.customData.accessories.map((accessory, index) => {
-                                const totalPrice = (accessory.price * accessory.quantity).toFixed(2);
-                                const unitPrice = accessory.price.toFixed(2);
-                                return (
-                                  <div key={index} className="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
-                                    {accessory.image_url && (
-                                      <div className="relative group/img cursor-pointer w-16 h-16 rounded-xl overflow-hidden shadow-sm flex-shrink-0" onClick={() => onZoomImage(accessory.image_url)}>
-                                        <img
-                                          src={accessory.image_url}
-                                          alt={accessory.name}
-                                          className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500"
-                                        />
-                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex justify-center items-center">
-                                          <FiZoomIn className="text-white text-lg" />
-                                        </div>
-                                      </div>
-                                    )}
-                                    <div className="flex-grow">
-                                      <div className="font-bold text-[15px] mb-1">{accessory.name}</div>
-                                      <div className="text-text/60 text-[11px] font-medium bg-gray-100 inline-block px-2 py-0.5 rounded uppercase tracking-wider">Qty: {accessory.quantity}</div>
-                                    </div>
-                                    <div className="text-right flex flex-col items-end">
-                                      <div className="font-bold text-primary text-lg">{totalPrice} <span className="text-sm font-normal text-text/60">DA</span></div>
-                                      <div className="text-text/50 text-[11px] mt-0.5">{unitPrice} DA/ea</div>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        {/* Reference Images */}
-                        {(order.allReferenceImages?.length > 0 || order.referenceImageUrl) && (
-                          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-primary/5 relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all">
-                            <div className="absolute top-0 left-0 w-1 h-full bg-blue-400"></div>
-                            <h3 className="text-xl font-display font-bold mb-4 flex items-center gap-3 text-text">
-                              Inspiration Images
-                            </h3>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                              {(order.allReferenceImages || [order.referenceImageUrl]).filter(Boolean).map((imageUrl, index) => (
-                                <div key={index} className="rounded-xl overflow-hidden shadow-sm border border-gray-100 group/img relative cursor-pointer" onClick={() => onZoomImage(imageUrl)}>
-                                  <img
-                                    src={imageUrl}
-                                    alt={`Reference ${index + 1}`}
-                                    className="w-full h-40 object-cover group-hover/img:scale-105 transition-transform duration-500"
-                                  />
-                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                                    <FiZoomIn className="text-white text-2xl" />
+                                  <div className="flex flex-col items-end">
+                                    <span className="text-gray-600">{(f.price * f.quantity).toFixed(2)} DA</span>
+                                    <span className="text-xs text-gray-500 mt-1">{f.price.toFixed(2)} DA/unit</span>
                                   </div>
                                 </div>
                               ))}
                             </div>
                           </div>
                         )}
-
-                        {/* Description & Specs */}
-                        <div className="bg-white rounded-2xl p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-primary/5 relative overflow-hidden hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all">
-                          <div className="absolute top-0 left-0 w-1 h-full bg-orange-400"></div>
-                          <h3 className="text-xl font-display font-bold mb-4 flex items-center gap-3 text-text">
-                            Details
-                          </h3>
-                          <div className="space-y-4 flex flex-col">
-                            <div className="bg-gray-50/70 rounded-xl p-4 border border-gray-100/70">
-                              <p className="text-text/80 text-sm leading-relaxed whitespace-pre-wrap">
-                                {order.customData?.description}
-                              </p>
-                            </div>
-
-                            <div className="grid sm:grid-cols-2 gap-3">
-                              {order.customData?.size && (
-                                <div className="bg-white rounded-xl p-3 border border-gray-100 shadow-sm flex items-center gap-3">
-                                  <div className="w-10 h-10 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center">📏</div>
-                                  <div>
-                                    <div className="text-[10px] font-bold text-text/50 uppercase tracking-widest mb-0.5">Size</div>
-                                    <div className="text-sm font-semibold text-text">{order.customData.size}</div>
+                        {data.accessories?.length > 0 && (
+                          <div>
+                            <p className="text-xs font-bold text-gray-500 uppercase mb-2">Accessories</p>
+                            <div className="space-y-2">
+                              {data.accessories.map((a, i) => (
+                                <div key={i} className="flex justify-between text-sm bg-white p-2 rounded border border-gray-200 hover:border-primary/50 transition-colors">
+                                  <div className="flex items-center gap-2">
+                                    {a.image_url && (
+                                      <div className="relative group">
+                                        <img src={a.image_url} alt="" className="w-8 h-8 rounded object-cover cursor-pointer" onClick={() => onZoomImage(a.image_url)} />
+                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center pointer-events-none">
+                                          <FiZoomIn className="text-white text-xs" />
+                                        </div>
+                                      </div>
+                                    )}
+                                    <span className="font-medium">{a.name} (x{a.quantity})</span>
+                                  </div>
+                                  <div className="flex flex-col items-end">
+                                    <span className="text-gray-600">{(a.price * a.quantity).toFixed(2)} DA</span>
+                                    <span className="text-xs text-gray-500 mt-1">{a.price.toFixed(2)} DA/unit</span>
                                   </div>
                                 </div>
-                              )}
-                              {order.customData?.deadline && (
-                                <div className="bg-white rounded-xl p-3 border border-gray-100 shadow-sm flex items-center gap-3">
-                                  <div className="w-10 h-10 bg-teal-50 text-teal-500 rounded-full flex items-center justify-center">📅</div>
-                                  <div>
-                                    <div className="text-[10px] font-bold text-text/50 uppercase tracking-widest mb-0.5">Deadline</div>
-                                    <div className="text-sm font-semibold text-text">{new Date(order.customData.deadline).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                                  </div>
-                                </div>
-                              )}
+                              ))}
                             </div>
                           </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  {/* SIDEBAR COLUMN */}
-                  <div className="lg:col-span-1 space-y-6">
-                    {/* Colors */}
-                    {selectedColorObjects.length > 0 && (
-                      <div className="bg-white rounded-2xl p-5 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-primary/5">
-                        <h3 className="text-lg font-display font-bold mb-4 flex items-center gap-2 text-text">
-                          Colors
-                        </h3>
-                        <div className="grid grid-cols-3 gap-2">
-                          {selectedColorObjects.map(color => (
-                            <div key={color.id} className="group/col relative rounded-lg overflow-hidden cursor-pointer shadow-sm border border-gray-100" onClick={() => onZoomImage(color.image_url)}>
-                              <img
-                                src={color.image_url}
-                                alt={color.name}
-                                className="w-full h-12 object-cover group-hover/col:scale-110 transition-transform duration-300"
-                              />
-                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/col:opacity-100 transition-opacity flex items-center justify-center p-1">
-                                <p className="text-white text-[8px] font-bold text-center leading-tight">
-                                  {color.name}
-                                </p>
+                        )}
+                      </div>
+                      <div className="space-y-4">
+                        {data.wrapping && (
+                          <div>
+                            <p className="text-xs font-bold text-gray-500 uppercase mb-2">Wrapping</p>
+                            <div className="flex justify-between text-sm bg-white p-2 rounded border border-gray-200 hover:border-primary/50 transition-colors">
+                              <div className="flex items-center gap-2">
+                                {data.wrapping.image_url && (
+                                  <div className="relative group">
+                                    <img src={data.wrapping.image_url} alt="" className="w-8 h-8 rounded object-cover cursor-pointer" onClick={() => onZoomImage(data.wrapping.image_url)} />
+                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center pointer-events-none">
+                                      <FiZoomIn className="text-white text-xs" />
+                                    </div>
+                                  </div>
+                                )}
+                                <span className="font-medium">{data.wrapping.name}</span>
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Reference Image for Bouquet (Request images are handled in MAIN) */}
-                    {isBouquet && order.referenceImageUrl && (
-                      <div className="bg-white rounded-2xl p-5 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-primary/5 relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all">
-                        <h3 className="text-lg font-display font-bold mb-3 flex items-center gap-2 text-text">
-                          Reference Image
-                        </h3>
-                        <div className="rounded-2xl overflow-hidden relative group/ref cursor-pointer shadow-md" onClick={() => onZoomImage(order.referenceImageUrl)}>
-                          <img
-                            src={order.referenceImageUrl}
-                            alt="Reference"
-                            className="w-full h-44 object-cover group-hover/ref:scale-110 transition-transform duration-500"
-                          />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/ref:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                            <div className="bg-black/20 backdrop-blur-sm p-3 rounded-full border border-white/30">
-                              <FiZoomIn className="w-6 h-6 text-white" />
+                              <span className="text-gray-600">{data.wrapping.price} DA</span>
                             </div>
                           </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Description for Bouquet (Request description is handled in MAIN) */}
-                    {isBouquet && order.customData?.description && (
-                      <div className="bg-white rounded-2xl p-5 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-primary/5">
-                        <h3 className="text-lg font-display font-bold mb-3 flex items-center gap-2 text-text">
-                          Notes
-                        </h3>
-                        <div className="bg-orange-50/50 rounded-xl p-3 border border-orange-100/50">
-                          <p className="text-text/80 text-xs leading-relaxed whitespace-pre-wrap italic">
-                            "{order.customData.description}"
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Price Cards - Sticky */}
-                    <div className="sticky top-6">
-                      {isBouquet ? (
-                        <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-highlight/10 rounded-2xl p-5 border-2 border-primary/20 shadow-lg relative overflow-hidden">
-                          <div className="absolute top-0 right-0 w-24 h-24 bg-white/40 rounded-full blur-2xl -mr-12 -mt-12 pointer-events-none"></div>
-                          <span className="text-sm font-medium text-text/80 block mb-1 relative z-10">Total Price:</span>
-                          <div className="flex items-baseline gap-2 relative z-10">
-                            <span className="text-3xl font-display font-bold text-primary">{order.price?.toFixed(2)}</span>
-                            <span className="text-lg font-semibold text-primary/70">DA</span>
+                        )}
+                        {selectedColorObjects?.length > 0 && (
+                          <div>
+                            <p className="text-xs font-bold text-gray-500 uppercase mb-2">Colors</p>
+                            <div className="flex flex-wrap gap-2">
+                              {selectedColorObjects.map((c, i) => (
+                                <div key={i} className="flex items-center gap-2 bg-white px-2 py-1 rounded border border-gray-200">
+                                  {c.image_url ? (
+                                    <div className="relative group">
+                                      <img src={c.image_url} alt="" className="w-6 h-6 rounded cursor-pointer" onClick={() => onZoomImage(c.image_url)} />
+                                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center pointer-events-none">
+                                        <FiZoomIn className="text-white text-[10px]" />
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="w-4 h-4 rounded" style={{ backgroundColor: c.name }} />
+                                  )}
+                                  <span className="text-xs font-medium">{c.name}</span>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <div className="bg-gradient-to-br from-yellow-50 via-yellow-100/50 to-orange-50 rounded-2xl p-5 border-2 border-yellow-200/60 shadow-sm relative overflow-hidden">
-                          <div className="absolute top-0 right-0 w-24 h-24 bg-white/40 rounded-full blur-2xl -mr-12 -mt-12 pointer-events-none"></div>
-                          <h3 className="text-base font-bold text-yellow-900 flex items-center gap-2 mb-2 relative z-10">
-                            <span className="text-xl">💡</span> Price Estimate
-                          </h3>
-                          <p className="text-xs text-yellow-800/80 leading-relaxed font-medium relative z-10">
-                            Our team will review your request and provide a custom quote before you complete your order.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                        )}
+                        {data.description && (
+                          <div>
+                            <p className="text-xs font-bold text-gray-500 uppercase mb-2">Description</p>
+                            <p className="text-sm bg-white p-3 rounded border border-gray-200 text-gray-700">{data.description}</p>
+                          </div>
+                        )}
+                        {/* Reference Images for Bouquet */}
+                        {(order.referenceImageUrl || order.allReferenceImages?.length > 0) && (
+                          <div>
+                            <p className="text-xs font-bold text-gray-500 uppercase mb-2">Reference Image</p>
+                            <div className="flex gap-2 text-wrap flex-wrap">
+                              {(order.allReferenceImages || [order.referenceImageUrl]).filter(Boolean).slice(0, 1).map((img, i) => {
+                                const src = typeof img === 'string' ? img : img.url || img.image_url;
+                                return (
+                                  <div key={i} className="relative group">
+                                    <img
+                                      src={src}
+                                      alt="Reference"
+                                      className="w-32 h-32 object-cover rounded-lg border border-gray-300 cursor-pointer"
+                                      onClick={() => onZoomImage(src)}
+                                    />
+                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center pointer-events-none">
+                                      <FiZoomIn className="text-white" />
+                                    </div>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
+
+                  {isRequest && (
+                    <>
+                      <div className="space-y-4">
+                        {data.description && (
+                          <div>
+                            <p className="text-xs font-bold text-gray-500 uppercase mb-2">Description</p>
+                            <p className="text-sm bg-white p-3 rounded border border-gray-200 text-gray-700">{data.description}</p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-4">
+                        {selectedColorObjects?.length > 0 && (
+                          <div>
+                            <p className="text-xs font-bold text-gray-500 uppercase mb-2">Colors</p>
+                            <div className="flex flex-wrap gap-2">
+                              {selectedColorObjects.map((c, i) => (
+                                <div key={i} className="flex items-center gap-2 bg-white px-2 py-1 rounded border border-gray-200">
+                                  {c.image_url ? (
+                                    <div className="relative group">
+                                      <img src={c.image_url} alt="" className="w-6 h-6 rounded cursor-pointer" onClick={() => onZoomImage(c.image_url)} />
+                                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center pointer-events-none">
+                                        <FiZoomIn className="text-white text-[10px]" />
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="w-4 h-4 rounded" style={{ backgroundColor: c.name }} />
+                                  )}
+                                  <span className="text-xs font-medium">{c.name}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {/* Reference Images for Custom Request */}
+                        {(order.referenceImageUrl || order.allReferenceImages?.length > 0) && (
+                          <div>
+                            <p className="text-xs font-bold text-gray-500 uppercase mb-2">Reference Images</p>
+                            <div className="flex gap-2 flex-wrap text-wrap">
+                              {(order.allReferenceImages || [order.referenceImageUrl]).filter(Boolean).map((img, i) => {
+                                const src = typeof img === 'string' ? img : img.url || img.image_url;
+                                return (
+                                  <div key={i} className="relative group">
+                                    <img
+                                      src={src}
+                                      alt="Reference"
+                                      className="w-24 h-24 object-cover rounded-lg border border-gray-300 cursor-pointer"
+                                      onClick={() => onZoomImage(src)}
+                                    />
+                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center pointer-events-none">
+                                      <FiZoomIn className="text-white" />
+                                    </div>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
+
                 </div>
               </div>
             </motion.div>

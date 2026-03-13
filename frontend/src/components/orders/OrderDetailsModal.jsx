@@ -343,22 +343,6 @@ const OrderDetailsModal = ({ order, isOpen, onClose }) => {
                                                                             <div className="bg-gray-50/50 p-3 rounded-lg border border-gray-50">
                                                                                 <p className="text-sm text-text/80 whitespace-pre-wrap leading-relaxed">{data.description}</p>
                                                                             </div>
-                                                                            <div className="flex flex-wrap gap-4">
-                                                                                {data.size && (
-                                                                                    <div className="bg-white px-4 py-2 rounded-lg border border-gray-100 flex items-center gap-2">
-                                                                                        <span className="text-indigo-400">📏</span>
-                                                                                        <span className="text-xs uppercase font-bold text-text/50">Size:</span>
-                                                                                        <span className="text-sm font-semibold">{data.size}</span>
-                                                                                    </div>
-                                                                                )}
-                                                                                {data.deadline && (
-                                                                                    <div className="bg-white px-4 py-2 rounded-lg border border-gray-100 flex items-center gap-2">
-                                                                                        <span className="text-teal-400">📅</span>
-                                                                                        <span className="text-xs uppercase font-bold text-text/50">Deadline:</span>
-                                                                                        <span className="text-sm font-semibold">{new Date(data.deadline).toLocaleDateString()}</span>
-                                                                                    </div>
-                                                                                )}
-                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                 </div>
