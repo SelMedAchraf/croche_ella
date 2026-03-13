@@ -20,11 +20,7 @@ const CustomOrders = () => {
   const [previewImage, setPreviewImage] = useState(null);
 
   const handleReset = () => {
-    if (selectedOption) {
-      navigate(-1);
-    } else {
-      setSearchParams({});
-    }
+    setSearchParams({});
   };
 
   return (
@@ -1655,16 +1651,6 @@ const BouquetSummary = ({ bouquetData, onPreviewImage }) => {
     .map(colorId => colors.find(c => c.id === colorId))
     .filter(Boolean);
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { staggerChildren: 0.1 } }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -1679,224 +1665,156 @@ const BouquetSummary = ({ bouquetData, onPreviewImage }) => {
         <p className="text-text/60 text-lg">Double check the details of your custom bouquet before ordering</p>
       </div>
 
-      <div className="max-w-6xl mx-auto grid lg:grid-cols-3 gap-8">
-        {/* Main Items - Left Column */}
-        <motion.div
-          className="lg:col-span-2 space-y-6"
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-        >
-          {/* Flowers Section */}
-          <motion.div variants={itemVariants} className="bg-white rounded-2xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-primary/10 relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all">
-            <div className="absolute top-0 left-0 w-1 h-full bg-pink-400"></div>
-            <h3 className="text-2xl font-display font-bold mb-6 flex items-center gap-3 text-text">
-              Selected Flowers
-            </h3>
-            <div className="space-y-5">
-              {Object.values(bouquetData.flowers).map(flower => (
-                <div key={flower.id} className="flex items-center gap-5 p-4 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
-                  <div
-                    className="relative group/img cursor-pointer w-20 h-20 rounded-xl overflow-hidden shadow-sm flex-shrink-0"
-                    onClick={() => onPreviewImage(flower.image_url)}
-                  >
-                    <img
-                      src={flower.image_url}
-                      alt={flower.name}
-                      className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                      <FiZoomIn className="text-white text-xl" />
-                    </div>
-                  </div>
-                  <div className="flex-grow">
-                    <div className="font-bold text-lg text-text mb-1">{flower.name}</div>
-                    <div className="text-text/60 text-sm font-medium bg-gray-100 inline-block px-2 py-0.5 rounded text-xs">Qty: {flower.quantity}</div>
-                  </div>
-                  <div className="text-right flex flex-col items-end">
-                    <div className="font-bold text-primary text-xl">
-                      {(flower.price * flower.quantity).toFixed(2)} <span className="text-sm font-normal text-text/60">DA</span>
-                    </div>
-                    <div className="text-text/50 text-xs mt-1">
-                      {flower.price.toFixed(2)} DA / ea
-                    </div>
+      <div className="max-w-5xl mx-auto">
+        <div className="p-4 bg-gray-50 border border-gray-100 rounded-lg">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Column */}
+            <div className="space-y-4">
+              {/* Flowers */}
+              {Object.values(bouquetData.flowers).length > 0 && (
+                <div>
+                  <p className="text-xs font-bold text-gray-500 uppercase mb-2">Flowers</p>
+                  <div className="space-y-2">
+                    {Object.values(bouquetData.flowers).map((f, i) => (
+                      <div key={i} className="flex justify-between text-sm bg-white p-2 rounded border border-gray-200 hover:border-primary/50 transition-colors">
+                        <div className="flex items-center gap-2">
+                          {f.image_url && (
+                            <div className="relative group">
+                              <img src={f.image_url} alt="" className="w-8 h-8 rounded object-cover cursor-pointer" onClick={() => onPreviewImage(f.image_url)} />
+                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center pointer-events-none">
+                                <FiZoomIn className="text-white text-xs" />
+                              </div>
+                            </div>
+                          )}
+                          <span className="font-medium">{f.name} (x{f.quantity})</span>
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <span className="text-gray-600">{(f.price * f.quantity).toFixed(2)} DA</span>
+                          <span className="text-xs text-gray-500 mt-1">{f.price.toFixed(2)} DA/unit</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
-            <div className="border-t border-gray-100 mt-6 pt-5 flex justify-between items-center text-lg">
-              <span className="text-text/60 font-medium tracking-wide uppercase text-sm">Flowers Subtotal</span>
-              <span className="font-bold text-text">{flowersTotal.toFixed(2)} DA</span>
-            </div>
-          </motion.div>
+              )}
 
-          {/* Wrapper Section */}
-          {bouquetData.wrapping && (
-            <motion.div variants={itemVariants} className="bg-white rounded-2xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-primary/10 relative overflow-hidden hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all">
-              <div className="absolute top-0 left-0 w-1 h-full bg-purple-400"></div>
-              <h3 className="text-2xl font-display font-bold mb-6 flex items-center gap-3 text-text">
-                Wrapping Style
-              </h3>
-              <div className="flex items-center gap-5 p-4 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
-                <div
-                  className="relative group/img cursor-pointer w-20 h-20 rounded-xl overflow-hidden shadow-sm flex-shrink-0"
-                  onClick={() => onPreviewImage(bouquetData.wrapping.image_url)}
-                >
-                  <img
-                    src={bouquetData.wrapping.image_url}
-                    alt={bouquetData.wrapping.name}
-                    className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                    <FiZoomIn className="text-white text-xl" />
+              {/* Accessories */}
+              {Object.values(bouquetData.accessories).length > 0 && (
+                <div>
+                  <p className="text-xs font-bold text-gray-500 uppercase mb-2">Accessories</p>
+                  <div className="space-y-2">
+                    {Object.values(bouquetData.accessories).map((a, i) => (
+                      <div key={i} className="flex justify-between text-sm bg-white p-2 rounded border border-gray-200 hover:border-primary/50 transition-colors">
+                        <div className="flex items-center gap-2">
+                          {a.image_url && (
+                            <div className="relative group">
+                              <img src={a.image_url} alt="" className="w-8 h-8 rounded object-cover cursor-pointer" onClick={() => onPreviewImage(a.image_url)} />
+                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center pointer-events-none">
+                                <FiZoomIn className="text-white text-xs" />
+                              </div>
+                            </div>
+                          )}
+                          <span className="font-medium">{a.name} (x{a.quantity})</span>
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <span className="text-gray-600">{(a.price * a.quantity).toFixed(2)} DA</span>
+                          <span className="text-xs text-gray-500 mt-1">{a.price.toFixed(2)} DA/unit</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div className="flex-grow">
-                  <div className="font-bold text-lg text-text">{bouquetData.wrapping.name}</div>
-                </div>
-                <div className="text-right flex flex-col items-end">
-                  <div className="font-bold text-primary text-xl">
-                    {bouquetData.wrapping.price.toFixed(2)} <span className="text-sm font-normal text-text/60">DA</span>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
+              )}
+            </div>
 
-          {/* Accessories Section */}
-          {Object.keys(bouquetData.accessories).length > 0 && (
-            <motion.div variants={itemVariants} className="bg-white rounded-2xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-primary/10 relative overflow-hidden hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all">
-              <div className="absolute top-0 left-0 w-1 h-full bg-yellow-400"></div>
-              <h3 className="text-2xl font-display font-bold mb-6 flex items-center gap-3 text-text">
-                Accessories
-              </h3>
-              <div className="space-y-4">
-                {Object.values(bouquetData.accessories).map(accessory => (
-                  <div key={accessory.id} className="flex items-center gap-5 p-4 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
-                    <div
-                      className="relative group/img cursor-pointer w-16 h-16 rounded-xl overflow-hidden shadow-sm flex-shrink-0"
-                      onClick={() => onPreviewImage(accessory.image_url)}
-                    >
+            {/* Right Column */}
+            <div className="space-y-4">
+              {/* Wrapping */}
+              {bouquetData.wrapping && (
+                <div>
+                  <p className="text-xs font-bold text-gray-500 uppercase mb-2">Wrapping</p>
+                  <div className="flex justify-between text-sm bg-white p-2 rounded border border-gray-200 hover:border-primary/50 transition-colors">
+                    <div className="flex items-center gap-2">
+                      {bouquetData.wrapping.image_url && (
+                        <div className="relative group">
+                          <img src={bouquetData.wrapping.image_url} alt="" className="w-8 h-8 rounded object-cover cursor-pointer" onClick={() => onPreviewImage(bouquetData.wrapping.image_url)} />
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center pointer-events-none">
+                            <FiZoomIn className="text-white text-xs" />
+                          </div>
+                        </div>
+                      )}
+                      <span className="font-medium">{bouquetData.wrapping.name}</span>
+                    </div>
+                    <span className="text-gray-600">{bouquetData.wrapping.price.toFixed(2)} DA</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Colors */}
+              {selectedColorObjects.length > 0 && (
+                <div>
+                  <p className="text-xs font-bold text-gray-500 uppercase mb-2">Colors</p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedColorObjects.map((c, i) => (
+                      <div key={i} className="flex items-center gap-2 bg-white px-2 py-1 rounded border border-gray-200">
+                        {c.image_url ? (
+                          <div className="relative group">
+                            <img src={c.image_url} alt="" className="w-6 h-6 rounded cursor-pointer" onClick={() => onPreviewImage(c.image_url)} />
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center pointer-events-none">
+                              <FiZoomIn className="text-white text-[10px]" />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="w-4 h-4 rounded" style={{ backgroundColor: c.name }} />
+                        )}
+                        <span className="text-xs font-medium">{c.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Description */}
+              {bouquetData.description && (
+                <div>
+                  <p className="text-xs font-bold text-gray-500 uppercase mb-2">Description</p>
+                  <p className="text-sm bg-white p-3 rounded border border-gray-200 text-gray-700">{bouquetData.description}</p>
+                </div>
+              )}
+
+              {/* Reference Image */}
+              {bouquetData.referenceImage && (
+                <div>
+                  <p className="text-xs font-bold text-gray-500 uppercase mb-2">Reference Image</p>
+                  <div className="flex gap-2">
+                    <div className="relative group">
                       <img
-                        src={accessory.image_url}
-                        alt={accessory.name}
-                        className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500"
+                        src={URL.createObjectURL(bouquetData.referenceImage)}
+                        alt="Reference"
+                        className="w-full h-32 object-cover rounded-lg border border-gray-300 cursor-pointer"
+                        onClick={() => onPreviewImage(URL.createObjectURL(bouquetData.referenceImage))}
                       />
-                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                        <FiZoomIn className="text-white text-xl" />
-                      </div>
-                    </div>
-                    <div className="flex-grow">
-                      <div className="font-bold text-[17px] text-text mb-1">{accessory.name}</div>
-                      <div className="text-text/60 text-xs font-medium bg-gray-100 inline-block px-2 py-0.5 rounded">Qty: {accessory.quantity}</div>
-                    </div>
-                    <div className="text-right flex flex-col items-end">
-                      <div className="font-bold text-primary text-lg">
-                        {(accessory.price * accessory.quantity).toFixed(2)} <span className="text-xs font-normal text-text/60">DA</span>
-                      </div>
-                      <div className="text-text/50 text-xs mt-0.5">
-                        {accessory.price.toFixed(2)} DA / ea
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center pointer-events-none">
+                        <FiZoomIn className="text-white" />
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-              <div className="border-t border-gray-100 mt-5 pt-4 flex justify-between items-center">
-                <span className="text-text/60 font-medium tracking-wide uppercase text-sm">Accessories Subtotal</span>
-                <span className="font-bold text-text">{accessoriesTotal.toFixed(2)} DA</span>
-              </div>
-            </motion.div>
-          )}
-        </motion.div>
-
-        {/* Sidebar - Right Column */}
-        <motion.div
-          className="lg:col-span-1 space-y-6"
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-        >
-          {/* Colors Section */}
-          <motion.div variants={itemVariants} className="bg-white rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-primary/10">
-            <h3 className="text-xl font-display font-bold mb-5 flex items-center gap-2">
-              Colors
-            </h3>
-            <div className="grid grid-cols-3 gap-3">
-              {selectedColorObjects.map(color => (
-                <div
-                  key={color.id}
-                  className="group/img relative rounded-xl overflow-hidden cursor-pointer shadow-sm border border-gray-100"
-                  onClick={() => onPreviewImage(color.image_url)}
-                >
-                  <img
-                    src={color.image_url}
-                    alt={color.name}
-                    className="w-full h-16 object-cover group-hover/img:scale-110 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center p-1">
-                    <FiZoomIn className="text-white text-xl mb-4" />
-                    <p className="absolute bottom-1 left-0 right-0 text-white text-[10px] font-bold text-center leading-tight drop-shadow-md">
-                      {color.name}
-                    </p>
-                  </div>
                 </div>
-              ))}
+              )}
             </div>
-          </motion.div>
+          </div>
 
-          {/* Reference Image Section */}
-          {bouquetData.referenceImage && (
-            <motion.div variants={itemVariants} className="bg-white rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-primary/10">
-              <h3 className="text-xl font-display font-bold mb-4 flex items-center gap-2">
-                Reference Image
-              </h3>
-              <div
-                className="relative group/img rounded-2xl overflow-hidden shadow-md cursor-pointer"
-                onClick={() => onPreviewImage(URL.createObjectURL(bouquetData.referenceImage))}
-              >
-                <img
-                  src={URL.createObjectURL(bouquetData.referenceImage)}
-                  alt="Reference"
-                  className="w-full h-48 object-cover group-hover/img:scale-110 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                  <FiZoomIn className="text-white text-3xl" />
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Description Section */}
-          {bouquetData.description && (
-            <motion.div variants={itemVariants} className="bg-white rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-primary/10">
-              <h3 className="text-xl font-display font-bold mb-4 flex items-center gap-2">
-                Notes
-              </h3>
-              <div className="bg-orange-50/50 rounded-xl p-4 border border-orange-100/50">
-                <p className="text-text/80 text-sm leading-relaxed whitespace-pre-wrap italic">
-                  "{bouquetData.description}"
-                </p>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Total Price Card - Sticky */}
-          <motion.div variants={itemVariants} className="sticky top-24">
-            <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-highlight/10 rounded-2xl p-7 border-2 border-primary/20 shadow-lg relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/40 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
-
-              <h3 className="text-lg font-medium text-text/80 mb-2 relative z-10">Total Estimated Price</h3>
-              <div className="flex items-baseline gap-2 mb-2 relative z-10">
-                <span className="text-4xl font-display font-bold text-primary">{totalPrice.toFixed(2)}</span>
-                <span className="text-xl font-semibold text-primary/70">DA</span>
-              </div>
-              <p className="text-xs text-text/60 mt-4 leading-relaxed relative z-10">
-                * Final price includes flowers, wrapping, and all selected accessories. Delivery not included.
-              </p>
+          {/* Total Price - Below Grid */}
+          <div className="mt-6 bg-white p-5 rounded-lg border border-gray-200 shadow-sm text-center">
+            <h3 className="text-xs font-bold text-gray-500 uppercase mb-3">Total Estimated Price</h3>
+            <div className="flex items-baseline gap-3 justify-center">
+              <span className="text-5xl font-bold text-primary">{totalPrice.toFixed(2)} DA</span>
             </div>
-          </motion.div>
-
-        </motion.div>
+            <p className="text-xs text-gray-600 mt-3 leading-relaxed">
+              Final price includes flowers, wrapping, and all selected accessories.
+            </p>
+          </div>
+        </div>
       </div>
     </motion.div>
   );
@@ -1910,16 +1828,6 @@ const RequestSummary = ({ requestData, onPreviewImage }) => {
   const selectedColorObjects = requestData.colors
     .map(colorId => colors.find(c => c.id === colorId))
     .filter(Boolean); // Remove any undefined values
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { staggerChildren: 0.1 } }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
-  };
 
   return (
     <motion.div
@@ -1935,136 +1843,100 @@ const RequestSummary = ({ requestData, onPreviewImage }) => {
         <p className="text-text/60 text-lg">Make sure everything looks perfect before confirming</p>
       </div>
 
-      <div className="max-w-6xl mx-auto grid lg:grid-cols-3 gap-8">
-        {/* Main Items - Left Column */}
-        <motion.div
-          className="lg:col-span-2 space-y-6"
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-        >
-          {/* Reference Images */}
-          {requestData.referenceImages.length > 0 && (
-            <motion.div variants={itemVariants} className="bg-white rounded-2xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-primary/10 relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all">
-              <div className="absolute top-0 left-0 w-1 h-full bg-blue-400"></div>
-              <h3 className="text-2xl font-display font-bold mb-6 flex items-center gap-3 text-text">
-                Inspiration Images
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {requestData.referenceImages.map((image, index) => (
-                  <div
-                    key={index}
-                    className="rounded-xl overflow-hidden shadow-sm border border-gray-100 group/img relative cursor-pointer"
-                    onClick={() => onPreviewImage(URL.createObjectURL(image))}
-                  >
-                    <img
-                      src={URL.createObjectURL(image)}
-                      alt={`Reference ${index + 1}`}
-                      className="w-full h-40 object-cover group-hover/img:scale-110 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                      <FiZoomIn className="text-white text-2xl" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
+      <div className="max-w-5xl mx-auto">
+        <div className="p-4 bg-gray-50 border border-gray-100 rounded-lg">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Column */}
+            <div className="space-y-4">
+              {/* Description */}
+              {requestData.description && (
+                <div>
+                  <p className="text-xs font-bold text-gray-500 uppercase mb-2">Description</p>
+                  <p className="text-sm bg-white p-3 rounded border border-gray-200 text-gray-700">{requestData.description}</p>
+                </div>
+              )}
 
-          {/* Details & Specs */}
-          <motion.div variants={itemVariants} className="bg-white rounded-2xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-primary/10 relative overflow-hidden hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all">
-            <div className="absolute top-0 left-0 w-1 h-full bg-orange-400"></div>
-            <h3 className="text-2xl font-display font-bold mb-6 flex items-center gap-3 text-text">
-              Creation Details
-            </h3>
-
-            <div className="space-y-6 flex flex-col">
-              <div className="bg-gray-50/70 rounded-xl p-5 border border-gray-100/70">
-                <h4 className="text-sm uppercase font-bold text-text/50 tracking-wider mb-2">Description</h4>
-                <p className="text-text/80 leading-relaxed whitespace-pre-wrap">
-                  {requestData.description}
-                </p>
-              </div>
-
+              {/* Details & Specs */}
               {(requestData.size || requestData.deadline) && (
-                <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
                   {requestData.size && (
-                    <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center gap-4">
-                      <div className="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center text-xl">📏</div>
-                      <div>
-                        <div className="text-xs font-bold text-text/50 uppercase tracking-widest mb-0.5">Size</div>
-                        <div className="font-semibold text-text">{requestData.size}</div>
-                      </div>
+                    <div className="bg-white rounded-lg p-3 border border-gray-200">
+                      <p className="text-xs font-bold text-gray-500 uppercase mb-1">Size</p>
+                      <p className="font-semibold text-gray-700">{requestData.size}</p>
                     </div>
                   )}
 
                   {requestData.deadline && (
-                    <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center gap-4">
-                      <div className="w-12 h-12 bg-teal-50 text-teal-500 rounded-full flex items-center justify-center text-xl">📅</div>
-                      <div>
-                        <div className="text-xs font-bold text-text/50 uppercase tracking-widest mb-0.5">Deadline</div>
-                        <div className="font-semibold text-text">{new Date(requestData.deadline).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                      </div>
+                    <div className="bg-white rounded-lg p-3 border border-gray-200">
+                      <p className="text-xs font-bold text-gray-500 uppercase mb-1">Deadline</p>
+                      <p className="font-semibold text-gray-700">{new Date(requestData.deadline).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                     </div>
                   )}
                 </div>
               )}
             </div>
-          </motion.div>
-        </motion.div>
 
-        {/* Sidebar - Right Column */}
-        <motion.div
-          className="lg:col-span-1 space-y-6"
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-        >
-          {/* Colors Section */}
-          {selectedColorObjects.length > 0 && (
-            <motion.div variants={itemVariants} className="bg-white rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-primary/10">
-              <h3 className="text-xl font-display font-bold mb-5 flex items-center gap-2">
-                Colors
-              </h3>
-              <div className="grid grid-cols-3 gap-3">
-                {selectedColorObjects.map(color => (
-                  <div
-                    key={color.id}
-                    className="group/img relative rounded-xl overflow-hidden cursor-pointer shadow-sm border border-gray-100"
-                    onClick={() => onPreviewImage(color.image_url)}
-                  >
-                    <img
-                      src={color.image_url}
-                      alt={color.name}
-                      className="w-full h-16 object-cover group-hover/img:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center p-1">
-                      <FiZoomIn className="text-white text-xl mb-4" />
-                      <p className="absolute bottom-1 left-0 right-0 text-white text-[10px] font-bold text-center leading-tight drop-shadow-md">
-                        {color.name}
-                      </p>
-                    </div>
+            {/* Right Column */}
+            <div className="space-y-4">
+              {/* Colors */}
+              {selectedColorObjects.length > 0 && (
+                <div>
+                  <p className="text-xs font-bold text-gray-500 uppercase mb-2">Colors</p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedColorObjects.map((c, i) => (
+                      <div key={i} className="flex items-center gap-2 bg-white px-2 py-1 rounded border border-gray-200">
+                        {c.image_url ? (
+                          <div className="relative group">
+                            <img src={c.image_url} alt="" className="w-6 h-6 rounded cursor-pointer" onClick={() => onPreviewImage(c.image_url)} />
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center pointer-events-none">
+                              <FiZoomIn className="text-white text-[10px]" />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="w-4 h-4 rounded" style={{ backgroundColor: c.name }} />
+                        )}
+                        <span className="text-xs font-medium">{c.name}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
+                </div>
+              )}
 
-          {/* Price Notice Card - Sticky */}
-          <motion.div variants={itemVariants} className="sticky top-24">
-            <div className="bg-gradient-to-br from-yellow-50 via-yellow-100/50 to-orange-50 rounded-2xl p-7 border-2 border-yellow-200/60 shadow-[0_8px_30px_rgb(250,214,165,0.4)] relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/40 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
-
-              <h3 className="text-lg font-bold text-yellow-900 flex items-center gap-2 mb-3 relative z-10">
-                <span className="text-2xl">💡</span> Price Estimate
-              </h3>
-              <p className="text-sm text-yellow-800/80 leading-relaxed font-medium relative z-10 ">
-                Because this is a bespoke request, our team will review the details to provide a fair custom quote.
-              </p>
+              {/* Reference Images */}
+              {requestData.referenceImages.length > 0 && (
+                <div>
+                  <p className="text-xs font-bold text-gray-500 uppercase mb-2">Reference Images</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {requestData.referenceImages.map((img, i) => {
+                      const src = URL.createObjectURL(img);
+                      return (
+                        <div key={i} className="relative group">
+                          <img
+                            src={src}
+                            alt="Reference"
+                            className="w-24 h-24 object-cover rounded-lg border border-gray-300 cursor-pointer"
+                            onClick={() => onPreviewImage(src)}
+                          />
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center pointer-events-none">
+                            <FiZoomIn className="text-white" />
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
-          </motion.div>
+          </div>
 
-        </motion.div>
+          {/* Price Notice - Below Grid */}
+          <div className="mt-6 bg-yellow-50 p-5 rounded-lg border border-yellow-300 shadow-sm text-center">
+            <h3 className="text-xs font-bold text-yellow-700 uppercase mb-3">Price Estimate</h3>
+            <p className="text-sm text-yellow-800 leading-relaxed">
+              Because this is a bespoke request, our team will review the details to provide a fair custom quote.
+            </p>
+          </div>
+        </div>
       </div>
     </motion.div>
   );

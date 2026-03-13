@@ -374,7 +374,10 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                                                                                                     )}
                                                                                                     <span className="font-medium">{f.name} (x{f.quantity})</span>
                                                                                                 </div>
-                                                                                                <span className="text-gray-600">{f.price * f.quantity} DA</span>
+                                                                                                <div className="flex flex-col items-end">
+                                                                                                    <span className="text-gray-600">{(f.price * f.quantity).toFixed(2)} DA</span>
+                                                                                                    <span className="text-xs text-gray-500 mt-1">{f.price.toFixed(2)} DA/unit</span>
+                                                                                                </div>
                                                                                             </div>
                                                                                         ))}
                                                                                     </div>
@@ -397,7 +400,10 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                                                                                                     )}
                                                                                                     <span className="font-medium">{a.name} (x{a.quantity})</span>
                                                                                                 </div>
-                                                                                                <span className="text-gray-600">{a.price * a.quantity} DA</span>
+                                                                                                <div className="flex flex-col items-end">
+                                                                                                    <span className="text-gray-600">{(a.price * a.quantity).toFixed(2)} DA</span>
+                                                                                                    <span className="text-xs text-gray-500 mt-1">{a.price.toFixed(2)} DA/unit</span>
+                                                                                                </div>
                                                                                             </div>
                                                                                         ))}
                                                                                     </div>
@@ -446,10 +452,10 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                                                                                     </div>
                                                                                 </div>
                                                                             )}
-                                                                            {data.colorNote && (
+                                                                            {data.description && (
                                                                                 <div>
-                                                                                    <p className="text-xs font-bold text-gray-500 uppercase mb-2">Color Note</p>
-                                                                                    <p className="text-sm bg-blue-50 p-2 text-blue-800 rounded">{data.colorNote}</p>
+                                                                                    <p className="text-xs font-bold text-gray-500 uppercase mb-2">Description</p>
+                                                                                    <p className="text-sm bg-white p-3 rounded border border-gray-200 text-gray-700">{data.description}</p>
                                                                                 </div>
                                                                             )}
                                                                             {/* Reference Images for Bouquet */}
