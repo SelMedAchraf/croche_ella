@@ -263,7 +263,7 @@ const Checkout = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setFormData({ ...formData, delivery_type: 'stopdesk', full_address: '' })}
+                      onClick={() => setFormData({ ...formData, delivery_type: 'stopdesk' })}
                       className={`p-4 rounded-lg border-2 transition-all ${formData.delivery_type === 'stopdesk'
                         ? 'border-primary bg-primary/10'
                         : 'border-gray-200 hover:border-gray-300'
