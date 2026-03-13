@@ -702,28 +702,17 @@ const ProductsTab = ({ products, onRefresh, setZoomedImage }) => {
                       alt="Preview"
                       className="w-full h-48 object-cover"
                     />
-                    <div className="absolute top-2 right-2 flex gap-2">
-                      <label className="bg-white/90 hover:bg-white p-2 rounded-lg cursor-pointer shadow-lg transition-all">
-                        <FiUpload />
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                          className="hidden"
-                        />
-                      </label>
-                      <button
-                        type="button"
-                        onClick={removeImage}
-                        className="bg-red-500/90 hover:bg-red-500 text-white p-2 rounded-lg shadow-lg transition-all"
-                      >
-                        <FiX />
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                    >
+                      <FiX />
+                    </button>
                   </div>
                 )}
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-3 pt-4">
                 <button
                   type="button"
                   onClick={() => {
@@ -738,14 +727,14 @@ const ProductsTab = ({ products, onRefresh, setZoomedImage }) => {
                     setImagePreview(null);
                     setDragActive(false);
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                   disabled={uploading}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 btn-primary"
+                  className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={uploading}
                 >
                   {uploading ? 'Uploading...' : editingProduct ? 'Update' : 'Create'}
@@ -1595,31 +1584,13 @@ const ItemsTab = ({ setZoomedImage }) => {
                       alt="Preview"
                       className="w-full h-48 object-cover"
                     />
-                    <label className="bg-white/90 hover:bg-white p-2 rounded-lg cursor-pointer shadow-lg transition-all flex items-center gap-1 text-sm">
-                      <FiEdit className="w-4 h-4" />
-                      <span>Change</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        className="hidden"
-                      />
-                    </label>
                     <button
                       type="button"
                       onClick={removeImage}
-                      className="bg-red-500/90 hover:bg-red-500 text-white p-2 rounded-lg shadow-lg transition-all"
+                      className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
                     >
-                      <FiTrash2 className="w-4 h-4" />
+                      <FiX />
                     </button>
-                    {selectedImage && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white px-3 py-2 text-xs">
-                        <p className="truncate">{selectedImage.name}</p>
-                        <p className="text-gray-300">
-                          {(selectedImage.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
@@ -1634,10 +1605,7 @@ const ItemsTab = ({ setZoomedImage }) => {
                   required
                 />
               </div>
-              <div className="flex gap-3">
-                <button type="submit" className="btn-primary flex-1" disabled={uploading}>
-                  {uploading ? 'Uploading...' : editingItem ? 'Update' : 'Create'}
-                </button>
+              <div className="flex gap-3 pt-4">
                 <button
                   type="button"
                   onClick={() => {
@@ -1648,10 +1616,17 @@ const ItemsTab = ({ setZoomedImage }) => {
                     setDragActive(false);
                     setFormData({ name: '', category: 'flower', image_url: '', price: '' });
                   }}
-                  className="btn-secondary flex-1"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                   disabled={uploading}
                 >
                   Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={uploading}
+                >
+                  {uploading ? 'Uploading...' : editingItem ? 'Update' : 'Create'}
                 </button>
               </div>
             </form>
