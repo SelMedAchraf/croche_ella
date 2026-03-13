@@ -201,7 +201,7 @@ const Checkout = () => {
           {t('checkout.title')}
         </motion.h1>
 
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-8">
           {/* Checkout Form */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -312,19 +312,19 @@ const Checkout = () => {
 
                 {formData.delivery_type === 'home' && (
                   <div>
-                    <label className="block text-sm font-medium text-text mb-2">
-                      Full Address *
-                    </label>
-                    <textarea
-                      name="full_address"
+                  <label className="block text-sm font-medium text-text mb-2">
+                    Full Address *
+                  </label>
+                  <textarea
+                    name="full_address"
                       value={formData.full_address}
-                      onChange={handleChange}
+                    onChange={handleChange}
                       required
-                      rows="2"
-                      className="input-field resize-none"
-                      placeholder="Street address, building, apartment number..."
-                    />
-                  </div>
+                    rows="2"
+                    className="input-field resize-none"
+                    placeholder="Street address, building, apartment number..."
+                  />
+                </div>
                 )}
 
                 <div className="border-t pt-4">

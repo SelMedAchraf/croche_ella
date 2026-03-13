@@ -31,7 +31,7 @@ const CustomOrders = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-12"
         >
-          <h1 className="text-5xl font-display font-bold text-primary mb-4">
+          <h1 className="text-4xl sm:text-5xl font-display font-bold text-primary mb-4">
             Custom Orders
           </h1>
           <p className="text-xl text-text/70 max-w-2xl mx-auto">
@@ -333,11 +333,35 @@ const CustomFlowerBouquet = ({ onBack, onPreviewImage }) => {
         <FiChevronLeft /> Back to Options
       </button>
 
-      {/* Stepper */}
-      <Stepper steps={steps} currentStep={currentStep} />
+      {/* Stepper - Mobile Specific */}
+      <div className="md:hidden flex flex-col gap-2 mb-8 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="flex justify-between items-center">
+          <span className="text-sm font-bold text-primary uppercase tracking-wider">
+            Step {currentStep} of {steps.length}
+          </span>
+          <span className="text-xs font-medium text-text/50">
+            {Math.round((currentStep / steps.length) * 100)}% Complete
+          </span>
+        </div>
+        <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${(currentStep / steps.length) * 100}%` }}
+            className="h-full bg-primary"
+          />
+        </div>
+        <div className="text-lg font-display font-bold text-text truncate">
+          {steps.find(s => s.number === currentStep)?.title}
+        </div>
+      </div>
+
+      {/* Stepper - Desktop */}
+      <div className="hidden md:block">
+        <Stepper steps={steps} currentStep={currentStep} />
+      </div>
 
       {/* Step Content */}
-      <div className="mt-8" ref={scrollRef}>
+      <div className="mt-4 md:mt-8" ref={scrollRef}>
         <AnimatePresence mode="wait">
           {currentStep === 1 && (
             <FlowerSelection
@@ -566,11 +590,35 @@ const CustomCrochetRequest = ({ onBack, onPreviewImage }) => {
         <FiChevronLeft /> Back to Options
       </button>
 
-      {/* Stepper */}
-      <Stepper steps={steps} currentStep={currentStep} />
+      {/* Stepper - Mobile Specific */}
+      <div className="md:hidden flex flex-col gap-2 mb-8 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="flex justify-between items-center">
+          <span className="text-sm font-bold text-primary uppercase tracking-wider">
+            Step {currentStep} of {steps.length}
+          </span>
+          <span className="text-xs font-medium text-text/50">
+            {Math.round((currentStep / steps.length) * 100)}% Complete
+          </span>
+        </div>
+        <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${(currentStep / steps.length) * 100}%` }}
+            className="h-full bg-primary"
+          />
+        </div>
+        <div className="text-lg font-display font-bold text-text truncate">
+          {steps.find(s => s.number === currentStep)?.title}
+        </div>
+      </div>
+
+      {/* Stepper - Desktop */}
+      <div className="hidden md:block">
+        <Stepper steps={steps} currentStep={currentStep} />
+      </div>
 
       {/* Step Content */}
-      <div className="mt-8" ref={scrollRef}>
+      <div className="mt-4 md:mt-8" ref={scrollRef}>
         <AnimatePresence mode="wait">
           {currentStep === 1 && (
             <ReferenceImagesUpload

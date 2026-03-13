@@ -129,14 +129,14 @@ const ProductDetails = () => {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-10 h-10 rounded-lg bg-white shadow-sm border border-gray-100 hover:bg-gray-50 transition-colors font-bold text-primary"
+                    className="w-12 h-12 rounded-lg bg-white shadow-sm border border-gray-100 hover:bg-gray-50 transition-colors font-bold text-primary flex items-center justify-center text-xl"
                   >
                     -
                   </button>
                   <span className="w-10 text-center font-bold text-xl">{quantity}</span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
-                    className="w-10 h-10 rounded-lg bg-white shadow-sm border border-gray-100 hover:bg-gray-50 transition-colors font-bold text-primary"
+                    className="w-12 h-12 rounded-lg bg-white shadow-sm border border-gray-100 hover:bg-gray-50 transition-colors font-bold text-primary flex items-center justify-center text-xl"
                   >
                     +
                   </button>

@@ -91,8 +91,8 @@ const Navbar = () => {
                 whileHover={{ scale: 1.05 }}
                 className="flex items-center"
               >
-                <span className="text-3xl">🧶</span>
-                <span className="ml-2 text-2xl font-display font-bold text-primary">
+                <span className="text-2xl sm:text-3xl">🧶</span>
+                <span className="ml-1.5 text-xl sm:text-2xl font-display font-bold text-primary truncate max-w-[150px] sm:max-w-none">
                   Croche Ella
                 </span>
               </motion.div>

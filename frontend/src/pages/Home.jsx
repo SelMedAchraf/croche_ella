@@ -20,7 +20,7 @@ const Home = () => {
   const fetchHomeData = async () => {
     try {
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-      
+
       const productsRes = await axios.get(`${apiUrl}/products`).catch(() => ({ data: [] }));
 
       setFeaturedProducts(productsRes.data.slice(0, 6));
@@ -35,23 +35,23 @@ const Home = () => {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative min-h-[600px] flex items-center justify-center bg-gradient-to-br from-primary/20 via-secondary to-highlight/20 overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-10 text-6xl">🧶</div>
-          <div className="absolute top-40 right-20 text-4xl">🌸</div>
-          <div className="absolute bottom-20 left-1/4 text-5xl">💐</div>
-          <div className="absolute bottom-40 right-1/3 text-3xl">👜</div>
+        <div className="absolute inset-0 opacity-10 pointer-events-none overflow-hidden">
+          <div className="absolute top-[10%] left-[5%] text-4xl sm:text-6xl">🧶</div>
+          <div className="absolute top-[30%] right-[10%] text-2xl sm:text-4xl">🌸</div>
+          <div className="absolute bottom-[20%] left-[15%] text-3xl sm:text-5xl">💐</div>
+          <div className="absolute bottom-[35%] right-[25%] text-2xl sm:text-3xl">👜</div>
         </div>
-        
+
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-5xl md:text-6xl lg:text-7xl font-display font-bold text-primary mb-6"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold text-primary mb-6 break-words"
           >
             {t('home.hero.title')}
           </motion.h1>
-          
+
           <motion.p
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -60,7 +60,7 @@ const Home = () => {
           >
             {t('home.hero.subtitle')}
           </motion.p>
-          
+
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -139,7 +139,7 @@ const Home = () => {
             <h2 className="text-4xl md:text-5xl font-display font-bold text-primary mb-6">
               Create Your Dream Design
             </h2>
-            
+
             <p className="text-lg text-text/70 mb-8 leading-relaxed">
               Bring your vision to life with our custom order services. Design your own flower bouquet or request a unique crochet piece tailored just for you.
             </p>
@@ -165,8 +165,8 @@ const Home = () => {
                 {t('home.aboutTitle')}
               </h2>
               <p className="text-text/70 mb-6 leading-relaxed">
-                Every piece is handmade with love and attention to detail. I believe in creating unique, 
-                high-quality crochet items that bring joy and warmth to your life. From delicate flowers 
+                Every piece is handmade with love and attention to detail. I believe in creating unique,
+                high-quality crochet items that bring joy and warmth to your life. From delicate flowers
                 to practical bags and charming keychains, each creation tells a story.
               </p>
               <Link to="/about" className="btn-primary inline-flex items-center">
@@ -174,7 +174,7 @@ const Home = () => {
                 <FiArrowRight className="ml-2" />
               </Link>
             </motion.div>
-            
+
             <motion.div
               initial={{ opacity: 0, x: 50 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -220,7 +220,7 @@ const ProductCard = ({ product, addToCart }) => {
           </div>
         )}
       </div>
-      
+
       <div className="p-4 flex-grow flex flex-col">
         {product.colors && product.colors.length > 0 && (
           <div className="flex gap-2 mb-3">
@@ -239,7 +239,7 @@ const ProductCard = ({ product, addToCart }) => {
             )}
           </div>
         )}
-        
+
         <div className="mt-auto">
           <div className="flex items-center justify-between mb-3">
             <span className="text-primary font-bold text-xl">
@@ -249,7 +249,7 @@ const ProductCard = ({ product, addToCart }) => {
               {product.category}
             </span>
           </div>
-          
+
           <button
             onClick={handleAddToCart}
             className="w-full py-2 rounded-lg font-medium transition-all bg-primary text-white hover:bg-highlight hover:shadow-lg"

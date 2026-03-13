@@ -103,7 +103,7 @@ const Cart = () => {
                   >
                     {!isCustomOrder ? (
                       <div
-                        className="relative group/img cursor-pointer w-28 h-28 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100"
+                        className="relative group/img cursor-pointer w-20 h-20 sm:w-28 sm:h-28 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100"
                         onClick={() => setZoomedImage(item.product_images?.[0]?.image_url)}
                       >
                         <img
@@ -116,78 +116,78 @@ const Cart = () => {
                         </div>
                       </div>
                     ) : (
-                      <div className="w-28 h-28 rounded-lg overflow-hidden flex-shrink-0 bg-primary/10 flex items-center justify-center">
+                      <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-lg overflow-hidden flex-shrink-0 bg-primary/10 flex items-center justify-center">
                         <span className="text-4xl">
                           {item.customOrderType === 'custom_bouquet' ? '💐' : '🧶'}
                         </span>
                       </div>
                     )}
 
-                    <div className="flex-grow flex flex-col justify-between min-h-[7rem]">
+                    <div className="flex-grow flex flex-col justify-between min-h-[7rem] overflow-hidden">
                       <div>
                         {!isCustomOrder ? (
                           <Link
                             to={`/products/${item.id}`}
-                            className="font-display font-semibold text-lg hover:text-primary transition-colors"
+                            className="font-display font-semibold text-base sm:text-lg hover:text-primary transition-colors line-clamp-2"
                           >
                             {item.name}
                           </Link>
                         ) : (
-                          <div className="flex items-center justify-between">
-                            <div className="font-display font-semibold text-lg">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div className="font-display font-semibold text-base sm:text-lg truncate">
                               {item.name}
-                              <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                              <span className="ml-2 text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full align-middle">
                                 Custom
                               </span>
                             </div>
                             <button
                               onClick={() => setSelectedCustomOrder(item)}
-                              className="text-sm bg-primary text-white px-3 py-2 rounded-lg hover:bg-highlight inline-flex items-center gap-1 transition-colors whitespace-nowrap"
+                              className="text-xs bg-primary text-white px-3 py-1.5 rounded-lg hover:bg-highlight inline-flex items-center gap-1 transition-colors w-fit"
                             >
-                              <FiEye className="w-4 h-4" />
+                              <FiEye className="w-3.5 h-3.5" />
                               View Details
                             </button>
                           </div>
                         )}
 
                         {item.selectedColor && !isCustomOrder && (
-                          <div className="flex items-center gap-2 mt-2">
-                            <span className="text-sm text-text/60">Color:</span>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <span className="text-xs text-text/60">Color:</span>
                             <div
-                              className="w-6 h-6 rounded-full border-2 border-gray-200"
+                              className="w-4 h-4 rounded-full border border-gray-200"
                               style={{ backgroundColor: item.selectedColor }}
                             />
                           </div>
                         )}
 
                         {!isCustomOrder && (
-                          <div className="text-sm text-text/60 mt-2">
+                          <div className="text-xs text-text/60 mt-1">
                             {item.price?.toFixed(2)} DA each
                           </div>
                         )}
 
                         {isCustomOrder && item.customData && (
-                          <p className="text-sm text-text/60 mt-1">
+                          <p className="text-xs text-text/60 mt-1 line-clamp-1">
                             {item.customOrderType === 'custom_bouquet'
-                              ? `Custom bouquet with ${Object.keys(item.customData.flowers || {}).length} flower types`
+                              ? `Custom bouquet with ${Object.keys(item.customData.flowers || {}).length} types`
                               : 'Custom crochet design'}
                           </p>
                         )}
 
                         {!isCustomOrder && (
-                          <div className="flex items-center gap-2 mt-2">
+                          <div className="flex items-center gap-1 mt-2 scale-90 origin-left">
                             <button
                               onClick={() => updateQuantity(item.id, item.selectedColor, item.quantity - 1)}
-                              className="w-8 h-8 rounded bg-gray-100 hover:bg-gray-200 transition-colors font-bold"
+                              className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors font-bold text-lg"
                             >
                               -
                             </button>
-                            <span className="w-12 text-center font-semibold">
+                            <span className="w-8 text-center font-semibold text-sm">
                               {item.quantity}
                             </span>
                             <button
                               onClick={() => updateQuantity(item.id, item.selectedColor, item.quantity + 1)}
-                              className="w-8 h-8 rounded bg-gray-100 hover:bg-gray-200 transition-colors font-bold"
+                              className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors font-bold text-lg"
                             >
                               +
                             </button>
@@ -195,8 +195,8 @@ const Cart = () => {
                         )}
                       </div>
 
-                      <div className="flex items-center justify-end gap-4">
-                        <span className="text-xl font-bold text-primary">
+                      <div className="flex items-center justify-between gap-2 mt-2">
+                        <span className="text-lg font-bold text-primary whitespace-nowrap">
                           {item.price === null
                             ? 'Price TBD'
                             : `${(item.price * (item.quantity || 1)).toFixed(2)} DA`}
@@ -205,7 +205,7 @@ const Cart = () => {
                           onClick={() => isCustomOrder
                             ? removeFromCart(null, null, item.cartItemId)
                             : removeFromCart(item.id, item.selectedColor)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors flex items-center justify-center"
                           aria-label={t('cart.remove')}
                         >
                           <FiTrash2 className="w-5 h-5" />
