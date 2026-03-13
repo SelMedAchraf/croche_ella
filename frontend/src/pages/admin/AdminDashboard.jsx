@@ -1612,50 +1612,49 @@ const ItemsTab = ({ setZoomedImage }) => {
                     >
                       <FiTrash2 className="w-4 h-4" />
                     </button>
-                  </div>
                     {selectedImage && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white px-3 py-2 text-xs">
-                    <p className="truncate">{selectedImage.name}</p>
-                    <p className="text-gray-300">
-                      {(selectedImage.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white px-3 py-2 text-xs">
+                        <p className="truncate">{selectedImage.name}</p>
+                        <p className="text-gray-300">
+                          {(selectedImage.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-                )}
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Price (DA) *</label>
-            <input
-              type="number"
-              step="0.01"
-              value={formData.price}
-              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-              className="input-field"
-              required
-            />
-          </div>
-          <div className="flex gap-3">
-            <button type="submit" className="btn-primary flex-1" disabled={uploading}>
-              {uploading ? 'Uploading...' : editingItem ? 'Update' : 'Create'}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setShowModal(false);
-                setEditingItem(null);
-                setSelectedImage(null);
-                setImagePreview(null);
-                setDragActive(false);
-                setFormData({ name: '', category: 'flower', image_url: '', price: '' });
-              }}
-              className="btn-secondary flex-1"
-              disabled={uploading}
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
+              <div>
+                <label className="block text-sm font-medium mb-1">Price (DA) *</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  className="input-field"
+                  required
+                />
+              </div>
+              <div className="flex gap-3">
+                <button type="submit" className="btn-primary flex-1" disabled={uploading}>
+                  {uploading ? 'Uploading...' : editingItem ? 'Update' : 'Create'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowModal(false);
+                    setEditingItem(null);
+                    setSelectedImage(null);
+                    setImagePreview(null);
+                    setDragActive(false);
+                    setFormData({ name: '', category: 'flower', image_url: '', price: '' });
+                  }}
+                  className="btn-secondary flex-1"
+                  disabled={uploading}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
         </div >
       )}
