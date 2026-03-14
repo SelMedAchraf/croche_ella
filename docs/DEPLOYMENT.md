@@ -29,7 +29,7 @@ Both the **Frontend** and the **Backend** of this project are designed to be dep
    - `FRONTEND_URL` = `https://croche-gamma.vercel.app` (Your actual frontend URL)
    - `SUPABASE_URL` = (Your Supabase URL)
    - `SUPABASE_SERVICE_ROLE_KEY` = (Your secret service role key)
-   - `EMAIL_USER` = `crocheella19@gmail.com`
+   - `EMAIL_USER` = `admincroche19@gmail.com`
    - `EMAIL_PASS` = (Your 16-character Google App Password)
 5. Click **Deploy**. Note your new backend URL (e.g., `https://croche-backend.vercel.app`).
 

@@ -2,16 +2,12 @@ import { supabase } from '../config/supabase';
 
 class AuthService {
   async signInWithGoogle() {
-    const redirectUrl = `${window.location.origin}/auth/callback`;
-    console.log('Redirecting to:', redirectUrl);
-    
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: redirectUrl
+        redirectTo: `${window.location.origin}/auth/callback`
       }
     });
-
 
     if (error) {
       console.error('Error signing in with Google:', error);

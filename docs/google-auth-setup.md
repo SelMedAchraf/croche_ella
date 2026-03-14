@@ -8,7 +8,7 @@ Avant que Supabase puisse authentifier les utilisateurs via Google, vous devez c
 3. Naviguez vers **API et services > Identifiants**.
 4. Cliquez sur **Configurer l'écran de consentement** (Configure Consent Screen), cliquez sur "Premier pas" (Get Started), et remplissez les détails :
    - **Nom de l'application** : `Croche Ella Auth`
-   - **E-mail d'assistance** (Support Email) : L'adresse que vos clients verront s'ils ont besoin d'aide avec la connexion (par ex. `crocheella19@gmail.com`).
+   - **E-mail d'assistance** (Support Email) : L'adresse que vos clients verront s'ils ont besoin d'aide avec la connexion (par ex. `admincroche19@gmail.com`).
    - **Audience** : Sélectionnez `Externe` (External).
    - **Coordonnées de développeur / Contact Information** : L'adresse e-mail (la vôtre ou `seloughamedachraf@gmail.com`) que Google utilisera pour envoyer des notifications techniques importantes sur le projet. *(Vos clients ne verront jamais cette adresse)*.
    - Cliquez sur **Enregistrer et continuer**.

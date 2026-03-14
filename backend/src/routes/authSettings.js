@@ -31,7 +31,7 @@ router.post('/send-code', authenticateAdmin, async (req, res) => {
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: email || 'crocheella19@gmail.com',
+      to: email || 'admincroche19@gmail.com',
       subject: 'Your Admin Password Reset Code',
       text: `Hello,\n\nYou requested to change your admin password.\nHere is your 6-digit security code: ${currentOtp}\n\nThis code will expire in 5 minutes.\n\nIf you did not request this change, please ignore this email.`
     };

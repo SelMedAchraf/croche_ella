@@ -132,7 +132,7 @@ const Footer = () => {
               </li>
               <li className="flex items-center text-text/70 text-sm">
                 <FiMail className="w-4 h-4 me-2 text-primary flex-shrink-0" />
-                crocheella19@gmail.com
+                admincroche19@gmail.com
               </li>
               <li className="flex items-start text-text/70 text-sm">
                 <FiMapPin className="w-4 h-4 me-2 mt-1 text-primary flex-shrink-0" />

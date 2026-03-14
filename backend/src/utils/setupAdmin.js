@@ -1,7 +1,7 @@
 import { supabase } from '../config/supabase.js';
 
 export const setupAdminUser = async () => {
-  const adminEmail = 'crocheella19@gmail.com';
+  const adminEmail = 'admincroche19@gmail.com';
   const adminPassword = 'adminella19';
 
   try {

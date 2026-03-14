@@ -17,7 +17,7 @@ export const authenticateAdmin = async (req, res, next) => {
     }
 
     // Admin users only
-    const isAdmin = user.app_metadata?.is_admin || user.user_metadata?.is_admin || user.email === 'crocheella19@gmail.com';
+    const isAdmin = user.app_metadata?.is_admin || user.user_metadata?.is_admin || user.email === 'admincroche19@gmail.com';
     if (!isAdmin) {
       return res.status(403).json({ error: 'Forbidden. Admin access only.' });
     }

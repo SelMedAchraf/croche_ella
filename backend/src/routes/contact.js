@@ -30,7 +30,7 @@ router.post('/', async (req, res) => {
     // Setup email options
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: 'crocheella19@gmail.com', // The destination email
+      to: 'admincroche19@gmail.com', // The destination email
       subject: 'New message from website contact form',
       text: `Name: ${name}\n\nEmail: ${email}\n\nMessage:\n${message}\n\nDate: ${new Date().toLocaleString()}`
     };

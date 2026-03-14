@@ -19,8 +19,8 @@ export default defineConfig({
             if (id.includes('node_modules')) {
               if (id.includes('framer-motion')) return 'vendor-framer';
               if (id.includes('react-icons')) return 'vendor-icons';
+              if (id.includes('@supabase')) return 'vendor-supabase';
               if (id.includes('axios')) return 'vendor-axios';
-
               if (id.includes('i18next')) return 'vendor-i18n';
               if (id.includes('sonner')) return 'vendor-ui';
               if (id.includes('react-router')) return 'vendor-router';

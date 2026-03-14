@@ -74,7 +74,7 @@ export const sendNewOrderNotification = async (order) => {
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
-    to: 'crocheella19@gmail.com',
+    to: 'admincroche19@gmail.com',
     subject: 'New Order Received – Crochet Ella Website',
     text: `
 =========================================
@@ -166,7 +166,7 @@ export const sendOrderCancelledNotification = async (order) => {
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
-    to: 'crocheella19@gmail.com',
+    to: 'admincroche19@gmail.com',
     subject: 'Order Cancelled by Customer – Crochet Ella',
     text: `
 =========================================
@@ -207,7 +207,7 @@ export const sendCancelRequestNotification = async (order) => {
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
-    to: 'crocheella19@gmail.com',
+    to: 'admincroche19@gmail.com',
     subject: 'Customer Cancellation Request – Crochet Ella',
     text: `
 =========================================

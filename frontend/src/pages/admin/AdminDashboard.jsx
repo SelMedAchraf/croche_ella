@@ -48,7 +48,7 @@ const AdminDashboard = () => {
       } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         const isAdmin = session.user?.app_metadata?.is_admin ||
           session.user?.user_metadata?.is_admin ||
-          session.user?.email === 'crocheella19@gmail.com';
+          session.user?.email === 'admincroche19@gmail.com';
         if (!isAdmin) {
           navigate('/');
         }
@@ -67,7 +67,7 @@ const AdminDashboard = () => {
       navigate('/');
       return;
     }
-    const isAdmin = session.user?.app_metadata?.is_admin || session.user?.user_metadata?.is_admin || session.user?.email === 'crocheella19@gmail.com';
+    const isAdmin = session.user?.app_metadata?.is_admin || session.user?.user_metadata?.is_admin || session.user?.email === 'admincroche19@gmail.com';
     if (!isAdmin) {
       alert('Access Denied. You are logged in with a Customer Account, not an Admin account.');
       navigate('/');
@@ -85,7 +85,7 @@ const AdminDashboard = () => {
         return;
       }
 
-      const isAdmin = session.user?.app_metadata?.is_admin || session.user?.user_metadata?.is_admin || session.user?.email === 'crocheella19@gmail.com';
+      const isAdmin = session.user?.app_metadata?.is_admin || session.user?.user_metadata?.is_admin || session.user?.email === 'admincroche19@gmail.com';
       if (!isAdmin) {
         navigate('/');
         return;
