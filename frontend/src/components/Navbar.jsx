@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, memo } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -6,9 +6,9 @@ import { FiShoppingCart, FiMenu, FiX, FiLogOut, FiUser, FiShoppingBag } from 're
 import { useCart } from '../context/CartContext';
 import { authService } from '../services/authService';
 import { FcGoogle } from 'react-icons/fc';
-import LanguageSwitcher, { LANGUAGES } from './LanguageSwitcher';
+import LanguageSwitcher from './LanguageSwitcher';
 
-const Navbar = memo(() => {
+const Navbar = () => {
   const { t, i18n } = useTranslation();
   const { getCartCount } = useCart();
   const location = useLocation();
@@ -50,37 +50,33 @@ const Navbar = memo(() => {
     };
   }, [isMenuOpen]);
 
-  const handleLogin = useCallback(async () => {
+  const handleLogin = async () => {
     try {
       localStorage.setItem('returnToAfterLogin', window.location.pathname);
       await authService.signInWithGoogle();
     } catch (error) {
       console.error('Failed to login:', error);
     }
-  }, []);
+  };
 
-  const handleLogout = useCallback(async () => {
+  const handleLogout = async () => {
     try {
       await authService.signOut();
     } catch (error) {
       console.error('Failed to logout:', error);
     }
-  }, []);
+  };
 
-  const isAdmin = useMemo(() =>
-    user && (user.app_metadata?.is_admin || user.user_metadata?.is_admin || user.email === 'crocheella19@gmail.com'),
-    [user]);
+  const isAdmin = user && (user.app_metadata?.is_admin || user.user_metadata?.is_admin || user.email === 'crocheella19@gmail.com');
 
-  const navLinks = useMemo(() => [
+  const navLinks = [
     { path: '/', label: t('nav.home') },
     { path: '/products', label: t('nav.products') },
     { path: '/custom-orders', label: t('nav.customOrders') },
     { path: '/about', label: t('nav.about') },
     { path: '/contact', label: t('nav.contact') },
     ...(isAdmin ? [{ path: '/admin/dashboard', label: t('nav.dashboard') }] : [])
-  ], [t, isAdmin]);
-
-  const cartCount = getCartCount();
+  ];
 
   return (
     <>
@@ -142,16 +138,15 @@ const Navbar = memo(() => {
               <Link
                 to="/cart"
                 className="relative p-2 rounded-full hover:bg-gray-100 transition-colors"
-                title={t('nav.cart')}
               >
                 <FiShoppingCart className="w-6 h-6 text-text" />
-                {cartCount > 0 && (
+                {getCartCount() > 0 && (
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     className="absolute -top-1 -right-1 bg-primary text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-medium"
                   >
-                    {cartCount}
+                    {getCartCount()}
                   </motion.span>
                 )}
               </Link>
@@ -162,7 +157,7 @@ const Navbar = memo(() => {
                   <div className="relative group">
                     <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1.5 rounded-xl transition-colors border border-transparent hover:border-gray-100">
                       {user.user_metadata?.avatar_url ? (
-                        <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-8 h-8 rounded-full object-cover shadow-sm" loading="lazy" />
+                        <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-8 h-8 rounded-full object-cover shadow-sm" />
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shadow-sm">
                           <FiUser />
@@ -264,7 +259,11 @@ const Navbar = memo(() => {
                     {t('language.switchLanguage')}
                   </p>
                   <div className="grid grid-cols-3 gap-2" style={{ direction: 'ltr' }}>
-                    {LANGUAGES.map((lang) => {
+                    {[
+                      { code: 'en', flag: '🇬🇧', label: 'English' },
+                      { code: 'fr', flag: '🇫🇷', label: 'Français' },
+                      { code: 'ar', flag: '��', label: 'العربية' },
+                    ].map((lang) => {
                       const isActive = i18n.language === lang.code;
                       return (
                         <button
@@ -279,7 +278,7 @@ const Navbar = memo(() => {
                             }`}
                         >
                           <span className="text-xl leading-none">{lang.flag}</span>
-                          <span className="leading-none">{lang.full}</span>
+                          <span className="leading-none">{lang.label}</span>
                         </button>
                       );
                     })}
@@ -292,7 +291,7 @@ const Navbar = memo(() => {
                       {/* User Profile Info Header */}
                       <div className="flex items-center gap-3 px-4 py-3 mb-2 bg-gray-50 rounded-xl">
                         {user.user_metadata?.avatar_url ? (
-                          <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-white shadow-sm" loading="lazy" />
+                          <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-white shadow-sm" />
                         ) : (
                           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary border-2 border-white shadow-sm">
                             <FiUser className="w-5 h-5" />
@@ -352,8 +351,6 @@ const Navbar = memo(() => {
       </nav>
     </>
   );
-});
-
-Navbar.displayName = 'Navbar';
+};
 
 export default Navbar;

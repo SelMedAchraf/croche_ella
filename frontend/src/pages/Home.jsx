@@ -6,7 +6,6 @@ import { FiArrowRight, FiHeart } from 'react-icons/fi';
 import axios from 'axios';
 import { useCart } from '../context/CartContext';
 import ellaImage from '../assets/ella.jpg';
-import ProductCard from '../components/ProductCard';
 
 const Home = () => {
   const { t, i18n } = useTranslation();
@@ -43,25 +42,28 @@ const Home = () => {
         </div>
 
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-          <h1
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold text-primary mb-6 break-words min-h-[1.5em]"
-          >
-            {t('home.hero.title')}
-          </h1>
-
-          <motion.p
+          <motion.h1
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8 }}
-            className="text-xl md:text-2xl text-text/70 mb-8 min-h-[2.5em]"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold text-primary mb-6 break-words min-h-[1.5em]"
+          >
+            {t('home.hero.title')}
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-xl md:text-2xl text-text/70 mb-8"
           >
             {t('home.hero.subtitle')}
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <Link to="/products" className="btn-primary inline-flex items-center justify-center gap-2">
@@ -85,7 +87,7 @@ const Home = () => {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-4xl font-display font-bold text-primary mb-4 break-words min-h-[1.2em]">
+            <h2 className="text-4xl font-display font-bold text-primary mb-4 break-words">
               {t('home.featured')}
             </h2>
             <div className="w-20 h-1 bg-highlight mx-auto rounded-full"></div>
@@ -191,6 +193,76 @@ const Home = () => {
         </div>
       </section>
     </div>
+  );
+};
+
+// Product Card Component
+const ProductCard = ({ product, addToCart }) => {
+  const { t } = useTranslation();
+  const productImage = product.product_images?.[0]?.image_url;
+
+  const handleAddToCart = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addToCart(product, 1);
+  };
+
+  return (
+    <Link to={`/products/${product.id}`} className="card group h-full flex flex-col">
+      <div className="relative h-48 sm:h-72 overflow-hidden">
+        <img
+          src={productImage}
+          alt="Product"
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+          width="400"
+          height="300"
+          loading="lazy"
+        />
+        {product.tags && product.tags.includes('new') && (
+          <div className="absolute top-3 end-3 bg-highlight text-white px-3 py-1 rounded-full text-xs font-semibold">
+            {t('products.new')}
+          </div>
+        )}
+      </div>
+
+      <div className="p-4 flex-grow flex flex-col">
+        {product.colors && product.colors.length > 0 && (
+          <div className="flex gap-2 mb-3">
+            {product.colors.slice(0, 5).map((color, index) => (
+              <div
+                key={index}
+                className="w-6 h-6 rounded-full border-2 border-gray-200"
+                style={{ backgroundColor: color }}
+                title={color}
+              />
+            ))}
+            {product.colors.length > 5 && (
+              <span className="text-xs text-text/60 self-center">
+                +{product.colors.length - 5}
+              </span>
+            )}
+          </div>
+        )}
+
+        <div className="mt-auto">
+          <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-2 sm:gap-0 mb-3 text-center sm:text-start">
+            <span className="text-xs text-text/60 bg-gray-100 px-2 py-1 rounded-full order-1 sm:order-2">
+              {product.category}
+            </span>
+            <span className="text-primary font-bold text-xl order-2 sm:order-1">
+              {product.price} {t('common.da')}
+            </span>
+          </div>
+
+          <button
+            onClick={handleAddToCart}
+            className="w-full py-2 rounded-lg font-medium transition-all bg-primary text-white hover:bg-highlight hover:shadow-lg"
+          >
+            {t('products.addToCart')}
+          </button>
+        </div>
+      </div>
+    </Link>
   );
 };
 

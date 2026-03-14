@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -8,17 +8,22 @@ export const LANGUAGES = [
     { code: 'ar', label: 'AR', full: 'العربية', flag: '🇸🇦' },
 ];
 
-const LanguageSwitcher = ({ compact = false }) => {
+const LanguageSwitcher = memo(({ compact = false }) => {
     const { i18n } = useTranslation();
     const [open, setOpen] = useState(false);
     const ref = useRef(null);
 
-    const current = LANGUAGES.find((l) => l.code === i18n.language) || LANGUAGES[0];
+    // Optimization: Memoize current language selection
+    const current = useMemo(() =>
+        LANGUAGES.find((l) => l.code === i18n.language) || LANGUAGES[0],
+        [i18n.language]
+    );
 
-    const handleChange = (code) => {
+    // Optimization: Use useCallback for change handler
+    const handleChange = useCallback((code) => {
         i18n.changeLanguage(code);
         setOpen(false);
-    };
+    }, [i18n]);
 
     // Close on outside click
     useEffect(() => {
@@ -35,10 +40,11 @@ const LanguageSwitcher = ({ compact = false }) => {
         <div ref={ref} className="relative" style={{ direction: 'ltr' }}>
             <button
                 onClick={() => setOpen((v) => !v)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 shadow-sm w-[72px] justify-center"
+                // Optimization: Added h-[38px] and fixed w-[72px] to prevent layout shifts
+                className="flex items-center gap-1.5 px-3 py-1.5 h-[38px] rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 shadow-sm w-[72px] justify-center"
                 aria-label="Switch language"
             >
-                <span>{current.flag}</span>
+                <span className="w-4 h-4 flex items-center justify-center">{current.flag}</span>
                 <span className="font-bold">{current.label}</span>
                 <svg
                     className={`w-3.5 h-3.5 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`}
@@ -68,7 +74,7 @@ const LanguageSwitcher = ({ compact = false }) => {
                                     : 'text-gray-700'
                                     }`}
                             >
-                                <span>{lang.flag}</span>
+                                <span className="w-4 h-4 flex items-center justify-center">{lang.flag}</span>
                                 <span>{lang.full}</span>
                                 {i18n.language === lang.code && (
                                     <span className="ml-auto text-primary">✓</span>
@@ -80,6 +86,8 @@ const LanguageSwitcher = ({ compact = false }) => {
             </AnimatePresence>
         </div>
     );
-};
+});
+
+LanguageSwitcher.displayName = 'LanguageSwitcher';
 
 export default LanguageSwitcher;
