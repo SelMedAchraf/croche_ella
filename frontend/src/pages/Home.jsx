@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
 import { FiArrowRight, FiHeart } from 'react-icons/fi';
 import axios from 'axios';
 import { useCart } from '../context/CartContext';
@@ -42,29 +41,21 @@ const Home = () => {
         </div>
 
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-          <motion.h1
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold text-primary mb-6 break-words min-h-[1.5em]"
+          {/* LCP element — no JS animation library, pure CSS for instant paint */}
+          <h1
+            className="hero-fade-in text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold text-primary mb-6 break-words min-h-[1.5em]"
           >
             {t('home.hero.title')}
-          </motion.h1>
+          </h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-xl md:text-2xl text-text/70 mb-8"
+          <p
+            className="hero-fade-in animation-delay-200 text-xl md:text-2xl text-text/70 mb-8"
           >
             {t('home.hero.subtitle')}
-          </motion.p>
+          </p>
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
+          <div
+            className="hero-fade-in animation-delay-400 flex flex-col sm:flex-row gap-4 justify-center"
           >
             <Link to="/products" className="btn-primary inline-flex items-center justify-center gap-2">
               {t('home.hero.shopNow')}
@@ -74,7 +65,7 @@ const Home = () => {
               {t('home.hero.customOrder')}
               <FiHeart />
             </Link>
-          </motion.div>
+          </div>
         </div>
       </section>
 

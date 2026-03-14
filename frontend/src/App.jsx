@@ -7,8 +7,10 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
 
-// Lazy load pages for performance
-const Home = lazy(() => import('./pages/Home'));
+// Home is eagerly imported — it's the LCP page, lazy-loading it adds ~7s Render Delay.
+// All other pages remain lazy since they're not on the critical paint path.
+import Home from './pages/Home';
+
 const Products = lazy(() => import('./pages/Products'));
 const ProductDetails = lazy(() => import('./pages/ProductDetails'));
 const CustomOrders = lazy(() => import('./pages/CustomOrders'));
