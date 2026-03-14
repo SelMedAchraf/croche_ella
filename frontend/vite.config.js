@@ -21,7 +21,10 @@ export default defineConfig({
               if (id.includes('react-icons')) return 'vendor-icons';
               if (id.includes('@supabase')) return 'vendor-supabase';
               if (id.includes('axios')) return 'vendor-axios';
-              return 'vendor-core'; // react, react-dom, router
+              if (id.includes('i18next')) return 'vendor-i18n';
+              if (id.includes('sonner')) return 'vendor-ui';
+              if (id.includes('react-router')) return 'vendor-router';
+              return 'vendor-react'; // react, react-dom
             }
           }
       },

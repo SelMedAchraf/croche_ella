@@ -1,25 +1,21 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
-
-// Direct imports to eliminate network fetch delay (Render Delay in Lighthouse)
-import enTranslation from './en.json';
-import frTranslation from './fr.json';
-import arTranslation from './ar.json';
-
-const resources = {
-  en: { translation: enTranslation },
-  fr: { translation: frTranslation },
-  ar: { translation: arTranslation },
-};
+import HttpBackend from 'i18next-http-backend';
 
 i18n
+  .use(HttpBackend) // Load translations from /public/locales
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    resources,
     fallbackLng: 'en',
     supportedLngs: ['en', 'fr', 'ar'],
+    
+    // Path to the translation files
+    backend: {
+      loadPath: '/locales/{{lng}}/translation.json',
+    },
+
     interpolation: {
       escapeValue: false,
     },
@@ -27,8 +23,10 @@ i18n
       order: ['localStorage', 'navigator', 'htmlTag'],
       caches: ['localStorage'],
       lookupLocalStorage: 'i18nextLng',
+      order: ['localStorage', 'htmlTag', 'cookie', 'navigator'],
     },
   });
+
 
 // Apply RTL direction on init
 const applyDirection = (lang) => {
