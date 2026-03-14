@@ -44,24 +44,24 @@ const Home = () => {
 
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
           <h1
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold text-primary mb-6 break-words"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold text-primary mb-6 break-words min-h-[1.5em]"
           >
             {t('home.hero.title')}
           </h1>
 
           <motion.p
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-xl md:text-2xl text-text/70 mb-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            className="text-xl md:text-2xl text-text/70 mb-8 min-h-[2.5em]"
           >
             {t('home.hero.subtitle')}
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <Link to="/products" className="btn-primary inline-flex items-center justify-center gap-2">
@@ -85,7 +85,7 @@ const Home = () => {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-4xl font-display font-bold text-primary mb-4 break-words">
+            <h2 className="text-4xl font-display font-bold text-primary mb-4 break-words min-h-[1.2em]">
               {t('home.featured')}
             </h2>
             <div className="w-20 h-1 bg-highlight mx-auto rounded-full"></div>
@@ -125,7 +125,7 @@ const Home = () => {
       </section>
 
       {/* Custom Orders Section */}
-      <section className="section-padding bg-gradient-to-br from-accent/30 via-accent/20 to-accent/10 section-optimization">
+      <section className="section-padding bg-gradient-to-br from-accent/30 via-accent/20 to-accent/10">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -150,7 +150,7 @@ const Home = () => {
       </section>
 
       {/* About Preview */}
-      <section className="section-padding bg-gradient-to-br from-highlight/20 via-highlight/10 to-white overflow-hidden section-optimization">
+      <section className="section-padding bg-gradient-to-br from-highlight/20 via-highlight/10 to-white overflow-hidden">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <motion.div

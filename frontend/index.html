@@ -11,12 +11,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://xqflfxplxcxwiftsdccv.supabase.co">
-  <link rel="preconnect" href="http://localhost:5000"> <!-- Local for dev, will be ignored in prod if changed -->
 
-  <!-- Optimized Font Loading -->
-  <link
+  <link rel="preload" as="style"
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap">
+  <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet">
+    media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap">
+  </noscript>
 </head>
 
 <body>
