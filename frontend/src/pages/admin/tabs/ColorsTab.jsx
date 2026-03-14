@@ -313,12 +313,36 @@ const ColorsTab = () => {
                                         Color Image *
                                     </label>
 
-                                    {imagePreview ? (
-                                        <div className="relative">
+                                    {!imagePreview ? (
+                                        <div
+                                            className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
+                                                ? 'border-primary bg-primary/5'
+                                                : 'border-gray-300 hover:border-primary/50'
+                                                }`}
+                                            onDragEnter={handleDrag}
+                                            onDragLeave={handleDrag}
+                                            onDragOver={handleDrag}
+                                            onDrop={handleDrop}
+                                        >
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleImageChange}
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                required={!editingColor}
+                                            />
+                                            <FiUpload className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                                            <p className="text-gray-600 mb-1 font-medium">
+                                                Drop your image here, or <span className="text-primary">browse</span>
+                                            </p>
+                                            <p className="text-sm text-gray-400">Supports: JPG, PNG, GIF</p>
+                                        </div>
+                                    ) : (
+                                        <div className="relative rounded-lg overflow-hidden border-2 border-gray-200">
                                             <img
                                                 src={imagePreview}
                                                 alt="Preview"
-                                                className="w-full h-48 object-cover rounded-lg border-2 border-gray-200"
+                                                className="w-full h-48 object-cover"
                                             />
                                             <button
                                                 type="button"
@@ -327,35 +351,6 @@ const ColorsTab = () => {
                                             >
                                                 <FiX />
                                             </button>
-                                        </div>
-                                    ) : (
-                                        <div
-                                            onDragEnter={handleDrag}
-                                            onDragLeave={handleDrag}
-                                            onDragOver={handleDrag}
-                                            onDrop={handleDrop}
-                                            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
-                                                ? 'border-primary bg-primary/5'
-                                                : 'border-gray-300 hover:border-primary'
-                                                }`}
-                                        >
-                                            <FiUpload className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                                            <p className="text-sm text-text/60 mb-2">
-                                                Drag and drop an image here, or click to select
-                                            </p>
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={handleImageChange}
-                                                className="hidden"
-                                                id="color-image-upload"
-                                            />
-                                            <label
-                                                htmlFor="color-image-upload"
-                                                className="btn-primary inline-block cursor-pointer"
-                                            >
-                                                Select Image
-                                            </label>
                                         </div>
                                     )}
                                 </div>
