@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
@@ -16,14 +16,19 @@ export const CartProvider = ({ children }) => {
   const { t } = useTranslation();
   const [cartItems, setCartItems] = useState(() => {
     const savedCart = localStorage.getItem('crocheCart');
-    return savedCart ? JSON.parse(savedCart) : [];
+    try {
+      return savedCart ? JSON.parse(savedCart) : [];
+    } catch (e) {
+      console.error('Error parsing cart from localStorage', e);
+      return [];
+    }
   });
 
   useEffect(() => {
     localStorage.setItem('crocheCart', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  const addToCart = (product, quantity = 1, selectedColor = null) => {
+  const addToCart = useCallback((product, quantity = 1, selectedColor = null) => {
     setCartItems(prevItems => {
       // Handle custom orders (they always get added as new items)
       if (product.isCustomOrder) {
@@ -57,9 +62,9 @@ export const CartProvider = ({ children }) => {
         : t('cart.itemAdded'),
       duration: 3000,
     });
-  };
+  }, [t]);
 
-  const removeFromCart = (productId, selectedColor, cartItemId = null) => {
+  const removeFromCart = useCallback((productId, selectedColor, cartItemId = null) => {
     setCartItems(prevItems =>
       prevItems.filter(
         item => {
@@ -72,9 +77,9 @@ export const CartProvider = ({ children }) => {
         }
       )
     );
-  };
+  }, []);
 
-  const updateQuantity = (productId, selectedColor, quantity, cartItemId = null) => {
+  const updateQuantity = useCallback((productId, selectedColor, quantity, cartItemId = null) => {
     if (quantity <= 0) {
       removeFromCart(productId, selectedColor, cartItemId);
       return;
@@ -93,37 +98,38 @@ export const CartProvider = ({ children }) => {
         return item;
       })
     );
-  };
+  }, [removeFromCart]);
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     setCartItems([]);
-  };
+  }, []);
 
-  const getCartTotal = () => {
+  const getCartTotal = useCallback(() => {
     return cartItems.reduce((total, item) => {
       // Skip items with null prices (custom crochet requests)
       if (item.price === null) return total;
       return total + item.price * (item.quantity || 1);
     }, 0);
-  };
+  }, [cartItems]);
 
-  const getCartCount = () => {
+  const getCartCount = useCallback(() => {
     return cartItems.reduce((count, item) => count + item.quantity, 0);
-  };
+  }, [cartItems]);
+
+  const value = useMemo(() => ({
+    cartItems,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    getCartTotal,
+    getCartCount
+  }), [cartItems, addToCart, removeFromCart, updateQuantity, clearCart, getCartTotal, getCartCount]);
 
   return (
-    <CartContext.Provider
-      value={{
-        cartItems,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
-        getCartTotal,
-        getCartCount
-      }}
-    >
+    <CartContext.Provider value={value}>
       {children}
     </CartContext.Provider>
   );
 };
+

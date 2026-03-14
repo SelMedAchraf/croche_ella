@@ -1,22 +1,20 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
-
-import en from './en.json';
-import fr from './fr.json';
-import ar from './ar.json';
+import HttpBackend from 'i18next-http-backend';
 
 i18n
+  .use(HttpBackend)
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    resources: {
-      en: { translation: en },
-      fr: { translation: fr },
-      ar: { translation: ar },
-    },
     fallbackLng: 'en',
     supportedLngs: ['en', 'fr', 'ar'],
+    ns: ['translation'],
+    defaultNS: 'translation',
+    backend: {
+      loadPath: '/locales/{{lng}}/{{ns}}.json',
+    },
     detection: {
       order: ['localStorage', 'navigator', 'htmlTag'],
       caches: ['localStorage'],
@@ -25,6 +23,8 @@ i18n
     interpolation: {
       escapeValue: false,
     },
+    // Optimization: only load missing keys from specific languages
+    load: 'languageOnly',
   });
 
 // Apply RTL direction on init

@@ -1,3 +1,4 @@
+import { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { Toaster } from 'sonner';
@@ -5,20 +6,27 @@ import './i18n/config';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
-import Home from './pages/Home';
-import Products from './pages/Products';
-import ProductDetails from './pages/ProductDetails';
-import CustomOrders from './pages/CustomOrders';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import Cart from './pages/Cart';
-import Checkout from './pages/Checkout';
-import MyOrders from './pages/MyOrders';
-import AuthCallback from './pages/AuthCallback';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import AccountSettings from './pages/AccountSettings';
 
-import { useEffect } from 'react';
+// Lazy load pages for performance
+const Home = lazy(() => import('./pages/Home'));
+const Products = lazy(() => import('./pages/Products'));
+const ProductDetails = lazy(() => import('./pages/ProductDetails'));
+const CustomOrders = lazy(() => import('./pages/CustomOrders'));
+const About = lazy(() => import('./pages/About'));
+const Contact = lazy(() => import('./pages/Contact'));
+const Cart = lazy(() => import('./pages/Cart'));
+const Checkout = lazy(() => import('./pages/Checkout'));
+const MyOrders = lazy(() => import('./pages/MyOrders'));
+const AuthCallback = lazy(() => import('./pages/AuthCallback'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const AccountSettings = lazy(() => import('./pages/AccountSettings'));
+
+// Professional Loading Component
+const PageLoading = () => (
+  <div className="min-h-[60vh] flex flex-col items-center justify-center">
+    <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+  </div>
+);
 
 function AppContent() {
   const location = useLocation();
@@ -32,21 +40,23 @@ function AppContent() {
     <div className="min-h-screen flex flex-col bg-secondary">
       {!isAdminRoute && <Navbar />}
       <main className={`flex-grow ${!isAdminRoute ? 'pt-20' : ''}`}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/products/:id" element={<ProductDetails />} />
-          <Route path="/custom-orders" element={<CustomOrders />} />
-          <Route path="/about" element={<About />} />
+        <Suspense fallback={<PageLoading />}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/products/:id" element={<ProductDetails />} />
+            <Route path="/custom-orders" element={<CustomOrders />} />
+            <Route path="/about" element={<About />} />
 
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/my-orders" element={<MyOrders />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/account" element={<AccountSettings />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        </Routes>
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/my-orders" element={<MyOrders />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/account" element={<AccountSettings />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          </Routes>
+        </Suspense>
       </main>
       {!isAdminRoute && <Footer />}
       {!isAdminRoute && <ScrollToTop />}
