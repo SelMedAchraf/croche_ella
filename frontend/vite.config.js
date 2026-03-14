@@ -16,14 +16,14 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('framer-motion')) return 'vendor-framer';
-            if (id.includes('react-icons')) return 'vendor-icons';
-            if (id.includes('@supabase')) return 'vendor-supabase';
-            if (id.includes('axios')) return 'vendor-axios';
-            return 'vendor-core'; // react, react-dom, router
+            if (id.includes('node_modules')) {
+              if (id.includes('framer-motion')) return 'vendor-framer';
+              if (id.includes('react-icons')) return 'vendor-icons';
+              if (id.includes('@supabase')) return 'vendor-supabase';
+              if (id.includes('axios')) return 'vendor-axios';
+              return 'vendor-core'; // react, react-dom, router
+            }
           }
-        },
       },
     },
   },
