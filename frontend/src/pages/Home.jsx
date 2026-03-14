@@ -43,14 +43,11 @@ const Home = () => {
         </div>
 
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+          <h1
             className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold text-primary mb-6 break-words"
           >
             {t('home.hero.title')}
-          </motion.h1>
+          </h1>
 
           <motion.p
             initial={{ opacity: 0, y: 30 }}
@@ -128,7 +125,7 @@ const Home = () => {
       </section>
 
       {/* Custom Orders Section */}
-      <section className="section-padding bg-gradient-to-br from-accent/30 via-accent/20 to-accent/10">
+      <section className="section-padding bg-gradient-to-br from-accent/30 via-accent/20 to-accent/10 section-optimization">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -153,7 +150,7 @@ const Home = () => {
       </section>
 
       {/* About Preview */}
-      <section className="section-padding bg-gradient-to-br from-highlight/20 via-highlight/10 to-white overflow-hidden">
+      <section className="section-padding bg-gradient-to-br from-highlight/20 via-highlight/10 to-white overflow-hidden section-optimization">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <motion.div
@@ -185,6 +182,9 @@ const Home = () => {
                 src={ellaImage}
                 alt="Crochet artist at work"
                 className="w-full h-full object-cover"
+                width="600"
+                height="400"
+                loading="lazy"
               />
             </motion.div>
           </div>

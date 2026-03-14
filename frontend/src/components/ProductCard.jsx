@@ -17,9 +17,11 @@ const ProductCard = memo(({ product, addToCart }) => {
             <div className="relative h-48 sm:h-72 overflow-hidden">
                 <img
                     src={productImage}
-                    alt="Product"
+                    alt={product.name_en || product.name || "Product"}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     loading="lazy"
+                    width="400"
+                    height="400"
                 />
                 {product.tags && product.tags.includes('new') && (
                     <div className="absolute top-3 end-3 bg-highlight text-white px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
