@@ -8,20 +8,22 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-utils': ['axios', 'sonner', 'i18next', 'react-i18next'],
-          'vendor-supabase': ['@supabase/supabase-js'],
-          'vendor-ui': ['framer-motion', 'react-icons'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            // Group heavy UI library
+            if (id.includes('framer-motion')) {
+              return 'vendor-motion';
+            }
+            // Group Supabase
+            if (id.includes('@supabase')) {
+              return 'vendor-supabase';
+            }
+            // Standard vendor chunk for others
+            return 'vendor';
+          }
         },
-      },
-    },
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
       },
     },
   },
 })
+
