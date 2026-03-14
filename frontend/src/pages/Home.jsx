@@ -77,7 +77,7 @@ const Home = () => {
       </section>
 
       {/* Featured Products */}
-      <section className="section-padding bg-white">
+      <section className="section-padding bg-white min-h-[600px]">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
