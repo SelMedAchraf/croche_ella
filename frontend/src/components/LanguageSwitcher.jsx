@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback, memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence } from 'framer-motion';
+
 
 export const LANGUAGES = [
     { code: 'en', label: 'EN', full: 'English', flag: '🇬🇧' },
@@ -56,34 +56,29 @@ const LanguageSwitcher = memo(({ compact = false }) => {
                 </svg>
             </button>
 
-            <AnimatePresence>
-                {open && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -6, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -6, scale: 0.95 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute top-full mt-1.5 right-0 bg-white border border-gray-100 rounded-xl shadow-xl z-50 min-w-[140px] py-1 overflow-hidden"
-                    >
-                        {LANGUAGES.map((lang) => (
-                            <button
-                                key={lang.code}
-                                onClick={() => handleChange(lang.code)}
-                                className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors hover:bg-primary/5 hover:text-primary ${i18n.language === lang.code
-                                    ? 'bg-primary/5 text-primary font-semibold'
-                                    : 'text-gray-700'
-                                    }`}
-                            >
-                                <span className="w-4 h-4 flex items-center justify-center">{lang.flag}</span>
-                                <span>{lang.full}</span>
-                                {i18n.language === lang.code && (
-                                    <span className="ml-auto text-primary">✓</span>
-                                )}
-                            </button>
-                        ))}
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            {open && (
+                <div
+                    className="absolute top-full mt-1.5 right-0 bg-white border border-gray-100 rounded-xl shadow-xl z-50 min-w-[140px] py-1 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150"
+                >
+                    {LANGUAGES.map((lang) => (
+                        <button
+                            key={lang.code}
+                            onClick={() => handleChange(lang.code)}
+                            className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors hover:bg-primary/5 hover:text-primary ${i18n.language === lang.code
+                                ? 'bg-primary/5 text-primary font-semibold'
+                                : 'text-gray-700'
+                                }`}
+                        >
+                            <span className="w-4 h-4 flex items-center justify-center">{lang.flag}</span>
+                            <span>{lang.full}</span>
+                            {i18n.language === lang.code && (
+                                <span className="ml-auto text-primary">✓</span>
+                            )}
+                        </button>
+                    ))}
+                </div>
+            )}
+
         </div>
     );
 });

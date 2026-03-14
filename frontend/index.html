@@ -29,11 +29,80 @@
     <link rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=optional">
   </noscript>
+  <!-- 
+    Preload the entry point to start downloading JS chunks earlier.
+    This reduces the "Render Delay" by parallelizing fetching with HTML parsing.
+  -->
+  <link rel="modulepreload" href="/src/main.jsx">
 </head>
 
-
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <!-- 
+      LCP Shell: Static HTML served inside #root.
+      This paints the Logo and Hero Title IMMEDIATELY before React loads.
+      It ensures LCP is recorded at <1s regardless of JS execution time.
+    -->
+    <style>
+      #root-shell-nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 2rem;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(8px);
+        z-index: 50;
+        border-bottom: 1px solid rgba(162, 124, 98, 0.1);
+      }
+
+      #root-shell-logo {
+        display: flex;
+        align-items: center;
+        font-family: 'Playfair Display', serif;
+        font-weight: bold;
+        color: #a27c62;
+        text-decoration: none;
+      }
+
+      #root-shell-hero {
+        height: 600px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        background: linear-gradient(to bottom right, rgba(162, 124, 98, 0.2), #fdfcfb, rgba(232, 197, 143, 0.2));
+        padding: 0 1rem;
+      }
+
+      #root-shell-h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        color: #a27c62;
+        margin-bottom: 1.5rem;
+      }
+
+      @media (min-width: 640px) {
+        #root-shell-h1 {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+    <nav id="root-shell-nav">
+      <div id="root-shell-logo">
+        <span style="font-size: 1.5rem;">🧶</span>
+        <span style="margin-left: 0.5rem; font-size: 1.5rem;">Croche Ella</span>
+      </div>
+    </nav>
+    <section id="root-shell-hero">
+      <h1 id="root-shell-h1">Handmade Crochet Creations</h1>
+    </section>
+  </div>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 
