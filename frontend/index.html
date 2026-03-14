@@ -13,13 +13,21 @@
   <link rel="preconnect" href="https://xqflfxplxcxwiftsdccv.supabase.co">
 
   <!--
-    Font loading strategy for CLS = 0:
-    - display=optional: browser uses fallback if font isn't ready in the first ~100ms.
-      Once cached (second visit) it loads instantly. No swap ever happens → no layout shift.
-    - Loaded synchronously (blocking) so fonts are requested as early as possible.
+    Font strategy: async + display=optional
+    - Non-blocking (print onload trick) → fixes "render-blocking resources"
+    - display=optional → if font not ready at first paint, use fallback forever (no swap) → fixes CLS
+    - Fallback @font-face in index.css has tuned metrics so the fallback looks near-identical
+    - On repeat visits the font is cached and loads instantly with display=optional
   -->
-  <link rel="stylesheet"
+  <link rel="preload" as="style"
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=optional">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=optional"
+    media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=optional">
+  </noscript>
 </head>
 
 
