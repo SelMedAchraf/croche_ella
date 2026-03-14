@@ -13,6 +13,7 @@
         "logout": "Se Déconnecter",
         "login": "Se Connecter",
         "signedInAs": "Connecté en tant que",
+        "adminPanel": "Espace Admin",
         "continueWithGoogle": "Continuer avec Google"
     },
     "home": {

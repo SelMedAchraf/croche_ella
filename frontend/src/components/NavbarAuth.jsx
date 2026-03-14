@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FiLogOut, FiUser, FiShoppingBag } from 'react-icons/fi';
+import { FiLogOut, FiUser, FiShoppingBag, FiSettings } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
 import { authService } from '../services/authService';
 
@@ -89,6 +89,17 @@ const NavbarAuth = ({ mobile = false, closeMenu = () => { } }) => {
                             {t('nav.myOrders')}
                         </Link>
 
+                        {isAdmin && (
+                            <Link
+                                to="/admin/dashboard"
+                                onClick={closeMenu}
+                                className="flex items-center gap-3 w-full py-3 px-4 rounded-xl text-primary bg-primary/5 hover:bg-primary/10 transition-colors font-bold"
+                            >
+                                <FiSettings className="w-5 h-5" />
+                                {t('nav.adminPanel') || 'Admin Panel'}
+                            </Link>
+                        )}
+
                         <button
                             onClick={handleLogout}
                             className="flex items-center gap-3 w-full py-3 px-4 rounded-xl text-red-600 hover:bg-red-50 transition-colors font-medium text-left mt-1"
@@ -158,6 +169,16 @@ const NavbarAuth = ({ mobile = false, closeMenu = () => { } }) => {
                             <FiShoppingBag className="w-4 h-4" />
                             {t('nav.myOrders')}
                         </Link>
+
+                        {isAdmin && (
+                            <Link
+                                to="/admin/dashboard"
+                                className="flex items-center gap-2 px-4 py-2.5 text-sm text-primary font-bold hover:bg-primary/5 transition-colors"
+                            >
+                                <FiSettings className="w-4 h-4" />
+                                {t('nav.adminPanel') || 'Admin Panel'}
+                            </Link>
+                        )}
                         <button
                             onClick={handleLogout}
                             className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"

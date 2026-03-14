@@ -13,6 +13,7 @@
         "logout": "تسجيل الخروج",
         "login": "تسجيل الدخول",
         "signedInAs": "مسجّل دخول بـ",
+        "adminPanel": "لوحة الإدارة",
         "continueWithGoogle": "المتابعة مع Google"
     },
     "home": {

@@ -13,6 +13,7 @@
     "logout": "Logout",
     "login": "Login",
     "signedInAs": "Signed in as",
+    "adminPanel": "Admin Panel",
     "continueWithGoogle": "Continue with Google"
   },
   "home": {
