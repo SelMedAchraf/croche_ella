@@ -11,6 +11,7 @@ import { useColors } from '../hooks/useColors';
 import { useCart } from '../context/CartContext';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import { compressImage } from '../utils/imageCompression';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -253,10 +254,17 @@ const CustomFlowerBouquet = ({ onBack, onPreviewImage }) => {
       // Upload reference image if exists
       let referenceImageUrl = null;
       if (bouquetData.referenceImage) {
-        const formData = new FormData();
-        formData.append('image', bouquetData.referenceImage);
-
         try {
+          // Compress user reference image
+          const compressedFile = await compressImage(bouquetData.referenceImage, {
+            maxWidth: 1200,
+            maxHeight: 1200,
+            quality: 0.7
+          });
+
+          const formData = new FormData();
+          formData.append('image', compressedFile);
+
           const response = await axios.post(`${API_URL}/upload/custom-order-reference`, formData);
           referenceImageUrl = response.data.url;
         } catch (error) {
@@ -547,9 +555,17 @@ const CustomCrochetRequest = ({ onBack, onPreviewImage }) => {
     try {
       // Upload reference images in parallel
       const uploadPromises = requestData.referenceImages.map(async (image) => {
-        const formData = new FormData();
-        formData.append('image', image);
         try {
+          // Compress user reference image
+          const compressedFile = await compressImage(image, {
+            maxWidth: 1200,
+            maxHeight: 1200,
+            quality: 0.7
+          });
+
+          const formData = new FormData();
+          formData.append('image', compressedFile);
+
           const response = await axios.post(`${API_URL}/upload/custom-order-reference`, formData);
           return response.data.url;
         } catch (error) {

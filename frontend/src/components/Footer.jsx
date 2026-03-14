@@ -34,7 +34,7 @@ const Footer = () => {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <span className="text-3xl">🧶</span>
-              <span className="text-2xl font-display font-bold text-primary">
+              <span className="text-2xl font-display font-bold text-primary min-w-[130px]">
                 Croche Ella
               </span>
             </div>
