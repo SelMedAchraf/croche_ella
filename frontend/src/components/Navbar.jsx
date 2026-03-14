@@ -6,7 +6,7 @@ import { FiShoppingCart, FiMenu, FiX, FiLogOut, FiUser, FiShoppingBag } from 're
 import { useCart } from '../context/CartContext';
 import { authService } from '../services/authService';
 import { FcGoogle } from 'react-icons/fc';
-import LanguageSwitcher from './LanguageSwitcher';
+import LanguageSwitcher, { LANGUAGES } from './LanguageSwitcher';
 
 const Navbar = memo(() => {
   const { t, i18n } = useTranslation();
@@ -264,11 +264,7 @@ const Navbar = memo(() => {
                     {t('language.switchLanguage')}
                   </p>
                   <div className="grid grid-cols-3 gap-2" style={{ direction: 'ltr' }}>
-                    {[
-                      { code: 'en', flag: '🇬🇧', label: 'English' },
-                      { code: 'fr', flag: '🇫🇷', label: 'Français' },
-                      { code: 'ar', flag: '🇩🇿', label: 'العربية' },
-                    ].map((lang) => {
+                    {LANGUAGES.map((lang) => {
                       const isActive = i18n.language === lang.code;
                       return (
                         <button
@@ -283,7 +279,7 @@ const Navbar = memo(() => {
                             }`}
                         >
                           <span className="text-xl leading-none">{lang.flag}</span>
-                          <span className="leading-none">{lang.label}</span>
+                          <span className="leading-none">{lang.full}</span>
                         </button>
                       );
                     })}

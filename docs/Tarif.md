@@ -31,6 +31,7 @@ Une **boutique en ligne complète** pour vendre vos créations crochet et accept
 - **Page Contact** : formulaire + liens Instagram, TikTok, WhatsApp
 - **Page À propos** : votre histoire et votre univers artisanal
 - **Notifications email automatiques** : vos clientes reçoivent un email à chaque étape de leur commande
+- **Traduction complète** : site disponible en Arabe, Français et Anglais pour toucher plus de clientes
 
 ---
 
@@ -176,7 +177,6 @@ Des fonctionnalités supplémentaires peuvent être ajoutées plus tard :
 | Fonctionnalité | Estimation |
 |----------------|-----------|
 | Paiement en ligne (Baridi Mob / Dahabiya / CIB) | 15 000 – 25 000 DA |
-| Traduction complète du site (Arabe + Français) | 5 000 DA |
 | Gestion des utilisateurs (Admin) | 10 000 – 15 000 DA |
 | Codes promo et réductions | 5 000 – 10 000 DA |
 | Système d'avis clients | 5 000 – 8 000 DA |

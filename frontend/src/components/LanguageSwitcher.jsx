@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const LANGUAGES = [
+export const LANGUAGES = [
     { code: 'en', label: 'EN', full: 'English', flag: '🇬🇧' },
     { code: 'fr', label: 'FR', full: 'Français', flag: '🇫🇷' },
     { code: 'ar', label: 'AR', full: 'العربية', flag: '🇸🇦' },
