@@ -170,8 +170,9 @@
 }
 
 .mobile-menu-active {
-  max-height: 100vh;
+  max-height: calc(100vh - 80px);
   opacity: 1;
+  overflow-y: auto;
 }
 
 .backdrop-enter {

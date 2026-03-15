@@ -123,8 +123,7 @@ const Navbar = () => {
 
         {/* Mobile Menu - CSS Driven */}
         <div
-          className={`lg:hidden bg-white border-t border-gray-100 mobile-menu-enter ${isMenuOpen ? 'mobile-menu-active' : ''
-            }`}
+          className={`lg:hidden bg-white border-t border-gray-100 mobile-menu-enter ${isMenuOpen ? 'mobile-menu-active' : ''}`}
         >
           <div className="px-4 py-4 space-y-3">
             {navLinks.map((link) => (
