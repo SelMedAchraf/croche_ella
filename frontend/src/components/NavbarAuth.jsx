@@ -6,7 +6,7 @@ import { FcGoogle } from 'react-icons/fc';
 import { authService } from '../services/authService';
 
 const NavbarAuth = ({ mobile = false, closeMenu = () => { } }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [user, setUser] = useState(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -149,7 +149,7 @@ const NavbarAuth = ({ mobile = false, closeMenu = () => { } }) => {
                     </div>
 
                     {/* Dropdown Menu - Controlled by group-hover for pure CSS behavior or JS if needed */}
-                    <div className={`absolute right-0 top-full mt-1 w-48 bg-white border border-gray-100 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-200 transform origin-top-right z-50 py-2 ${isDropdownOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'
+                    <div className={`absolute ${i18n.dir() === 'rtl' ? 'left-0' : 'right-0'} top-full mt-1 w-48 bg-white border border-gray-100 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-200 transform ${i18n.dir() === 'rtl' ? 'origin-top-left' : 'origin-top-right'} z-50 py-2 ${isDropdownOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'
                         }`}>
                         <div className="px-4 py-2 border-b border-gray-50 mb-1">
                             <p className="text-xs text-text/50 uppercase tracking-wider font-semibold mb-0.5">{t('nav.signedInAs')}</p>
