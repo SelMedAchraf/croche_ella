@@ -95,7 +95,7 @@ const NavbarAuth = ({ mobile = false, closeMenu = () => { } }) => {
                                 onClick={closeMenu}
                                 className="flex items-center gap-3 w-full py-3 px-4 rounded-xl text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors font-medium"
                             >
-                                <FiSettings className="w-5 h-5" />
+                                <FiSettings className="w-5 h-5 text-gray-400" />
                                 {t('nav.adminPanel') || 'Admin Panel'}
                             </Link>
                         )}
@@ -173,9 +173,9 @@ const NavbarAuth = ({ mobile = false, closeMenu = () => { } }) => {
                         {isAdmin && (
                             <Link
                                 to="/admin/dashboard"
-                                className="flex items-center gap-2 px-4 py-2.5 text-sm text-primary font-bold hover:bg-primary/5 transition-colors"
+                                className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors"
                             >
-                                <FiSettings className="w-4 h-4" />
+                                <FiSettings className="w-4 h-4 text-gray-400" />
                                 {t('nav.adminPanel') || 'Admin Panel'}
                             </Link>
                         )}
