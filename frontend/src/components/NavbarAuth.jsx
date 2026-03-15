@@ -175,7 +175,7 @@ const NavbarAuth = ({ mobile = false, closeMenu = () => { } }) => {
                                 to="/admin/dashboard"
                                 className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors"
                             >
-                                <FiSettings className="w-4 h-4 text-gray-400" />
+                                <FiSettings className="w-4 h-4" />
                                 {t('nav.adminPanel') || 'Admin Panel'}
                             </Link>
                         )}
