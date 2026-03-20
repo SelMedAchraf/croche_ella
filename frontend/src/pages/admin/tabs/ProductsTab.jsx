@@ -244,7 +244,7 @@ const ProductsTab = ({ products, onRefresh, setZoomedImage }) => {
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <h2 className="text-xl font-semibold">Products Management</h2>
-                <div className="flex gap-3 w-full sm:w-auto">
+                <div className="flex gap-3 w-full sm:w-auto items-center">
                     <div className="relative flex-1 sm:flex-initial">
                         <select
                             value={categoryFilter}

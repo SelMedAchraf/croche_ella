@@ -10,6 +10,7 @@ import useLockBodyScroll from '../../../hooks/useLockBodyScroll';
 const ColorsTab = () => {
     const navigate = useNavigate();
     const [filter, setFilter] = useState('all');
+    const [searchTerm, setSearchTerm] = useState('');
     const { colors, loading, createColor, updateColor, deleteColor, refetch } = useColors(
         filter === 'all' ? null : filter
     );
