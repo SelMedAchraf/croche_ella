@@ -229,6 +229,12 @@ const ProductsTab = ({ products, onRefresh, setZoomedImage }) => {
         }
     };
 
+    const isModified = editingProduct ? (
+        formData.price !== editingProduct.price.toString() ||
+        formData.category !== editingProduct.category ||
+        selectedImage !== null
+    ) : true;
+
     // Filter products by category
     const filteredProducts = categoryFilter === 'all'
         ? products
@@ -339,11 +345,46 @@ const ProductsTab = ({ products, onRefresh, setZoomedImage }) => {
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg max-w-md w-full p-6">
-                        <h3 className="text-xl font-semibold mb-4">
-                            {editingProduct ? 'Edit Product' : 'Add Product'}
-                        </h3>
+                <div 
+                    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+                    onClick={() => {
+                        setShowModal(false);
+                        setEditingProduct(null);
+                        setFormData({
+                            price: '',
+                            category: categories.length > 0 ? categories[0].name : ''
+                        });
+                        setSelectedImage(null);
+                        setImagePreview(null);
+                        setDragActive(false);
+                    }}
+                >
+                    <div 
+                        className="bg-white rounded-lg max-w-md w-full p-6 relative"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex justify-between items-start mb-4">
+                            <h3 className="text-xl font-semibold">
+                                {editingProduct ? 'Edit Product' : 'Add Product'}
+                            </h3>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowModal(false);
+                                    setEditingProduct(null);
+                                    setFormData({
+                                        price: '',
+                                        category: categories.length > 0 ? categories[0].name : ''
+                                    });
+                                    setSelectedImage(null);
+                                    setImagePreview(null);
+                                    setDragActive(false);
+                                }}
+                                className="p-2 hover:bg-gray-100 text-gray-500 rounded-full transition-colors"
+                            >
+                                <FiX className="w-6 h-6" />
+                            </button>
+                        </div>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium mb-1">Price (DA) *</label>
@@ -444,7 +485,7 @@ const ProductsTab = ({ products, onRefresh, setZoomedImage }) => {
                                 <button
                                     type="submit"
                                     className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                                    disabled={uploading || !formData.price || !formData.category || (!selectedImage && !imagePreview)}
+                                    disabled={uploading || !formData.price || !formData.category || (!selectedImage && !imagePreview) || (editingProduct && !isModified)}
                                 >
                                     {uploading ? 'Uploading...' : editingProduct ? 'Update' : 'Create'}
                                 </button>

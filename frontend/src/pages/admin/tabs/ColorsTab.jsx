@@ -183,6 +183,12 @@ const ColorsTab = () => {
         refetch(newFilter === 'all' ? null : newFilter);
     };
 
+    const isModified = editingColor ? (
+        formData.name.trim() !== editingColor.name ||
+        formData.available !== editingColor.available ||
+        selectedImage !== null
+    ) : true;
+
     return (
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -283,16 +289,43 @@ const ColorsTab = () => {
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div 
+                    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+                    onClick={() => {
+                        setShowModal(false);
+                        setEditingColor(null);
+                        setFormData({ name: '', available: true });
+                        setSelectedImage(null);
+                        setImagePreview(null);
+                        setDragActive(false);
+                    }}
+                >
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+                        className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto relative"
+                        onClick={(e) => e.stopPropagation()}
                     >
                         <div className="p-6">
-                            <h3 className="text-xl font-semibold mb-4">
-                                {editingColor ? 'Edit Color' : 'Add New Color'}
-                            </h3>
+                            <div className="flex justify-between items-start mb-4">
+                                <h3 className="text-xl font-semibold">
+                                    {editingColor ? 'Edit Color' : 'Add New Color'}
+                               </h3>
+                               <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowModal(false);
+                                        setEditingColor(null);
+                                        setFormData({ name: '', available: true });
+                                        setSelectedImage(null);
+                                        setImagePreview(null);
+                                        setDragActive(false);
+                                    }}
+                                    className="p-2 hover:bg-gray-100 text-gray-500 rounded-full transition-colors"
+                                >
+                                    <FiX className="w-6 h-6" />
+                                </button>
+                            </div>
 
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 {/* Color Name */}
@@ -399,7 +432,7 @@ const ColorsTab = () => {
                                     </button>
                                     <button
                                         type="submit"
-                                        disabled={uploading || (!selectedImage && !imagePreview) || !formData.name.trim()}
+                                        disabled={uploading || (!selectedImage && !imagePreview) || !formData.name.trim() || (editingColor && !isModified)}
                                         className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {uploading ? 'Uploading...' : editingColor ? 'Update' : 'Create'}

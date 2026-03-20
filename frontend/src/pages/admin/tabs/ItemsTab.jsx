@@ -168,6 +168,13 @@ const ItemsTab = ({ setZoomedImage }) => {
         }
     };
 
+    const isModified = editingItem ? (
+        formData.name.trim() !== editingItem.name ||
+        formData.category !== editingItem.category ||
+        formData.price !== editingItem.price.toString() ||
+        selectedImage !== null
+    ) : true;
+
     // Filter items by category
     const filteredItems = categoryFilter === 'all'
         ? items
@@ -277,11 +284,40 @@ const ItemsTab = ({ setZoomedImage }) => {
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg max-w-md w-full p-6">
-                        <h3 className="text-xl font-semibold mb-4">
-                            {editingItem ? 'Edit Item' : 'Add Item'}
-                        </h3>
+                <div 
+                    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+                    onClick={() => {
+                        setShowModal(false);
+                        setEditingItem(null);
+                        setSelectedImage(null);
+                        setImagePreview(null);
+                        setDragActive(false);
+                        setFormData({ name: '', category: 'flower', image_url: '', price: '' });
+                    }}
+                >
+                    <div 
+                        className="bg-white rounded-lg max-w-md w-full p-6 relative"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex justify-between items-start mb-4">
+                            <h3 className="text-xl font-semibold">
+                                {editingItem ? 'Edit Item' : 'Add Item'}
+                            </h3>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowModal(false);
+                                    setEditingItem(null);
+                                    setSelectedImage(null);
+                                    setImagePreview(null);
+                                    setDragActive(false);
+                                    setFormData({ name: '', category: 'flower', image_url: '', price: '' });
+                                }}
+                                className="p-2 hover:bg-gray-100 text-gray-500 rounded-full transition-colors"
+                            >
+                                <FiX className="w-6 h-6" />
+                            </button>
+                        </div>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium mb-1">Name *</label>
@@ -386,7 +422,7 @@ const ItemsTab = ({ setZoomedImage }) => {
                                 <button
                                     type="submit"
                                     className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                                    disabled={uploading || !formData.name.trim() || !formData.price || !formData.category || (!selectedImage && !imagePreview)}
+                                    disabled={uploading || !formData.name.trim() || !formData.price || !formData.category || (!selectedImage && !imagePreview) || (editingItem && !isModified)}
                                 >
                                     {uploading ? 'Uploading...' : editingItem ? 'Update' : 'Create'}
                                 </button>

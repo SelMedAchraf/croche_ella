@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiPlus, FiEdit, FiTrash2, FiGrid } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiGrid, FiX } from 'react-icons/fi';
 import { supabase } from '../../../config/supabase';
 import { useCategoriesManagement } from '../../../hooks/useCategoriesManagement';
 import useLockBodyScroll from '../../../hooks/useLockBodyScroll';
@@ -67,6 +67,10 @@ const CategoriesTab = ({ onRefresh }) => {
         }
     };
 
+    const isModified = editingCategory ? (
+        formData.name.trim() !== editingCategory.name
+    ) : true;
+
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -129,11 +133,34 @@ const CategoriesTab = ({ onRefresh }) => {
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg max-w-md w-full p-6">
-                        <h3 className="text-xl font-semibold mb-4">
-                            {editingCategory ? 'Edit Category' : 'Add Category'}
-                        </h3>
+                <div 
+                    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+                    onClick={() => {
+                        setShowModal(false);
+                        setEditingCategory(null);
+                        setFormData({ name: '' });
+                    }}
+                >
+                    <div 
+                        className="bg-white rounded-lg max-w-md w-full p-6 relative"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex justify-between items-start mb-4">
+                            <h3 className="text-xl font-semibold">
+                                {editingCategory ? 'Edit Category' : 'Add Category'}
+                            </h3>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowModal(false);
+                                    setEditingCategory(null);
+                                    setFormData({ name: '' });
+                                }}
+                                className="p-2 hover:bg-gray-100 text-gray-500 rounded-full transition-colors"
+                            >
+                                <FiX className="w-6 h-6" />
+                            </button>
+                        </div>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium mb-1">Category Name *</label>
@@ -161,7 +188,7 @@ const CategoriesTab = ({ onRefresh }) => {
                                 <button
                                     type="submit"
                                     className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                                    disabled={!formData.name.trim()}
+                                    disabled={!formData.name.trim() || (editingCategory && !isModified)}
                                 >
                                     {editingCategory ? 'Update' : 'Create'}
                                 </button>
