@@ -12,7 +12,8 @@ import {
   FiGrid,
   FiHome,
   FiExternalLink,
-  FiX
+  FiX,
+  FiUsers
 } from 'react-icons/fi';
 import axios from 'axios';
 import { supabase } from '../../config/supabase';
@@ -27,6 +28,7 @@ const CategoriesTab = lazy(() => import('./tabs/CategoriesTab'));
 const ItemsTab = lazy(() => import('./tabs/ItemsTab'));
 const DeliveryPricesTab = lazy(() => import('./tabs/DeliveryPricesTab'));
 const ColorsTab = lazy(() => import('./tabs/ColorsTab'));
+const UsersTab = lazy(() => import('./tabs/UsersTab'));
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -168,6 +170,12 @@ const AdminDashboard = () => {
             label="Colors"
           />
           <SidebarItem
+            active={activeTab === 'users'}
+            onClick={() => setActiveTab('users')}
+            icon={<FiUsers className="w-5 h-5" />}
+            label="Users"
+          />
+          <SidebarItem
             active={activeTab === 'categories'}
             onClick={() => setActiveTab('categories')}
             icon={<FiGrid className="w-5 h-5" />}
@@ -258,6 +266,7 @@ const AdminDashboard = () => {
                 {activeTab === 'items' && <ItemsTab setZoomedImage={setZoomedImage} />}
                 {activeTab === 'deliveryPrices' && <DeliveryPricesTab />}
                 {activeTab === 'colors' && <ColorsTab setZoomedImage={setZoomedImage} />}
+                {activeTab === 'users' && <UsersTab />}
               </Suspense>
             </div>
           </div>

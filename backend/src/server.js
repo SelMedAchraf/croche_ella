@@ -10,6 +10,7 @@ import colorRoutes from './routes/colors.js';
 import uploadRoutes from './routes/upload.js';
 import contactRoutes from './routes/contact.js';
 import authSettingsRoutes from './routes/authSettings.js';
+import usersRoutes from './routes/users.js';
 import { setupAdminUser } from './utils/setupAdmin.js';
 
 dotenv.config();
@@ -57,6 +58,7 @@ app.use('/api/colors', colorRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/auth-settings', authSettingsRoutes);
+app.use('/api/users', usersRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
