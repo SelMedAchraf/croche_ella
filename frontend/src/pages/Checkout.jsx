@@ -106,9 +106,9 @@ const Checkout = () => {
       // PRE-CHECK: If logged in, ensure the user wasn't just banned while idling on the checkout page
       if (userId) {
         const { error } = await supabase.auth.getUser();
-        if (error && error.message.toLowerCase().includes('ban')) {
+        if (error && (error.status === 401 || error.status === 403 || error.message?.toLowerCase().includes('ban'))) {
            await supabase.auth.signOut();
-           toast.error(t('Your account has been blocked by an administrator.'), { duration: 5000 });
+           toast.error(t('Your session has been terminated or your account is blocked.'), { duration: 5000 });
            navigate('/');
            return;
         }

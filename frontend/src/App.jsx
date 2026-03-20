@@ -67,9 +67,9 @@ function AppContent() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         const { error } = await supabase.auth.getUser();
-        if (error && error.message.toLowerCase().includes('ban')) {
+        if (error && (error.status === 401 || error.status === 403 || error.message?.toLowerCase().includes('ban'))) {
            await supabase.auth.signOut();
-           toast.error("Your account has been blocked by an administrator.", { duration: 5000 });
+           toast.error("Your session has been terminated or your account is blocked.", { duration: 5000 });
            if (window.location.pathname !== '/') {
                window.location.href = '/';
            } else {
