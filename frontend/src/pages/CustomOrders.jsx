@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { compressImage } from '../utils/imageCompression';
 import useLockBodyScroll from '../hooks/useLockBodyScroll';
+import useImageZoom from '../hooks/useImageZoom';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -21,7 +22,7 @@ const CustomOrders = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedOption = searchParams.get('type');
-  const [previewImage, setPreviewImage] = useState(null);
+  const [previewImage, setPreviewImage] = useImageZoom();
 
   useLockBodyScroll(!!previewImage);
 

@@ -3,11 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { FiX, FiInfo, FiCheckCircle, FiZoomIn, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import useLockBodyScroll from '../../hooks/useLockBodyScroll';
+import useImageZoom from '../../hooks/useImageZoom';
 
 const OrderDetailsModal = ({ order, isOpen, onClose }) => {
     const { t } = useTranslation();
     const [expandedItems, setExpandedItems] = useState({});
-    const [zoomedImage, setZoomedImage] = useState(null);
+    const [zoomedImage, setZoomedImage] = useImageZoom();
 
     useLockBodyScroll(isOpen || !!zoomedImage);
 

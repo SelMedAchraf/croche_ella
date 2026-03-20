@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiX, FiZoomIn, FiSettings, FiSave } from 'react-icons/fi';
 import { supabase } from '../../config/supabase';
 import useLockBodyScroll from '../../hooks/useLockBodyScroll';
+import useImageZoom from '../../hooks/useImageZoom';
 
 const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefresh }) => {
     const [activeTab, setActiveTab] = useState('order_info');
@@ -10,7 +11,7 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
     const [depositInput, setDepositInput] = useState('');
     const [itemPriceInput, setItemPriceInput] = useState({});
     const [adminNoteInput, setAdminNoteInput] = useState(initialOrder?.admin_note || '');
-    const [zoomedImage, setZoomedImage] = useState(null);
+    const [zoomedImage, setZoomedImage] = useImageZoom();
     const [expandedCustomDetails, setExpandedCustomDetails] = useState({});
     const [order, setOrder] = useState(initialOrder);
 

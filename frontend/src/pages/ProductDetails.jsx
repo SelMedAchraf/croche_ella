@@ -6,6 +6,7 @@ import { FiShoppingCart, FiZoomIn, FiX } from 'react-icons/fi';
 import axios from 'axios';
 import { useCart } from '../context/CartContext';
 import useLockBodyScroll from '../hooks/useLockBodyScroll';
+import useImageZoom from '../hooks/useImageZoom';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -16,7 +17,7 @@ const ProductDetails = () => {
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
-  const [isZoomed, setIsZoomed] = useState(false);
+  const [isZoomed, setIsZoomed] = useImageZoom();
 
   useLockBodyScroll(isZoomed);
 

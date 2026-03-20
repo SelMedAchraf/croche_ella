@@ -19,6 +19,7 @@ import { supabase } from '../../config/supabase';
 import { useItems } from '../../hooks/useItems';
 import { useColors } from '../../hooks/useColors';
 import useLockBodyScroll from '../../hooks/useLockBodyScroll';
+import useImageZoom from '../../hooks/useImageZoom';
 
 const ProductsTab = lazy(() => import('./tabs/ProductsTab'));
 const OrdersTab = lazy(() => import('./tabs/OrdersTab'));
@@ -35,7 +36,7 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(false);
   const { items } = useItems();
   const { colors } = useColors();
-  const [zoomedImage, setZoomedImage] = useState(null);
+  const [zoomedImage, setZoomedImage] = useImageZoom();
 
   useLockBodyScroll(!!zoomedImage);
 

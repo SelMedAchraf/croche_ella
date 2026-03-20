@@ -9,12 +9,13 @@ import { useColors } from '../hooks/useColors';
 import { authService } from '../services/authService';
 import { FcGoogle } from 'react-icons/fc';
 import useLockBodyScroll from '../hooks/useLockBodyScroll';
+import useImageZoom from '../hooks/useImageZoom';
 
 const Cart = () => {
   const { t } = useTranslation();
   const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
   const [selectedCustomOrder, setSelectedCustomOrder] = useState(null);
-  const [zoomedImage, setZoomedImage] = useState(null);
+  const [zoomedImage, setZoomedImage] = useImageZoom();
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   useLockBodyScroll(!!selectedCustomOrder || !!zoomedImage || showLoginModal);
