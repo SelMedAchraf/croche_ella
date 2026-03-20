@@ -225,7 +225,7 @@
             "priceEstimate": "Estimation du Prix",
             "noComponents": "Aucun composant sélectionné pour l'instant",
             "requestTitle": "Aperçu de Votre Demande Personnalisée",
-            "minimumOrder": "* Un tarif minimum de commande s'applique. Le prix final sera confirmé par notre équipe."
+            "minimumOrder": "Le prix final sera confirmé par notre équipe."
         }
     },
     "about": {

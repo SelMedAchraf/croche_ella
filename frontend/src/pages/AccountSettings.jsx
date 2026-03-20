@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FiUser, FiMail, FiPhone, FiLock, FiCheckCircle, FiMapPin, FiSave, FiKey, FiEye, FiEyeOff } from 'react-icons/fi';
+import { FiUser, FiMail, FiPhone, FiCheckCircle, FiMapPin, FiSave } from 'react-icons/fi';
 import axios from 'axios';
 import { supabase } from '../config/supabase';
 import { authService } from '../services/authService';
@@ -23,13 +23,6 @@ const AccountSettings = () => {
         phone: '',
         full_address: ''
     });
-
-    const [passwordMode, setPasswordMode] = useState('request'); // 'request' | 'verify' | 'update'
-    const [verificationCode, setVerificationCode] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [showNewPassword, setShowNewPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -94,85 +87,6 @@ const AccountSettings = () => {
         }
     };
 
-    const handleSendCode = async () => {
-        setSaving(true);
-        setSuccessMsg('');
-        setErrorMsg('');
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-            await axios.post(`${apiUrl}/auth-settings/send-code`, {}, {
-                headers: { Authorization: `Bearer ${session.access_token}` }
-            });
-            setSuccessMsg(t('account.codeSent'));
-            setPasswordMode('verify');
-        } catch (err) {
-            console.error('Error sending code:', err);
-            setErrorMsg(err.response?.data?.error || t('account.failedSendCode'));
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleVerifyCode = async (e) => {
-        e.preventDefault();
-        setSaving(true);
-        setSuccessMsg('');
-        setErrorMsg('');
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-            await axios.post(`${apiUrl}/auth-settings/verify-code`, { code: verificationCode }, {
-                headers: { Authorization: `Bearer ${session.access_token}` }
-            });
-            setSuccessMsg(t('account.codeVerified'));
-            setPasswordMode('update');
-        } catch (err) {
-            console.error('Error verifying code:', err);
-            setErrorMsg(err.response?.data?.error || t('account.invalidCode'));
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleUpdateAdminPassword = async (e) => {
-        e.preventDefault();
-        setSaving(true);
-        setSuccessMsg('');
-        setErrorMsg('');
-
-        if (newPassword !== confirmPassword) {
-            setSaving(false);
-            return setErrorMsg(t('account.passwordMismatch'));
-        }
-
-        if (newPassword.length < 6) {
-            setSaving(false);
-            return setErrorMsg(t('account.passwordTooShort'));
-        }
-
-        try {
-            const { error } = await supabase.auth.updateUser({ password: newPassword });
-            if (error) throw error;
-
-            setSuccessMsg(t('account.passwordChanged'));
-            setPasswordMode('request');
-            setVerificationCode('');
-            setNewPassword('');
-            setConfirmPassword('');
-
-            setTimeout(async () => {
-                await supabase.auth.signOut();
-                window.location.href = '/';
-            }, 3000);
-        } catch (err) {
-            console.error('Error changing password:', err);
-            setErrorMsg(err.message || t('account.failedPassword'));
-        } finally {
-            setSaving(false);
-        }
-    };
-
     if (loading) {
         return (
             <div className="min-h-screen section-padding flex items-center justify-center">
@@ -231,131 +145,7 @@ const AccountSettings = () => {
                             </div>
                         )}
 
-                        {isAdmin ? (
-                            <div className="space-y-6">
-                                {passwordMode === 'request' && (
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                            <FiLock className="text-primary" />
-                                            {t('account.securitySettings')}
-                                        </h3>
-                                        <p className="text-text/70 mb-4">
-                                            {t('account.securityDesc')} <strong>{user.email}</strong>
-                                        </p>
-                                        <button
-                                            onClick={handleSendCode}
-                                            disabled={saving}
-                                            className="btn-primary py-3 px-6 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-                                        >
-                                            <FiMail />
-                                            {saving ? t('account.sending') : t('account.sendCode')}
-                                        </button>
-                                    </div>
-                                )}
-
-                                {passwordMode === 'verify' && (
-                                    <form onSubmit={handleVerifyCode} className="space-y-4 max-w-sm">
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                                            <FiKey className="text-primary" />
-                                            {t('account.enterCode')}
-                                        </h3>
-                                        <p className="text-text/70 mb-4 text-sm">
-                                            {t('account.enterCodeDesc')} <strong>{user.email}</strong>{t('account.enterCodeDesc2')}
-                                        </p>
-                                        <input
-                                            type="text"
-                                            value={verificationCode}
-                                            onChange={(e) => setVerificationCode(e.target.value)}
-                                            required
-                                            maxLength={6}
-                                            className="input-field text-center tracking-widest text-lg font-bold font-mono"
-                                            placeholder="XXXXXX"
-                                        />
-                                        <div className="flex gap-3">
-                                            <button
-                                                type="submit"
-                                                disabled={saving || verificationCode.length !== 6}
-                                                className="btn-primary flex-1 py-3 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-                                            >
-                                                {saving ? 'Verifying...' : 'Verify Code'}
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setPasswordMode('request')}
-                                                className="px-6 py-3 border border-gray-200 text-text/70 rounded-xl hover:bg-gray-50 transition-colors"
-                                            >
-                                                Cancel
-                                            </button>
-                                        </div>
-                                    </form>
-                                )}
-
-                                {passwordMode === 'update' && (
-                                    <form onSubmit={handleUpdateAdminPassword} className="space-y-5 max-w-sm">
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                                            <FiLock className="text-primary" />
-                                            {t('account.setNewPassword')}
-                                        </h3>
-                                        <div>
-                                            <label className="block text-sm font-medium text-text mb-2">
-                                                {t('account.newPassword')}
-                                            </label>
-                                            <div className="relative">
-                                                <input
-                                                    type={showNewPassword ? 'text' : 'password'}
-                                                    value={newPassword}
-                                                    onChange={(e) => setNewPassword(e.target.value)}
-                                                    required
-                                                    className="input-field pr-11"
-                                                    placeholder="••••••••"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setShowNewPassword(v => !v)}
-                                                    className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
-                                                    tabIndex={-1}
-                                                    aria-label={showNewPassword ? 'Hide password' : 'Show password'}
-                                                >
-                                                    {showNewPassword ? <FiEyeOff className="w-5 h-5" /> : <FiEye className="w-5 h-5" />}
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-text mb-2">
-                                                {t('account.confirmPassword')}
-                                            </label>
-                                            <div className="relative">
-                                                <input
-                                                    type={showConfirmPassword ? 'text' : 'password'}
-                                                    value={confirmPassword}
-                                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                                    required
-                                                    className="input-field pr-11"
-                                                    placeholder="••••••••"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setShowConfirmPassword(v => !v)}
-                                                    className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
-                                                    tabIndex={-1}
-                                                    aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-                                                >
-                                                    {showConfirmPassword ? <FiEyeOff className="w-5 h-5" /> : <FiEye className="w-5 h-5" />}
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <button
-                                            type="submit"
-                                            disabled={saving}
-                                            className="btn-primary w-full py-3 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-                                        >
-                                            {saving ? t('account.updating') : t('account.updatePassword')}
-                                        </button>
-                                    </form>
-                                )}
-                            </div>
-                        ) : (
-                            <form onSubmit={handleUpdateProfile} className="space-y-6">
+                        <form onSubmit={handleUpdateProfile} className="space-y-6">
                                 <div className="grid md:grid-cols-2 gap-6">
                                     <div>
                                         <label className="block text-sm font-medium text-text mb-2 flex items-center gap-2">
@@ -418,8 +208,7 @@ const AccountSettings = () => {
                                         {saving ? t('account.saving') : t('account.saveChanges')}
                                     </button>
                                 </div>
-                            </form>
-                        )}
+                        </form>
                     </div>
                 </motion.div>
             </div>
