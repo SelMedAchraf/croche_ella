@@ -180,7 +180,7 @@ const ColorsTab = () => {
 
     const handleFilterChange = (newFilter) => {
         setFilter(newFilter);
-        refetch(newFilter === 'all' ? null : newFilter);
+        refetch(newFilter === 'all' ? null : (newFilter === 'true' ? true : false));
     };
 
     const isModified = editingColor ? (
@@ -189,27 +189,15 @@ const ColorsTab = () => {
         selectedImage !== null
     ) : true;
 
+    const filteredColors = colors.filter(color =>
+        color.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
         <div>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                <h2 className="text-xl font-semibold">Colors Management</h2>
-                <div className="flex gap-3 w-full sm:w-auto">
-                    <div className="relative flex-1 sm:flex-initial">
-                        <select
-                            value={filter}
-                            onChange={(e) => handleFilterChange(e.target.value)}
-                            className="w-full px-4 py-2 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all appearance-none"
-                        >
-                            <option value="all">All Colors</option>
-                            <option value="available">Available</option>
-                            <option value="unavailable">Unavailable</option>
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                            <svg className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
-                        </div>
-                    </div>
+            <div className="flex flex-col gap-4 mb-6">
+                <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-semibold">Colors Management</h2>
                     <button
                         onClick={() => {
                             setEditingColor(null);
@@ -225,18 +213,52 @@ const ColorsTab = () => {
                         Add Color
                     </button>
                 </div>
+
+                {/* Filters Row */}
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="relative flex-1">
+                        <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder="Search by color name..."
+                            className="w-full px-4 py-2 pl-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                        />
+                        <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                            <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div className="relative flex-1 sm:max-w-xs">
+                        <select
+                            value={filter}
+                            onChange={(e) => handleFilterChange(e.target.value)}
+                            className="w-full px-4 py-2 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all appearance-none"
+                        >
+                            <option value="all">All Colors</option>
+                            <option value="true">Available</option>
+                            <option value="false">Out of Stock</option>
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                            <svg className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {loading ? (
                 <div className="text-center py-12">Loading...</div>
-            ) : colors.length === 0 ? (
+            ) : filteredColors.length === 0 ? (
                 <div className="text-center py-12 text-text/60">
                     <FiDroplet className="w-16 h-16 mx-auto mb-4 opacity-30" />
                     <p>No colors found. Add your first color!</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                    {colors.map((color) => (
+                    {filteredColors.map((color) => (
                         <motion.div
                             key={color.id}
                             initial={{ opacity: 0, scale: 0.9 }}
@@ -289,7 +311,7 @@ const ColorsTab = () => {
 
             {/* Modal */}
             {showModal && (
-                <div 
+                <div
                     className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
                     onClick={() => {
                         setShowModal(false);
@@ -310,8 +332,8 @@ const ColorsTab = () => {
                             <div className="flex justify-between items-start mb-4">
                                 <h3 className="text-xl font-semibold">
                                     {editingColor ? 'Edit Color' : 'Add New Color'}
-                               </h3>
-                               <button
+                                </h3>
+                                <button
                                     type="button"
                                     onClick={() => {
                                         setShowModal(false);

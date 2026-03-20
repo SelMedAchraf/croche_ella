@@ -9,6 +9,7 @@ const DeliveryPricesTab = () => {
     const { deliveryPrices, loading, updateDeliveryPrice, deleteDeliveryPrice } = useDeliveryPrices();
     const [editingId, setEditingId] = useState(null);
     const [editForm, setEditForm] = useState({});
+    const [searchTerm, setSearchTerm] = useState('');
 
     const handleEdit = (price) => {
         setEditingId(price.id);
@@ -61,10 +62,34 @@ const DeliveryPricesTab = () => {
                editForm.stopdesk_delivery_price !== price.stopdesk_delivery_price.toString();
     };
 
+    const filteredPrices = deliveryPrices.filter(price => 
+        price.wilaya_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        price.wilaya_code.toString().includes(searchTerm)
+    );
+
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold">Delivery Prices (World Express)</h2>
+            <div className="flex flex-col gap-4 mb-6">
+                <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-semibold">Delivery Prices (World Express)</h2>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="relative flex-1">
+                        <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder="Search by code or wilaya name..."
+                            className="w-full px-4 py-2 pl-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                        />
+                        <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                            <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {loading ? (
@@ -82,7 +107,7 @@ const DeliveryPricesTab = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {deliveryPrices.map((price) => (
+                            {filteredPrices.map((price) => (
                                 <tr key={price.id} className="border-t hover:bg-gray-50">
                                     <td className="px-4 py-3 text-sm">{price.wilaya_code}</td>
                                     <td className="px-4 py-3 text-sm font-medium">{price.wilaya_name}</td>

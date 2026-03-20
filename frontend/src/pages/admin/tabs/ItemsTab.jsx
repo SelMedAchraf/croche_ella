@@ -18,6 +18,7 @@ const ItemsTab = ({ setZoomedImage }) => {
     const [uploading, setUploading] = useState(false);
     const [dragActive, setDragActive] = useState(false);
     const [categoryFilter, setCategoryFilter] = useState('all');
+    const [searchTerm, setSearchTerm] = useState('');
     const [formData, setFormData] = useState({
         name: '',
         category: 'flower',
@@ -175,17 +176,51 @@ const ItemsTab = ({ setZoomedImage }) => {
         selectedImage !== null
     ) : true;
 
-    // Filter items by category
-    const filteredItems = categoryFilter === 'all'
-        ? items
-        : items.filter(item => item.category === categoryFilter);
+    // Filter items by category and search term
+    const filteredItems = items.filter(item => {
+        const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
+        const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+        return matchesCategory && matchesSearch;
+    });
 
     return (
         <div>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                <h2 className="text-xl font-semibold">Items Management</h2>
-                <div className="flex gap-3 w-full sm:w-auto">
-                    <div className="relative flex-1 sm:flex-initial">
+            <div className="flex flex-col gap-4 mb-6">
+                <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-semibold">Items Management</h2>
+                    <button
+                        onClick={() => {
+                            setEditingItem(null);
+                            setFormData({ name: '', category: 'flower', image_url: '', price: '' });
+                            setSelectedImage(null);
+                            setImagePreview(null);
+                            setDragActive(false);
+                            setShowModal(true);
+                        }}
+                        className="btn-primary flex items-center gap-2 whitespace-nowrap"
+                    >
+                        <FiPlus />
+                        Add Item
+                    </button>
+                </div>
+                
+                {/* Filters Row */}
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="relative flex-1">
+                        <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder="Search by item name..."
+                            className="w-full px-4 py-2 pl-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                        />
+                        <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                            <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div className="relative flex-1 sm:max-w-xs">
                         <select
                             value={categoryFilter}
                             onChange={(e) => setCategoryFilter(e.target.value)}
@@ -202,20 +237,6 @@ const ItemsTab = ({ setZoomedImage }) => {
                             </svg>
                         </div>
                     </div>
-                    <button
-                        onClick={() => {
-                            setEditingItem(null);
-                            setFormData({ name: '', category: 'flower', image_url: '', price: '' });
-                            setSelectedImage(null);
-                            setImagePreview(null);
-                            setDragActive(false);
-                            setShowModal(true);
-                        }}
-                        className="btn-primary flex items-center gap-2 whitespace-nowrap"
-                    >
-                        <FiPlus />
-                        Add Item
-                    </button>
                 </div>
             </div>
 
