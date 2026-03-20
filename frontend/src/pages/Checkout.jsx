@@ -147,7 +147,14 @@ const Checkout = () => {
         })
       };
 
-      const response = await axios.post(`${apiUrl}/orders`, orderData);
+      const { data: { session } } = await supabase.auth.getSession();
+      const config = {
+        headers: {
+            Authorization: `Bearer ${session?.access_token}`
+        }
+      };
+
+      const response = await axios.post(`${apiUrl}/orders`, orderData, config);
 
       if (response.status === 201) {
         setSuccess(true);
@@ -158,7 +165,13 @@ const Checkout = () => {
       }
     } catch (error) {
       console.error('Error placing order:', error);
-      toast.error(t('checkout.failedOrder'));
+      if (error.response?.status === 403 && error.response?.data?.error === 'User is blocked') {
+        await supabase.auth.signOut();
+        toast.error('Your account has been blocked by an administrator.', { duration: 5000 });
+        navigate('/');
+      } else {
+        toast.error(t('checkout.failedOrder'));
+      }
     } finally {
       setLoading(false);
     }

@@ -14,8 +14,9 @@ import {
 
 const router = express.Router();
 
-// Create order (public)
+// Create order
 router.post('/',
+  authenticateUser,
   [
     body('customer_name').notEmpty().trim(),
     body('customer_phone').notEmpty().trim(),

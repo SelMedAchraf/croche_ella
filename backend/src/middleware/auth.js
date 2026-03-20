@@ -19,6 +19,15 @@ export const authenticateAdmin = async (req, res, next) => {
       return res.status(401).json({ error: 'Invalid token' });
     }
 
+    // Force strict check for banned status through Admin API since valid token TTL might bypass general getUser
+    const { data: adminUser, error: adminErr } = await supabase.auth.admin.getUserById(user.id);
+    if (!adminErr && adminUser?.user?.banned_until) {
+      const isBanned = new Date(adminUser.user.banned_until) > new Date();
+      if (isBanned) {
+        return res.status(403).json({ error: 'User is blocked' });
+      }
+    }
+
     // Admin users only
     const isAdmin = user.app_metadata?.is_admin || user.user_metadata?.is_admin || user.email === 'crochetwebsite19@gmail.com';
     if (!isAdmin) {
@@ -51,6 +60,15 @@ export const authenticateUser = async (req, res, next) => {
         return res.status(403).json({ error: 'User is blocked' });
       }
       return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    // Force strict check for banned status through Admin API since valid token TTL might bypass general getUser
+    const { data: adminUser, error: adminErr } = await supabase.auth.admin.getUserById(user.id);
+    if (!adminErr && adminUser?.user?.banned_until) {
+      const isBanned = new Date(adminUser.user.banned_until) > new Date();
+      if (isBanned) {
+        return res.status(403).json({ error: 'User is blocked' });
+      }
     }
 
     // Attach user to request
