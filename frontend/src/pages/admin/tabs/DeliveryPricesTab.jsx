@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit, FiSave, FiX } from 'react-icons/fi';
+import { FiEdit, FiSave, FiX, FiTrash2 } from 'react-icons/fi';
 import { supabase } from '../../../config/supabase';
 import { useDeliveryPrices } from '../../../hooks/useDeliveryPrices';
 
 const DeliveryPricesTab = () => {
     const navigate = useNavigate();
-    const { deliveryPrices, loading, updateDeliveryPrice } = useDeliveryPrices();
+    const { deliveryPrices, loading, updateDeliveryPrice, deleteDeliveryPrice } = useDeliveryPrices();
     const [editingId, setEditingId] = useState(null);
     const [editForm, setEditForm] = useState({});
 
@@ -35,6 +35,30 @@ const DeliveryPricesTab = () => {
         } catch (error) {
             alert('Failed to update delivery price');
         }
+    };
+
+    const handleDelete = async (id) => {
+        if (confirm('Are you sure you want to delete this delivery price?')) {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                alert('Session expired. Please login again.');
+                navigate('/');
+                return;
+            }
+            const token = session.access_token;
+
+            try {
+                await deleteDeliveryPrice(id, token);
+            } catch (error) {
+                console.error('Error deleting delivery price:', error);
+                alert('Failed to delete delivery price');
+            }
+        }
+    };
+
+    const isPriceModified = (price) => {
+        return editForm.home_delivery_price !== price.home_delivery_price.toString() ||
+               editForm.stopdesk_delivery_price !== price.stopdesk_delivery_price.toString();
     };
 
     return (
@@ -93,7 +117,8 @@ const DeliveryPricesTab = () => {
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => handleSave(price.id)}
-                                                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
+                                                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    disabled={!isPriceModified(price)}
                                                 >
                                                     <FiSave />
                                                 </button>
@@ -105,12 +130,20 @@ const DeliveryPricesTab = () => {
                                                 </button>
                                             </div>
                                         ) : (
-                                            <button
-                                                onClick={() => handleEdit(price)}
-                                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                                            >
-                                                <FiEdit />
-                                            </button>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => handleEdit(price)}
+                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                                                >
+                                                    <FiEdit />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(price.id)}
+                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                                                >
+                                                    <FiTrash2 />
+                                                </button>
+                                            </div>
                                         )}
                                     </td>
                                 </tr>
