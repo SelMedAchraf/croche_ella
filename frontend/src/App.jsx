@@ -46,10 +46,8 @@ function AppContent() {
           error.response?.data?.error === 'User is blocked'
         ) {
           await supabase.auth.signOut();
-          toast.error("Your account has been blocked by an administrator.", { duration: 5000 });
-          if (window.location.pathname !== '/') {
-            window.location.href = '/';
-          }
+          sessionStorage.setItem('blockedMessage', 'Your account has been blocked by an administrator.');
+          window.location.href = '/';
         }
         return Promise.reject(error);
       }
@@ -58,6 +56,16 @@ function AppContent() {
     return () => {
       axios.interceptors.response.eject(interceptor);
     };
+  }, []);
+
+  // Show blocked message stored in sessionStorage after redirect
+  useEffect(() => {
+    const msg = sessionStorage.getItem('blockedMessage');
+    if (msg) {
+      sessionStorage.removeItem('blockedMessage');
+      // Small delay so the Toaster has mounted
+      setTimeout(() => toast.error(msg, { duration: 6000 }), 300);
+    }
   }, []);
 
   useEffect(() => {
@@ -69,12 +77,8 @@ function AppContent() {
         const { error } = await supabase.auth.getUser();
         if (error && (error.status === 401 || error.status === 403 || error.message?.toLowerCase().includes('ban'))) {
            await supabase.auth.signOut();
-           toast.error("Your session has been terminated or your account is blocked.", { duration: 5000 });
-           if (window.location.pathname !== '/') {
-               window.location.href = '/';
-           } else {
-               window.location.reload();
-           }
+           sessionStorage.setItem('blockedMessage', 'Your account has been blocked by an administrator.');
+           window.location.href = '/';
         }
       }
     };

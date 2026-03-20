@@ -167,7 +167,7 @@ const Checkout = () => {
       console.error('Error placing order:', error);
       if (error.response?.status === 403 && error.response?.data?.error === 'User is blocked') {
         await supabase.auth.signOut();
-        toast.error('Your account has been blocked by an administrator.', { duration: 5000 });
+        sessionStorage.setItem('blockedMessage', 'Your account has been blocked by an administrator.');
         navigate('/');
       } else {
         toast.error(t('checkout.failedOrder'));
