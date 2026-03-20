@@ -8,6 +8,7 @@ import axios from 'axios';
 import { useCart } from '../context/CartContext';
 import { useDeliveryPrices } from '../hooks/useDeliveryPrices';
 import { authService } from '../services/authService';
+import { supabase } from '../config/supabase';
 
 const Checkout = () => {
   const { t } = useTranslation();
@@ -102,6 +103,17 @@ const Checkout = () => {
     setLoading(true);
 
     try {
+      // PRE-CHECK: If logged in, ensure the user wasn't just banned while idling on the checkout page
+      if (userId) {
+        const { error } = await supabase.auth.getUser();
+        if (error && error.message.toLowerCase().includes('ban')) {
+           await supabase.auth.signOut();
+           toast.error(t('Your account has been blocked by an administrator.'), { duration: 5000 });
+           navigate('/');
+           return;
+        }
+      }
+
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
       const orderData = {

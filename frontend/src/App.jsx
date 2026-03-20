@@ -70,14 +70,19 @@ function AppContent() {
         if (error && error.message.toLowerCase().includes('ban')) {
            await supabase.auth.signOut();
            toast.error("Your account has been blocked by an administrator.", { duration: 5000 });
-           if (location.pathname !== '/') {
+           if (window.location.pathname !== '/') {
                window.location.href = '/';
+           } else {
+               window.location.reload();
            }
         }
       }
     };
+    
     checkBan();
+    const banInterval = setInterval(checkBan, 30000);
 
+    return () => clearInterval(banInterval);
   }, [location.pathname]);
 
   return (
