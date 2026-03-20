@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiPlus, FiEdit, FiTrash2, FiX, FiUpload, FiDroplet } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiX, FiUpload, FiDroplet, FiZoomIn } from 'react-icons/fi';
 import { supabase } from '../../../config/supabase';
 import { useColors } from '../../../hooks/useColors';
 import { compressImage } from '../../../utils/imageCompression';
 import useLockBodyScroll from '../../../hooks/useLockBodyScroll';
 
-const ColorsTab = () => {
+const ColorsTab = ({ setZoomedImage }) => {
     const navigate = useNavigate();
     const [filter, setFilter] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
@@ -264,46 +264,57 @@ const ColorsTab = () => {
                             key={color.id}
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="relative group"
+                            className="group relative bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden border border-gray-100"
                         >
-                            <div className="aspect-square rounded-lg overflow-hidden border-2 border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
+                            {/* Color Image */}
+                            <div
+                                className="relative group/img aspect-square w-full overflow-hidden bg-gray-100 cursor-pointer"
+                                onClick={() => setZoomedImage(color.image_url)}
+                            >
                                 <img
                                     src={color.image_url}
                                     alt={color.name}
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500"
                                     loading="lazy"
                                 />
-
-                                {/* Color Name */}
-                                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
-                                    <p className="text-white font-medium text-sm truncate">{color.name}</p>
+                                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                                    <FiZoomIn className="text-white text-2xl" />
                                 </div>
-
+                                
                                 {/* Availability Badge */}
-                                <div className="absolute top-2 left-2">
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${color.available
-                                        ? 'bg-green-100 text-green-700'
-                                        : 'bg-red-100 text-red-700'
+                                <div className="absolute top-2 left-2 z-10 pointer-events-none">
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium backdrop-blur-sm ${color.available
+                                        ? 'bg-green-100/90 text-green-700'
+                                        : 'bg-red-100/90 text-red-700'
                                         }`}>
                                         {color.available ? 'Available' : 'Unavailable'}
                                     </span>
                                 </div>
+                            </div>
 
-                                {/* Action Buttons */}
-                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                    <button
-                                        onClick={() => handleEdit(color)}
-                                        className="p-3 bg-white text-blue-600 rounded-full hover:bg-blue-50 transition-colors"
-                                    >
-                                        <FiEdit className="w-5 h-5" />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(color.id)}
-                                        className="p-3 bg-white text-red-600 rounded-full hover:bg-red-50 transition-colors"
-                                    >
-                                        <FiTrash2 className="w-5 h-5" />
-                                    </button>
+                            {/* Color Info */}
+                            <div className="p-4">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-semibold text-gray-900 truncate">{color.name}</h3>
                                 </div>
+                            </div>
+
+                            {/* Action Buttons - Show on hover */}
+                            <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                                <button
+                                    onClick={() => handleEdit(color)}
+                                    className="p-2 bg-white text-blue-600 hover:bg-blue-50 rounded-lg shadow-md transition-colors"
+                                    title="Edit color"
+                                >
+                                    <FiEdit className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(color.id)}
+                                    className="p-2 bg-white text-red-600 hover:bg-red-50 rounded-lg shadow-md transition-colors"
+                                    title="Delete color"
+                                >
+                                    <FiTrash2 className="w-4 h-4" />
+                                </button>
                             </div>
                         </motion.div>
                     ))}

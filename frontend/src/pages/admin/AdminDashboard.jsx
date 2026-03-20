@@ -257,7 +257,7 @@ const AdminDashboard = () => {
                 {activeTab === 'categories' && <CategoriesTab onRefresh={fetchData} />}
                 {activeTab === 'items' && <ItemsTab setZoomedImage={setZoomedImage} />}
                 {activeTab === 'deliveryPrices' && <DeliveryPricesTab />}
-                {activeTab === 'colors' && <ColorsTab />}
+                {activeTab === 'colors' && <ColorsTab setZoomedImage={setZoomedImage} />}
               </Suspense>
             </div>
           </div>
