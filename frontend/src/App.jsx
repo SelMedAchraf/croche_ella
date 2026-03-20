@@ -4,6 +4,7 @@ import { CartProvider } from './context/CartContext';
 import { Toaster, toast } from 'sonner';
 import './i18n/config';
 import { supabase } from './config/supabase';
+import axios from 'axios';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
@@ -34,6 +35,30 @@ const PageLoading = () => (
 function AppContent() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+
+  useEffect(() => {
+    // Axios global interceptor to catch any "User is blocked" HTTP 403 errors directly from the backend
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        if (
+          error.response?.status === 403 &&
+          error.response?.data?.error === 'User is blocked'
+        ) {
+          await supabase.auth.signOut();
+          toast.error("Your account has been blocked by an administrator.", { duration: 5000 });
+          if (window.location.pathname !== '/') {
+            window.location.href = '/';
+          }
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      axios.interceptors.response.eject(interceptor);
+    };
+  }, []);
 
   useEffect(() => {
     window.scrollTo(0, 0);
