@@ -1,8 +1,9 @@
 import { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
-import { Toaster } from 'sonner';
+import { Toaster, toast } from 'sonner';
 import './i18n/config';
+import { supabase } from './config/supabase';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
@@ -36,6 +37,22 @@ function AppContent() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+
+    const checkBan = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { error } = await supabase.auth.getUser();
+        if (error && error.message.toLowerCase().includes('ban')) {
+           await supabase.auth.signOut();
+           toast.error("Your account has been blocked by an administrator.", { duration: 5000 });
+           if (location.pathname !== '/') {
+               window.location.href = '/';
+           }
+        }
+      }
+    };
+    checkBan();
+
   }, [location.pathname]);
 
   return (

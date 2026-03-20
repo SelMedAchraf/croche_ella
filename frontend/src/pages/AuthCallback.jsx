@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../config/supabase';
+import { toast } from 'sonner';
 
 const AuthCallback = () => {
     const navigate = useNavigate();
@@ -10,6 +11,19 @@ const AuthCallback = () => {
         // We just wait for the session to be ready, then redirect to the original destination or home.
 
         const handleCallback = async () => {
+            if (window.location.hash) {
+                const hashStr = window.location.hash.substring(1); // remove '#'
+                const params = new URLSearchParams(hashStr);
+                const errorDesc = params.get('error_description') || params.get('error') || '';
+                if (errorDesc.toLowerCase().includes('ban')) {
+                    setTimeout(() => {
+                        toast.error("Your account has been blocked by an administrator.", { duration: 5000 });
+                    }, 500);
+                    navigate('/');
+                    return;
+                }
+            }
+
             const { data: { session }, error } = await supabase.auth.getSession();
 
             if (error) {
