@@ -1902,9 +1902,6 @@ const BouquetSummary = ({ bouquetData, onPreviewImage }) => {
             <div className="flex items-baseline gap-3 justify-center">
               <span className="text-5xl font-bold text-primary">{totalPrice.toFixed(2)} {t('common.da')}</span>
             </div>
-            <p className="text-xs text-gray-600 mt-3 leading-relaxed">
-              {t('customOrders.summary.minimumOrder')}
-            </p>
           </div>
         </div>
       </div>
