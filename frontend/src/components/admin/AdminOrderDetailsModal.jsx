@@ -659,26 +659,25 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                                 <div className="space-y-6">
                                     {/* Deposit */}
                                     {(!order.deposit_value || order.deposit_value === 0) && order.status === 'waiting_deposit' && (
-                                        <div className="bg-gradient-to-br from-blue-50 via-white to-blue-50/30 p-6 rounded-2xl border-2 border-blue-200 shadow-lg">
-                                            <div className="flex items-start justify-between mb-4">
+                                        <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex flex-col gap-3">
+                                            <div className="flex items-center justify-between">
                                                 <div>
-                                                    <h3 className="font-bold text-blue-900 text-lg flex items-center gap-2 mb-1">
-                                                        <span className="text-2xl">💰</span> Set Deposit Amount
-                                                    </h3>
-                                                    <p className="text-xs text-blue-700/70">This will confirm the order and update its status</p>
+                                                    <h4 className="font-semibold text-blue-900 text-sm flex items-center gap-1.5">
+                                                        <span>💰</span> Set Deposit
+                                                    </h4>
+                                                    <p className="text-xs text-blue-700/60 leading-tight">Confirm order and update status</p>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-0.5">Total Order</p>
-                                                    <p className="text-2xl font-bold text-blue-900">{order.total_amount} DA</p>
+                                                    <span className="text-[10px] text-gray-500 uppercase tracking-wider">Total</span>
+                                                    <p className="text-sm font-bold text-gray-900">{order.total_amount} DA</p>
                                                 </div>
                                             </div>
 
-                                            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 mb-4 border border-blue-100">
-                                                <label className="block text-sm font-semibold text-gray-700 mb-2">Enter Deposit Amount</label>
-                                                <div className="relative">
+                                            <div className="flex items-center gap-3">
+                                                <div className="relative flex-1">
                                                     <input
                                                         type="number"
-                                                        placeholder="0"
+                                                        placeholder="Amount"
                                                         value={depositInput}
                                                         onChange={(e) => {
                                                             const value = parseFloat(e.target.value);
@@ -689,57 +688,28 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                                                             }
                                                         }}
                                                         max={order.total_amount}
-                                                        className="w-full px-4 py-3 pr-12 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-lg font-semibold transition-all"
+                                                        className="w-full px-3 py-2 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm transition-all bg-white"
                                                     />
-                                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">DA</span>
+                                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-medium pointer-events-none">DA</span>
                                                 </div>
-
-                                                {/* Quick Percentage Buttons */}
-                                                <div className="mt-3 flex gap-2 flex-wrap">
-                                                    <p className="text-xs text-gray-600 w-full mb-1">Quick select:</p>
-                                                    {[25, 50, 75, 100].map(percent => (
-                                                        <button
-                                                            key={percent}
-                                                            type="button"
-                                                            onClick={() => setDepositInput((order.total_amount * percent / 100).toFixed(2))}
-                                                            className="px-3 py-1.5 text-xs font-semibold bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors border border-blue-200"
-                                                        >
-                                                            {percent}% ({(order.total_amount * percent / 100).toFixed(0)} DA)
-                                                        </button>
-                                                    ))}
-                                                </div>
-
-                                                {/* Validation Message */}
-                                                {depositInput && parseFloat(depositInput) > order.total_amount && (
-                                                    <p className="mt-2 text-xs text-red-600 flex items-center gap-1">
-                                                        <span>⚠️</span> Deposit cannot exceed total amount
-                                                    </p>
-                                                )}
-                                                {depositInput && parseFloat(depositInput) > 0 && parseFloat(depositInput) <= order.total_amount && (
-                                                    <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded-lg">
-                                                        <p className="text-xs text-green-800">
-                                                            <span className="font-semibold">Remaining balance:</span> {(order.total_amount - parseFloat(depositInput)).toFixed(2)} DA
-                                                        </p>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            <button
-                                                onClick={updateDeposit}
-                                                disabled={updatingOrderId === order.id || !depositInput || parseFloat(depositInput) <= 0 || parseFloat(depositInput) > order.total_amount}
-                                                className="w-full px-8 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-xl flex items-center justify-center gap-2"
-                                            >
-                                                {updatingOrderId === order.id ? (
-                                                    <>
+                                                <button
+                                                    onClick={updateDeposit}
+                                                    disabled={updatingOrderId === order.id || !depositInput || parseFloat(depositInput) <= 0 || parseFloat(depositInput) > order.total_amount}
+                                                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap flex items-center justify-center min-w-[100px]"
+                                                >
+                                                    {updatingOrderId === order.id ? (
                                                         <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                                                        Processing...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <span>✓</span> Confirm Deposit & Update Status
-                                                    </>
-                                                )}
-                                            </button>
+                                                    ) : (
+                                                        'Confirm'
+                                                    )}
+                                                </button>
+                                            </div>
+                                            
+                                            {depositInput && parseFloat(depositInput) > 0 && parseFloat(depositInput) <= order.total_amount && (
+                                                <p className="text-xs text-gray-500 text-right">
+                                                    Remaining: <span className="font-semibold text-gray-700">{(order.total_amount - parseFloat(depositInput)).toFixed(2)} DA</span>
+                                                </p>
+                                            )}
                                         </div>
                                     )}
 
