@@ -393,3 +393,50 @@ Crochet Ella`
     return false;
   }
 };
+
+export const sendFinalPaymentConfirmationToCustomer = async (order) => {
+  const transporter = createTransporter();
+  if (!transporter) return false;
+
+  const customerEmail = await getCustomerEmail(order.user_id);
+  if (!customerEmail) {
+    console.warn(`Customer email missing for Order ID: ${order.id}. Skipping final payment confirmation.`);
+    return false;
+  }
+
+  const depositAmount = parseFloat(order.deposit_value || 0).toFixed(2);
+  const totalAmount = parseFloat(order.total_amount || 0).toFixed(2);
+  const finalPayment = (parseFloat(totalAmount) - parseFloat(depositAmount)).toFixed(2);
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: customerEmail,
+    subject: `Final Payment Confirmed for Order #${order.order_id} - Crochet Ella`,
+    text: `Hello ${order.customer_name},
+
+Great news! We have safely recorded your final payment for Order #${order.order_id}.
+
+Payment Summary:
+- Total Order Amount: ${totalAmount} DA
+- Initial Deposit: ${depositAmount} DA
+- Final Payment: ${finalPayment} DA
+- Remaining Balance: 0.00 DA
+
+Your order is now fully paid!
+You can view your full order details anytime in the "My Orders" section on our website.
+
+Thank you for trusting Crochet Ella!
+
+Best regards,
+Crochet Ella`
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Final payment confirmation email sent to ${customerEmail} for Order ID: ${order.id}`);
+    return true;
+  } catch (error) {
+    console.error(`Failed to send final payment confirmation for Order ID: ${order.id}`, error);
+    return false;
+  }
+};

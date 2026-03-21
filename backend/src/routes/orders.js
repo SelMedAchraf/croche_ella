@@ -9,7 +9,8 @@ import {
   sendCancelRequestNotification,
   sendDepositConfirmationToCustomer,
   sendCustomPriceSetToCustomer,
-  sendOrderStatusUpdateToCustomer
+  sendOrderStatusUpdateToCustomer,
+  sendFinalPaymentConfirmationToCustomer
 } from '../utils/emailService.js';
 
 const router = express.Router();
@@ -463,6 +464,9 @@ router.patch('/:id/second-payment',
         .single();
 
       if (error) throw error;
+
+      // Notify customer about final payment confirmation (non-blocking)
+      sendFinalPaymentConfirmationToCustomer(data).catch(console.error);
 
       res.json(data);
     } catch (error) {
