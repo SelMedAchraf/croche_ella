@@ -195,6 +195,7 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
             await onRefresh();
 
             setSecondPaymentProofFile(null);
+            onClose();
         } catch (error) {
             console.error('Error setting second payment:', error);
             alert(error.message || 'Failed to set second payment');
@@ -400,29 +401,42 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                                                         <FiExternalLink className="w-2.5 h-2.5 opacity-70 ml-0.5" />
                                                     </a>
                                                 )}
-                                                {order.second_payment_proof_url && (
-                                                    <a
-                                                        href={order.second_payment_proof_url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="inline-flex items-center gap-1 px-2 py-0.5 ml-1 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800 rounded border border-green-200 transition-colors shadow-sm normal-case tracking-normal font-semibold text-[10px]"
-                                                        title="View Final Receipt"
-                                                    >
-                                                        <FiFileText className="w-3 h-3" />
-                                                        Final
-                                                        <FiExternalLink className="w-2.5 h-2.5 opacity-70 ml-0.5" />
-                                                    </a>
-                                                )}
                                             </h3>
                                             <span className="text-lg font-semibold text-green-600">
                                                 {order.deposit_value || 0} DA
                                             </span>
                                         </div>
+                                        {order.second_payment_completed && (order.total_amount - (order.deposit_value || 0)) > 0 && (
+                                            <>
+                                                <div className="hidden sm:block h-10 w-px bg-gray-200"></div>
+                                                <div>
+                                                    <h3 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1 flex items-center justify-center sm:justify-start gap-1">
+                                                        2nd Payment
+                                                        {order.second_payment_proof_url && (
+                                                            <a
+                                                                href={order.second_payment_proof_url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="inline-flex items-center gap-1 px-2 py-0.5 ml-1 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800 rounded border border-green-200 transition-colors shadow-sm normal-case tracking-normal font-semibold text-[10px]"
+                                                                title="View Official Receipt"
+                                                            >
+                                                                <FiFileText className="w-3 h-3" />
+                                                                Proof
+                                                                <FiExternalLink className="w-2.5 h-2.5 opacity-70 ml-0.5" />
+                                                            </a>
+                                                        )}
+                                                    </h3>
+                                                    <span className="text-lg font-semibold text-green-600">
+                                                        {(order.total_amount - (order.deposit_value || 0)).toFixed(2)} DA
+                                                    </span>
+                                                </div>
+                                            </>
+                                        )}
                                         <div className="hidden sm:block h-10 w-px bg-gray-200"></div>
                                         <div>
                                             <h3 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Remaining</h3>
                                             <span className="text-lg font-bold text-primary">
-                                                {Math.max(0, order.total_amount - (order.deposit_value || 0)).toFixed(2)} DA
+                                                {order.second_payment_completed ? '0.00' : Math.max(0, order.total_amount - (order.deposit_value || 0)).toFixed(2)} DA
                                             </span>
                                         </div>
                                     </div>
@@ -848,7 +862,7 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                                     )}
 
                                     {/* Second Payment UI */}
-                                    {(order.deposit_value > 0) && (order.total_amount - order.deposit_value) > 0 && order.status !== 'cancelled' && order.status !== 'done' && (
+                                    {(order.deposit_value > 0) && !order.second_payment_completed && (order.total_amount - order.deposit_value) > 0 && order.status !== 'cancelled' && order.status !== 'done' && (
                                         <div className="bg-green-50/50 p-4 rounded-xl border border-green-100 flex flex-col gap-3">
                                             <div className="flex items-center justify-between">
                                                 <div>

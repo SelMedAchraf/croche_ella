@@ -382,7 +382,7 @@ router.patch('/:id/status',
       if (status === 'done') {
           const remaining = parseFloat(currentOrder.total_amount) - parseFloat(currentOrder.deposit_value || 0);
           if (remaining > 0) {
-              updatePayload.deposit_value = parseFloat(currentOrder.total_amount);
+              updatePayload.second_payment_completed = true;
           }
       }
 
@@ -427,7 +427,7 @@ router.patch('/:id/second-payment',
       // First fetch the order to calculate remaining
       const { data: order, error: fetchError } = await supabase
         .from('orders')
-        .select('id, total_amount, deposit_value')
+        .select('id, total_amount, deposit_value, second_payment_completed')
         .eq('id', req.params.id)
         .single();
 
@@ -438,12 +438,16 @@ router.patch('/:id/second-payment',
       
       const remaining = parseFloat(order.total_amount) - parseFloat(order.deposit_value || 0);
 
+      if (order.second_payment_completed) {
+        return res.status(400).json({ error: 'Second payment has already been completed for this order' });
+      }
+
       if (remaining <= 0) {
         return res.status(400).json({ error: 'There is no remaining amount to be paid' });
       }
 
       const updatePayload = { 
-        deposit_value: parseFloat(order.total_amount),
+        second_payment_completed: true,
         updated_at: new Date().toISOString() 
       };
 
