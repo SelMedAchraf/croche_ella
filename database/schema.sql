@@ -77,6 +77,8 @@ CREATE TABLE orders (
   status VARCHAR(50) DEFAULT 'pending',
   delivery_type VARCHAR(50) DEFAULT 'home',
   delivery_price DECIMAL(10, 2) DEFAULT 0,
+  deposit_value DECIMAL(10, 2) DEFAULT 0,
+  deposit_proof_url TEXT,
   admin_note TEXT,
   cancel_requested BOOLEAN DEFAULT FALSE,
   cancel_requested_at TIMESTAMP WITH TIME ZONE,

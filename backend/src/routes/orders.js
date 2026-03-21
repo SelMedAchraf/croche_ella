@@ -399,7 +399,8 @@ router.patch('/:id/deposit',
         throw new Error('Deposit must be positive');
       }
       return true;
-    })
+    }),
+    body('deposit_proof_url').optional({ nullable: true }).isString()
   ],
   async (req, res) => {
     try {
@@ -408,7 +409,7 @@ router.patch('/:id/deposit',
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const { deposit_value } = req.body;
+      const { deposit_value, deposit_proof_url } = req.body;
 
       // First fetch the order to validate deposit doesn't exceed total
       const { data: order, error: fetchError } = await supabase
@@ -432,12 +433,18 @@ router.patch('/:id/deposit',
       }
 
       // Update deposit (trigger will auto-calculate remaining_balance)
+      const updatePayload = { 
+        deposit_value: parseFloat(deposit_value),
+        updated_at: new Date().toISOString() 
+      };
+
+      if (deposit_proof_url) {
+        updatePayload.deposit_proof_url = deposit_proof_url;
+      }
+
       const { data, error } = await supabase
         .from('orders')
-        .update({ 
-          deposit_value: parseFloat(deposit_value),
-          updated_at: new Date().toISOString() 
-        })
+        .update(updatePayload)
         .eq('id', req.params.id)
         .select()
         .single();

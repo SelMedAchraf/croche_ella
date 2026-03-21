@@ -9,6 +9,8 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
     const [activeTab, setActiveTab] = useState('order_info');
     const [updatingOrderId, setUpdatingOrderId] = useState(null);
     const [depositInput, setDepositInput] = useState('');
+    const [depositProofFile, setDepositProofFile] = useState(null);
+    const [uploadingReceipt, setUploadingReceipt] = useState(false);
     const [itemPriceInput, setItemPriceInput] = useState({});
     const [adminNoteInput, setAdminNoteInput] = useState(initialOrder?.admin_note || '');
     const [zoomedImage, setZoomedImage] = useImageZoom();
@@ -23,6 +25,7 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
             setOrder(initialOrder);
             setAdminNoteInput(initialOrder.admin_note || '');
             setDepositInput('');
+            setDepositProofFile(null);
             setItemPriceInput({});
             setExpandedCustomDetails({});
             setActiveTab('order_info');
@@ -77,13 +80,38 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                 return;
             }
 
+            let depositProofUrl = null;
+
+            if (depositProofFile) {
+                setUploadingReceipt(true);
+                const fileExt = depositProofFile.name.split('.').pop();
+                const fileName = `receipt_${order.id}_${Math.random()}.${fileExt}`;
+                const filePath = `receipts/${fileName}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('product-images')
+                    .upload(filePath, depositProofFile);
+
+                if (uploadError) throw uploadError;
+
+                const { data: { publicUrl } } = supabase.storage
+                    .from('product-images')
+                    .getPublicUrl(filePath);
+
+                depositProofUrl = publicUrl;
+                setUploadingReceipt(false);
+            }
+
             const depositResponse = await fetch(`${import.meta.env.VITE_API_URL}/orders/${order.id}/deposit`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${session.access_token}`
                 },
-                body: JSON.stringify({ deposit_value: parseFloat(depositInput) })
+                body: JSON.stringify({ 
+                    deposit_value: parseFloat(depositInput),
+                    deposit_proof_url: depositProofUrl 
+                })
             });
 
             if (!depositResponse.ok) {
@@ -102,10 +130,12 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
 
             await onRefresh();
             setDepositInput('');
+            setDepositProofFile(null);
             onClose();
         } catch (error) {
             console.error('Error setting deposit:', error);
             alert(error.message || 'Failed to set deposit');
+            setUploadingReceipt(false);
         } finally {
             setUpdatingOrderId(null);
         }
@@ -292,7 +322,14 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                                         </div>
                                         <div className="hidden sm:block h-10 w-px bg-gray-200"></div>
                                         <div>
-                                            <h3 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Deposit</h3>
+                                            <h3 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1 flex items-center justify-center sm:justify-start gap-1">
+                                                Deposit
+                                                {order.deposit_proof_url && (
+                                                    <a href={order.deposit_proof_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700 ml-1" title="View Receipt">
+                                                        📄
+                                                    </a>
+                                                )}
+                                            </h3>
                                             <span className="text-lg font-semibold text-green-600">
                                                 {order.deposit_value || 0} DA
                                             </span>
@@ -673,36 +710,49 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center gap-3">
-                                                <div className="relative flex-1">
-                                                    <input
-                                                        type="number"
-                                                        placeholder="Amount"
-                                                        value={depositInput}
-                                                        onChange={(e) => {
-                                                            const value = parseFloat(e.target.value);
-                                                            if (value > order.total_amount) {
-                                                                setDepositInput(order.total_amount);
-                                                            } else {
-                                                                setDepositInput(e.target.value);
-                                                            }
-                                                        }}
-                                                        max={order.total_amount}
-                                                        className="w-full px-3 py-2 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm transition-all bg-white"
-                                                    />
-                                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-medium pointer-events-none">DA</span>
+                                            <div className="flex flex-col gap-2">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="relative flex-1">
+                                                        <input
+                                                            type="number"
+                                                            placeholder="Amount"
+                                                            value={depositInput}
+                                                            onChange={(e) => {
+                                                                const value = parseFloat(e.target.value);
+                                                                if (value > order.total_amount) {
+                                                                    setDepositInput(order.total_amount);
+                                                                } else {
+                                                                    setDepositInput(e.target.value);
+                                                                }
+                                                            }}
+                                                            max={order.total_amount}
+                                                            className="w-full px-3 py-2 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm transition-all bg-white"
+                                                        />
+                                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-medium pointer-events-none">DA</span>
+                                                    </div>
+                                                    <button
+                                                        onClick={updateDeposit}
+                                                        disabled={updatingOrderId === order.id || !depositInput || parseFloat(depositInput) <= 0 || parseFloat(depositInput) > order.total_amount || uploadingReceipt}
+                                                        className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap flex items-center justify-center min-w-[100px]"
+                                                    >
+                                                        {updatingOrderId === order.id ? (
+                                                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                                                        ) : (
+                                                            'Confirm'
+                                                        )}
+                                                    </button>
                                                 </div>
-                                                <button
-                                                    onClick={updateDeposit}
-                                                    disabled={updatingOrderId === order.id || !depositInput || parseFloat(depositInput) <= 0 || parseFloat(depositInput) > order.total_amount}
-                                                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap flex items-center justify-center min-w-[100px]"
-                                                >
-                                                    {updatingOrderId === order.id ? (
-                                                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                                                    ) : (
-                                                        'Confirm'
-                                                    )}
-                                                </button>
+                                                
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <label className="text-xs text-gray-600 font-medium whitespace-nowrap">Receipt (Optional):</label>
+                                                    <input 
+                                                        type="file" 
+                                                        accept="image/*,.pdf" 
+                                                        onChange={(e) => setDepositProofFile(e.target.files[0])}
+                                                        className="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200"
+                                                    />
+                                                </div>
+                                                {uploadingReceipt && <p className="text-xs text-blue-600 animate-pulse font-medium">Uploading receipt, please wait...</p>}
                                             </div>
                                             
                                             {depositInput && parseFloat(depositInput) > 0 && parseFloat(depositInput) <= order.total_amount && (
