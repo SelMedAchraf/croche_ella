@@ -112,9 +112,9 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${session.access_token}`
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     deposit_value: parseFloat(depositInput),
-                    deposit_proof_url: depositProofUrl 
+                    deposit_proof_url: depositProofUrl
                 })
             });
 
@@ -182,8 +182,8 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${session.access_token}`
                 },
-                body: JSON.stringify({ 
-                    proof_url: proofUrl 
+                body: JSON.stringify({
+                    proof_url: proofUrl
                 })
             });
 
@@ -303,7 +303,7 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
     return (
         <>
             <AnimatePresence>
-                <div 
+                <div
                     className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4"
                     onClick={onClose}
                 >
@@ -411,7 +411,7 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                                                 <div className="hidden sm:block h-10 w-px bg-gray-200"></div>
                                                 <div>
                                                     <h3 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1 flex items-center justify-center sm:justify-start gap-1">
-                                                        2nd Payment
+                                                        Final Payment
                                                         {order.second_payment_proof_url && (
                                                             <a
                                                                 href={order.second_payment_proof_url}
@@ -840,19 +840,19 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                                                         )}
                                                     </button>
                                                 </div>
-                                                
+
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <label className="text-xs text-gray-600 font-medium whitespace-nowrap">Receipt (Optional):</label>
-                                                    <input 
-                                                        type="file" 
-                                                        accept="image/*,.pdf" 
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*,.pdf"
                                                         onChange={(e) => setDepositProofFile(e.target.files[0])}
                                                         className="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200"
                                                     />
                                                 </div>
                                                 {uploadingReceipt && <p className="text-xs text-blue-600 animate-pulse font-medium">Uploading receipt, please wait...</p>}
                                             </div>
-                                            
+
                                             {depositInput && parseFloat(depositInput) > 0 && parseFloat(depositInput) <= order.total_amount && (
                                                 <p className="text-xs text-gray-500 text-right">
                                                     Remaining: <span className="font-semibold text-gray-700">{(order.total_amount - parseFloat(depositInput)).toFixed(2)} DA</span>
@@ -891,12 +891,12 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                                                         )}
                                                     </button>
                                                 </div>
-                                                
+
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <label className="text-xs text-green-700 font-medium whitespace-nowrap">Receipt (Optional):</label>
-                                                    <input 
-                                                        type="file" 
-                                                        accept="image/*,.pdf" 
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*,.pdf"
                                                         onChange={(e) => setSecondPaymentProofFile(e.target.files[0])}
                                                         className="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-green-100 file:text-green-800 hover:file:bg-green-200"
                                                     />
