@@ -62,7 +62,7 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen section-padding">
+    <div className="min-h-screen section-padding overflow-x-hidden">
       <div className="max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -78,12 +78,12 @@ const Contact = () => {
           <div className="w-20 h-1 bg-highlight mx-auto rounded-full mt-6"></div>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-12">
+        <div className="grid md:grid-cols-2 gap-8 md:gap-12 w-full max-w-full">
           {/* Contact Form */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
-            className="card p-8"
+            className="card p-5 md:p-8 w-full max-w-full"
           >
             <h2 className="text-2xl font-display font-semibold text-primary mb-6">
               {t('contact.sendMessage')}
@@ -166,9 +166,9 @@ const Contact = () => {
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
-            className="space-y-6"
+            className="space-y-6 w-full max-w-full"
           >
-            <div className="card p-8">
+            <div className="card p-5 md:p-8 w-full max-w-full">
               <h3 className="text-xl font-display font-semibold text-primary mb-6">
                 {t('contact.info')}
               </h3>
@@ -180,7 +180,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h4 className="font-semibold mb-1">{t('contact.emailLabel')}</h4>
-                    <a href="mailto:crochetwebsite19@gmail.com" className="text-text/70 hover:text-primary">
+                    <a href="mailto:crochetwebsite19@gmail.com" className="text-text/70 hover:text-primary break-all">
                       crochetwebsite19@gmail.com
                     </a>
                   </div>
@@ -210,7 +210,7 @@ const Contact = () => {
               </div>
             </div>
 
-            <div className="card p-8">
+            <div className="card p-5 md:p-8 w-full max-w-full">
               <h3 className="text-xl font-display font-semibold text-primary mb-6 text-center">
                 {t('contact.followUs')}
               </h3>

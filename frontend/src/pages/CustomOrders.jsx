@@ -1697,9 +1697,9 @@ const ItemCard = ({ item, quantity, onAdd, onRemove, onPreview }) => {
           {quantity === 0 ? (
             <button
               onClick={onAdd}
-              className="w-full sm:w-auto px-4 py-2 bg-primary text-white rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-1"
+              className="w-full sm:w-auto px-4 py-2 bg-primary text-white rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-1 font-medium"
             >
-              <FiPlus className="w-4 h-4" /> {t('products.addToCart')}
+              {t('products.addToCart')}
             </button>
           ) : (
             <div className="flex items-center gap-3">
