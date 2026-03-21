@@ -121,9 +121,8 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile Menu - CSS Driven */}
         <div
-          className={`lg:hidden bg-white border-t border-gray-100 mobile-menu-enter ${isMenuOpen ? 'mobile-menu-active' : ''}`}
+          className={`lg:hidden bg-white border-t border-gray-100 mobile-menu-enter ${isMenuOpen ? 'mobile-menu-active' : ''} max-h-[calc(100vh-5rem)] overflow-y-auto`}
         >
           <div className="px-4 py-4 space-y-3">
             {navLinks.map((link) => (
