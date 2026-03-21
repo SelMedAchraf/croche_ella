@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiX, FiZoomIn, FiSettings, FiSave } from 'react-icons/fi';
+import { FiX, FiZoomIn, FiSettings, FiSave, FiFileText, FiExternalLink } from 'react-icons/fi';
 import { supabase } from '../../config/supabase';
 import useLockBodyScroll from '../../hooks/useLockBodyScroll';
 import useImageZoom from '../../hooks/useImageZoom';
@@ -325,8 +325,16 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                                             <h3 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1 flex items-center justify-center sm:justify-start gap-1">
                                                 Deposit
                                                 {order.deposit_proof_url && (
-                                                    <a href={order.deposit_proof_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700 ml-1" title="View Receipt">
-                                                        📄
+                                                    <a
+                                                        href={order.deposit_proof_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center gap-1 px-2 py-0.5 ml-1 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 rounded border border-blue-200 transition-colors shadow-sm normal-case tracking-normal font-semibold text-[10px]"
+                                                        title="View Official Receipt"
+                                                    >
+                                                        <FiFileText className="w-3 h-3" />
+                                                        Proof
+                                                        <FiExternalLink className="w-2.5 h-2.5 opacity-70 ml-0.5" />
                                                     </a>
                                                 )}
                                             </h3>
