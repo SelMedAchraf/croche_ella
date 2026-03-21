@@ -79,6 +79,8 @@ CREATE TABLE orders (
   delivery_price DECIMAL(10, 2) DEFAULT 0,
   deposit_value DECIMAL(10, 2) DEFAULT 0,
   deposit_proof_url TEXT,
+  second_payment_value DECIMAL(10, 2) DEFAULT 0,
+  second_payment_proof_url TEXT,
   admin_note TEXT,
   cancel_requested BOOLEAN DEFAULT FALSE,
   cancel_requested_at TIMESTAMP WITH TIME ZONE,

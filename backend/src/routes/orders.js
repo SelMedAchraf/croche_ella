@@ -367,9 +367,28 @@ router.patch('/:id/status',
         });
       }
 
+      const { data: currentOrder, error: fetchError } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', req.params.id)
+        .single();
+        
+      if (fetchError || !currentOrder) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+
+      let updatePayload = { status, updated_at: new Date().toISOString() };
+
+      if (status === 'done') {
+          const remaining = parseFloat(currentOrder.total_amount) - parseFloat(currentOrder.deposit_value || 0) - parseFloat(currentOrder.second_payment_value || 0);
+          if (remaining > 0) {
+              updatePayload.second_payment_value = parseFloat(currentOrder.second_payment_value || 0) + remaining;
+          }
+      }
+
       const { data, error } = await supabase
         .from('orders')
-        .update({ status, updated_at: new Date().toISOString() })
+        .update(updatePayload)
         .eq('id', req.params.id)
         .select()
         .single();
@@ -386,6 +405,76 @@ router.patch('/:id/status',
     } catch (error) {
       console.error('Error updating order:', error);
       res.status(500).json({ error: 'Failed to update order' });
+    }
+  }
+);
+
+// Set second payment value (admin only)
+router.patch('/:id/second-payment',
+  authenticateAdmin,
+  [
+    body('amount').isNumeric().custom(value => {
+      if (value < 0) {
+        throw new Error('Amount must be positive');
+      }
+      return true;
+    }),
+    body('proof_url').optional({ nullable: true }).isString()
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { amount, proof_url } = req.body;
+
+      // First fetch the order to validate payment doesn't exceed remaining
+      const { data: order, error: fetchError } = await supabase
+        .from('orders')
+        .select('id, total_amount, deposit_value')
+        .eq('id', req.params.id)
+        .single();
+
+      if (fetchError) throw fetchError;
+      if (!order) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+
+      const remaining = parseFloat(order.total_amount) - parseFloat(order.deposit_value || 0);
+
+      // Validate second payment doesn't exceed remaining total
+      if (parseFloat(amount) > remaining) {
+        return res.status(400).json({ 
+          error: 'Second payment cannot exceed the remaining amount',
+          amount,
+          remaining
+        });
+      }
+
+      const updatePayload = { 
+        second_payment_value: parseFloat(amount),
+        updated_at: new Date().toISOString() 
+      };
+
+      if (proof_url) {
+        updatePayload.second_payment_proof_url = proof_url;
+      }
+
+      const { data, error } = await supabase
+        .from('orders')
+        .update(updatePayload)
+        .eq('id', req.params.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      res.json(data);
+    } catch (error) {
+      console.error('Error setting second payment:', error);
+      res.status(500).json({ error: 'Failed to set second payment' });
     }
   }
 );

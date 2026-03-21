@@ -11,6 +11,9 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
     const [depositInput, setDepositInput] = useState('');
     const [depositProofFile, setDepositProofFile] = useState(null);
     const [uploadingReceipt, setUploadingReceipt] = useState(false);
+    const [secondPaymentInput, setSecondPaymentInput] = useState('');
+    const [secondPaymentProofFile, setSecondPaymentProofFile] = useState(null);
+    const [uploadingSecondReceipt, setUploadingSecondReceipt] = useState(false);
     const [itemPriceInput, setItemPriceInput] = useState({});
     const [adminNoteInput, setAdminNoteInput] = useState(initialOrder?.admin_note || '');
     const [zoomedImage, setZoomedImage] = useImageZoom();
@@ -25,6 +28,8 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
             setOrder(initialOrder);
             setAdminNoteInput(initialOrder.admin_note || '');
             setDepositInput('');
+            setSecondPaymentInput('');
+            setSecondPaymentProofFile(null);
             setDepositProofFile(null);
             setItemPriceInput({});
             setExpandedCustomDetails({});
@@ -136,6 +141,71 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
             console.error('Error setting deposit:', error);
             alert(error.message || 'Failed to set deposit');
             setUploadingReceipt(false);
+        } finally {
+            setUpdatingOrderId(null);
+        }
+    };
+
+    const updateSecondPayment = async () => {
+        if (!secondPaymentInput || parseFloat(secondPaymentInput) <= 0) {
+            alert('Please enter a valid amount');
+            return;
+        }
+
+        setUpdatingOrderId(order.id);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                alert('Session expired. Please login again.');
+                return;
+            }
+
+            let proofUrl = null;
+
+            if (secondPaymentProofFile) {
+                setUploadingSecondReceipt(true);
+                const fileExt = secondPaymentProofFile.name.split('.').pop();
+                const fileName = `receipt2_${order.id}_${Math.random()}.${fileExt}`;
+                const filePath = `receipts/${fileName}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('product-images')
+                    .upload(filePath, secondPaymentProofFile);
+
+                if (uploadError) throw uploadError;
+
+                const { data: { publicUrl } } = supabase.storage
+                    .from('product-images')
+                    .getPublicUrl(filePath);
+
+                proofUrl = publicUrl;
+                setUploadingSecondReceipt(false);
+            }
+
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/orders/${order.id}/second-payment`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`
+                },
+                body: JSON.stringify({ 
+                    amount: parseFloat(secondPaymentInput),
+                    proof_url: proofUrl 
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to set second payment');
+            }
+
+            await onRefresh();
+            setSecondPaymentInput('');
+            setSecondPaymentProofFile(null);
+        } catch (error) {
+            console.error('Error setting second payment:', error);
+            alert(error.message || 'Failed to set second payment');
+            setUploadingSecondReceipt(false);
         } finally {
             setUpdatingOrderId(null);
         }
@@ -342,11 +412,37 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                                                 {order.deposit_value || 0} DA
                                             </span>
                                         </div>
+                                        {order.second_payment_value > 0 && (
+                                            <>
+                                                <div className="hidden sm:block h-10 w-px bg-gray-200"></div>
+                                                <div>
+                                                    <h3 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1 flex items-center justify-center sm:justify-start gap-1">
+                                                        2nd Payment
+                                                        {order.second_payment_proof_url && (
+                                                            <a
+                                                                href={order.second_payment_proof_url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="inline-flex items-center gap-1 px-2 py-0.5 ml-1 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800 rounded border border-green-200 transition-colors shadow-sm normal-case tracking-normal font-semibold text-[10px]"
+                                                                title="View Official Receipt"
+                                                            >
+                                                                <FiFileText className="w-3 h-3" />
+                                                                Proof
+                                                                <FiExternalLink className="w-2.5 h-2.5 opacity-70 ml-0.5" />
+                                                            </a>
+                                                        )}
+                                                    </h3>
+                                                    <span className="text-lg font-semibold text-green-600">
+                                                        {order.second_payment_value} DA
+                                                    </span>
+                                                </div>
+                                            </>
+                                        )}
                                         <div className="hidden sm:block h-10 w-px bg-gray-200"></div>
                                         <div>
                                             <h3 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Remaining</h3>
                                             <span className="text-lg font-bold text-primary">
-                                                {order.total_amount - (order.deposit_value || 0)} DA
+                                                {Math.max(0, order.total_amount - (order.deposit_value || 0) - (order.second_payment_value || 0)).toFixed(2)} DA
                                             </span>
                                         </div>
                                     </div>
@@ -768,6 +864,70 @@ const AdminOrderDetailsModal = ({ order: initialOrder, isOpen, onClose, onRefres
                                                     Remaining: <span className="font-semibold text-gray-700">{(order.total_amount - parseFloat(depositInput)).toFixed(2)} DA</span>
                                                 </p>
                                             )}
+                                        </div>
+                                    )}
+
+                                    {/* Second Payment UI */}
+                                    {(order.deposit_value > 0) && (order.total_amount - order.deposit_value - (order.second_payment_value || 0)) > 0 && order.status !== 'cancelled' && order.status !== 'done' && (
+                                        <div className="bg-green-50/50 p-4 rounded-xl border border-green-100 flex flex-col gap-3">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <h4 className="font-semibold text-green-900 text-sm flex items-center gap-1.5">
+                                                        <span>✅</span> Complete Payment
+                                                    </h4>
+                                                    <p className="text-xs text-green-700/60 leading-tight">Second step payment if applicable</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className="text-[10px] text-gray-500 uppercase tracking-wider">Remaining</span>
+                                                    <p className="text-sm font-bold text-gray-900">{(order.total_amount - order.deposit_value - (order.second_payment_value || 0)).toFixed(2)} DA</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-col gap-2">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="relative flex-1">
+                                                        <input
+                                                            type="number"
+                                                            placeholder="Amount"
+                                                            value={secondPaymentInput}
+                                                            onChange={(e) => {
+                                                                const value = parseFloat(e.target.value);
+                                                                const maxRemaining = order.total_amount - order.deposit_value - (order.second_payment_value || 0);
+                                                                if (value > maxRemaining) {
+                                                                    setSecondPaymentInput(maxRemaining);
+                                                                } else {
+                                                                    setSecondPaymentInput(e.target.value);
+                                                                }
+                                                            }}
+                                                            max={order.total_amount - order.deposit_value - (order.second_payment_value || 0)}
+                                                            className="w-full px-3 py-2 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-sm transition-all bg-white"
+                                                        />
+                                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-medium pointer-events-none">DA</span>
+                                                    </div>
+                                                    <button
+                                                        onClick={updateSecondPayment}
+                                                        disabled={updatingOrderId === order.id || !secondPaymentInput || parseFloat(secondPaymentInput) <= 0 || parseFloat(secondPaymentInput) > (order.total_amount - order.deposit_value - (order.second_payment_value || 0)) || uploadingSecondReceipt}
+                                                        className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap flex items-center justify-center min-w-[100px]"
+                                                    >
+                                                        {updatingOrderId === order.id ? (
+                                                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                                                        ) : (
+                                                            'Confirm'
+                                                        )}
+                                                    </button>
+                                                </div>
+                                                
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <label className="text-xs text-green-700 font-medium whitespace-nowrap">Receipt (Optional):</label>
+                                                    <input 
+                                                        type="file" 
+                                                        accept="image/*,.pdf" 
+                                                        onChange={(e) => setSecondPaymentProofFile(e.target.files[0])}
+                                                        className="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-green-100 file:text-green-800 hover:file:bg-green-200"
+                                                    />
+                                                </div>
+                                                {uploadingSecondReceipt && <p className="text-xs text-green-700 animate-pulse font-medium">Uploading receipt, please wait...</p>}
+                                            </div>
                                         </div>
                                     )}
 
